@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="presentation">
+  <!-- Pond I: lily pads with leaf veins, hairline stroke only, no heavy fill -->
+  <g fill="none" stroke="#2f6b52" stroke-linecap="round" stroke-linejoin="round" opacity="0.16">
+    <g stroke-width="2">
+      <path d="M118 322a74 74 0 1 0 0-2l-6 1z" />
+      <path d="M112 323 148 274" />
+      <path d="M112 323 118 250" />
+      <path d="M112 323 74 262" />
+      <path d="M112 323 44 306" />
+      <path d="M112 323 60 372" />
+      <path d="M112 323 128 392" />
+      <path d="M112 323 178 350" />
+    </g>
+    <g stroke-width="1.4" opacity="0.7">
+      <path d="M296 96a44 44 0 1 0 0-1l-4 .6z" />
+      <path d="M292 96 320 68" />
+      <path d="M292 96 336 106" />
+      <path d="M292 96 300 138" />
+      <path d="M292 96 256 74" />
+      <path d="M292 96 254 118" />
+    </g>
+    <g stroke-width="1.2" opacity="0.55">
+      <path d="M0 196c46-16 92 16 138 0" />
+      <path d="M20 220c46-16 92 16 138 0" />
+    </g>
+  </g>
+</svg>

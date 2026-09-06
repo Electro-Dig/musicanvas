@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="presentation">
+  <!-- Pond II: off-centre ripples, concentric rings fading outward -->
+  <g fill="none" stroke="#2f6b52" stroke-linecap="round">
+    <g opacity="0.2" stroke-width="1.6">
+      <circle cx="146" cy="152" r="26" />
+      <circle cx="146" cy="152" r="52" opacity="0.82" />
+      <circle cx="146" cy="152" r="82" opacity="0.64" />
+      <circle cx="146" cy="152" r="116" opacity="0.46" />
+      <circle cx="146" cy="152" r="154" opacity="0.3" />
+    </g>
+    <g opacity="0.16" stroke-width="1.3">
+      <circle cx="298" cy="300" r="18" />
+      <circle cx="298" cy="300" r="40" opacity="0.75" />
+      <circle cx="298" cy="300" r="66" opacity="0.55" />
+      <circle cx="298" cy="300" r="96" opacity="0.35" />
+    </g>
+    <g opacity="0.12" stroke-width="1.1">
+      <path d="M0 358c50-14 100 14 150 0s100-14 150 0 100 14 100 0" />
+      <path d="M0 380c50-14 100 14 150 0s100-14 150 0 100 14 100 0" />
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,240 @@
+/* SoftSelect — 柔和自定义下拉，对齐 Studio 侧栏浅绿质感 */
+
+.quad-soft-select {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  vertical-align: middle;
+  font-family: var(--studio-font-ui, "Plus Jakarta Sans", "DM Sans", "DengXian", "等线", "Microsoft YaHei", sans-serif);
+}
+
+.quad-soft-select__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  height: 24px;
+  padding: 0 6px 0 7px;
+  box-sizing: border-box;
+  /* 提高优先级，避免被 .quad-lily-pad button { border:0 } 清掉外框 */
+  border: 1px solid var(--quad-line, color-mix(in srgb, var(--quad-ink, #1a2420) 16%, transparent)) !important;
+  border-radius: 8px !important;
+  background: color-mix(in srgb, var(--quad-surface, #e8f0ea) 72%, #ffffff) !important;
+  color: var(--quad-ink, #1a2420) !important;
+  cursor: pointer;
+  font: inherit !important;
+  letter-spacing: 0.01em !important;
+  outline: none;
+  box-shadow: none;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.quad-soft-select__trigger:hover {
+  border-color: color-mix(in srgb, var(--quad-pad-color, var(--quad-stamen, #c44569)) 55%, var(--quad-line)) !important;
+}
+
+.quad-soft-select.is-open .quad-soft-select__trigger,
+.quad-soft-select__trigger:focus-visible {
+  border-color: var(--quad-pad-color, var(--selected-pad-color, var(--quad-stamen, #c44569))) !important;
+  outline: none;
+  box-shadow: none !important;
+}
+
+.quad-soft-select__prefix {
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--quad-muted, #6a7a70);
+  white-space: nowrap;
+}
+
+.quad-soft-select__value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.quad-soft-select__chevron {
+  flex: 0 0 auto;
+  opacity: 0.55;
+  color: var(--quad-ink, #1a2420);
+}
+
+.quad-soft-select.is-open .quad-soft-select__chevron {
+  transform: rotate(180deg);
+}
+
+/* —— variants —— */
+.quad-soft-select--default {
+  /* 固定触发器宽度，不随选中音色名变宽 */
+  width: 128px;
+  max-width: 128px;
+  min-width: 128px;
+  flex: 0 0 128px;
+}
+
+.quad-soft-select--channel {
+  width: 68px;
+  max-width: 68px;
+  min-width: 68px;
+  flex: 0 0 68px;
+}
+
+.quad-soft-select--channel .quad-soft-select__trigger {
+  padding: 0 5px;
+  gap: 3px;
+}
+
+.quad-soft-select--channel .quad-soft-select__value {
+  flex: 0 1 auto;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  min-width: 0.9em;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-family: var(--studio-font-ui, "Plus Jakarta Sans", "DM Sans", sans-serif);
+}
+
+.quad-soft-select--channel .quad-soft-select__chevron {
+  display: none;
+}
+
+.quad-soft-select--pro {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  display: block;
+}
+
+.quad-soft-select--pro .quad-soft-select__trigger {
+  height: 26px;
+  border-radius: 999px !important;
+  justify-content: flex-start;
+  padding: 0 22px 0 10px;
+  background: color-mix(in srgb, var(--quad-surface, #e8f0ea) 70%, #ffffff) !important;
+  position: relative;
+}
+
+.quad-soft-select--pro .quad-soft-select__value {
+  text-align: left;
+}
+
+.quad-soft-select--pro .quad-soft-select__chevron {
+  position: absolute;
+  right: 8px;
+}
+
+.quad-soft-select--midi {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+}
+
+.quad-soft-select--midi .quad-soft-select__trigger {
+  height: 100%;
+  min-height: 22px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding: 0 2px;
+  justify-content: flex-start;
+}
+
+.quad-soft-select--midi .quad-soft-select__value {
+  text-align: left;
+  font-size: var(--studio-fs-control, 11px);
+}
+
+/* —— floating menu（fixed，避开 overflow 裁切）—— */
+.quad-soft-select__menu {
+  position: fixed;
+  z-index: 10050;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid color-mix(in srgb, var(--quad-ink, #1a2420) 12%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--quad-surface, #e8f0ea) 88%, #ffffff);
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--quad-ink, #1a2420) 12%, transparent),
+    0 1px 0 color-mix(in srgb, #ffffff 55%, transparent) inset;
+  font-family: var(--studio-font-ui, "Plus Jakarta Sans", "DM Sans", "DengXian", "等线", "Microsoft YaHei", sans-serif);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--quad-stamen, #6aa88a) 45%, transparent) transparent;
+}
+
+.quad-soft-select__menu--default {
+  /* 与定位逻辑一致：固定宽，长名单行 */
+  width: 168px !important;
+}
+
+.quad-soft-select__menu--channel {
+  padding: 3px;
+  border-radius: 8px;
+  min-width: 0;
+  width: 48px !important;
+}
+
+.quad-soft-select__option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  padding: 4px 8px;
+  margin: 0;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  color: var(--quad-ink, #1a2420);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  font-variant-numeric: lining-nums tabular-nums;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quad-soft-select__menu--channel .quad-soft-select__option {
+  min-height: 24px;
+  padding: 3px 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.quad-soft-select__menu--pro .quad-soft-select__option,
+.quad-soft-select__menu--midi .quad-soft-select__option,
+.quad-soft-select__menu--default .quad-soft-select__option {
+  justify-content: center;
+}
+
+.quad-soft-select__option.is-active {
+  background: color-mix(in srgb, var(--quad-stamen, #6aa88a) 14%, transparent);
+}
+
+.quad-soft-select__option.is-selected {
+  border-color: color-mix(in srgb, var(--selected-pad-color, var(--quad-stamen, #c44569)) 70%, transparent);
+  background: color-mix(in srgb, var(--selected-pad-color, var(--quad-stamen, #c44569)) 12%, transparent);
+  color: var(--quad-ink, #1a2420);
+}
+
+.quad-soft-select__option.is-selected.is-active {
+  background: color-mix(in srgb, var(--selected-pad-color, var(--quad-stamen, #c44569)) 18%, transparent);
+}

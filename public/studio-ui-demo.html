@@ -1,0 +1,1107 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quad Lily · Studio Look + Font Compare</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      color: #1a1a1a;
+      font-family: "Segoe UI Variable Text", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #f3f5f4;
+    }
+    body {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 28px 14px;
+      border-bottom: 1px solid #d7ddd9;
+      background: #fafbfa;
+    }
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      font-weight: 800;
+    }
+    header p {
+      margin: 0;
+      max-width: 52em;
+      color: #66726c;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    header .note {
+      font-size: 12px;
+      color: #66726c;
+      white-space: nowrap;
+    }
+    main {
+      padding: 22px 20px 28px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(280px, 1fr));
+      gap: 18px;
+      align-items: start;
+      max-width: 1480px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .look-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(280px, 1fr));
+      gap: 18px;
+      align-items: start;
+      max-width: 1480px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 22px 20px 8px;
+    }
+    .fonts-section {
+      max-width: 1480px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 8px 20px 32px;
+    }
+    .fonts-section__head {
+      margin: 18px 0 14px;
+      padding-top: 18px;
+      border-top: 1px solid #d7ddd9;
+    }
+    .fonts-section__head h2 {
+      margin: 0 0 6px;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      font-weight: 800;
+    }
+    .fonts-section__head p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #66726c;
+      max-width: 72em;
+    }
+    .font-pref {
+      margin: 10px 0 0;
+      font-size: 12px;
+      color: #3d4a44;
+      font-weight: 700;
+    }
+    .font-pref code {
+      font-size: 11px;
+      font-weight: 600;
+      color: #66726c;
+    }
+    .font-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .font-card {
+      border: 1px solid #d0d7d2;
+      border-radius: 16px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 10px 24px rgba(26, 26, 26, 0.04);
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .font-card:hover {
+      border-color: #9eb0a8;
+    }
+    .font-card.is-pick {
+      border-color: #2f6f63;
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, #2f6f63 28%, transparent),
+        0 10px 24px rgba(26, 26, 26, 0.04);
+    }
+    .font-card__pick {
+      margin-top: 8px;
+      border: 1px solid #c5d0ca;
+      background: #f4f7f5;
+      color: #1a1a1a;
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .font-card.is-pick .font-card__pick {
+      background: #2f6f63;
+      border-color: #2f6f63;
+      color: #fff;
+    }
+    .font-card__meta .tag.is-rec {
+      background: #d7ebe4;
+      color: #1a3d34;
+    }
+    .font-card__meta .tag.is-title {
+      background: #f3e6c8;
+      color: #5a4314;
+    }
+    .font-card__meta .tag.is-alt {
+      background: #e8e4ef;
+      color: #3a3348;
+    }
+    .font-card__facts {
+      display: grid;
+      gap: 3px;
+      margin-top: 6px;
+      font-size: 10px;
+      line-height: 1.4;
+      color: #55635c;
+    }
+    .font-card__facts span strong {
+      color: #1a2420;
+      font-weight: 750;
+    }
+    .font-card__meta {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid #e2e7e3;
+      background: #fafbfa;
+    }
+    .font-card__meta .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .font-card__meta h3 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .font-card__meta .tag {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #e8efe9;
+      color: #1a2420;
+    }
+    .font-card__meta .tag.is-current {
+      background: #1a2420;
+      color: #fff;
+    }
+    .font-card__meta p {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.45;
+      color: #66726c;
+    }
+    .font-card__sample {
+      padding: 14px;
+      background: #e8efe9;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .font-card__sample .ui-block {
+      background: #f7faf7;
+      border: 1px solid #c5d5cb;
+      border-left: 4px solid #c9a227;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .font-card__sample .title {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #5f7268;
+    }
+    .font-card__sample .row-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .font-card__sample .label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #1a2420;
+    }
+    .font-card__sample .value {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #c5d5cb;
+    }
+    .font-card__sample .btn-row {
+      display: flex;
+      gap: 6px;
+    }
+    .font-card__sample .btn {
+      font-size: 11px;
+      font-weight: 750;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #c5d5cb;
+      background: #fff;
+      color: #1a2420;
+    }
+    .font-card__sample .btn.on {
+      background: #1a2420;
+      color: #fff;
+      border-color: #1a2420;
+    }
+    .font-card__sample .mix-note {
+      font-size: 11px;
+      line-height: 1.45;
+      color: #445850;
+    }
+    .font-card__note {
+      padding: 8px 14px 12px;
+      font-size: 11px;
+      line-height: 1.45;
+      color: #66726c;
+      border-top: 1px solid #e2e7e3;
+    }
+    /* Geometric Latin + CJK stacks（本页选型用，未写入正式 Studio） */
+    .ff-cjk-noto {
+      font-family: "Plus Jakarta Sans", "DM Sans", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .ff-cjk-system {
+      font-family: "Plus Jakarta Sans", "DM Sans", "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", "DengXian", sans-serif;
+    }
+    .ff-cjk-dengxian {
+      font-family: "Plus Jakarta Sans", "DM Sans", "DengXian", "等线", "Microsoft YaHei UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .ff-cjk-wenkai {
+      font-family: "Plus Jakarta Sans", "DM Sans", "LXGW WenKai", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .ff-cjk-wenkai .title,
+    .ff-cjk-wenkai .label,
+    .ff-cjk-wenkai .btn,
+    .ff-cjk-wenkai .mix-note {
+      font-weight: 400;
+    }
+    .ff-cjk-wenkai .value {
+      font-weight: 500;
+    }
+    .ff-cjk-xiaowei {
+      font-family: "Plus Jakarta Sans", "DM Sans", "ZCOOL XiaoWei", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .ff-cjk-noto .value,
+    .ff-cjk-system .value,
+    .ff-cjk-dengxian .value,
+    .ff-cjk-wenkai .value,
+    .ff-cjk-xiaowei .value {
+      font-family: "DM Sans", "Plus Jakarta Sans", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .ff-cjk-xiaowei .title {
+      font-family: "ZCOOL XiaoWei", "Plus Jakarta Sans", "Noto Sans SC", sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: none;
+      font-size: 13px;
+      font-weight: 400;
+    }
+    footer {
+      padding: 12px 28px 18px;
+      border-top: 1px solid #d7ddd9;
+      color: #66726c;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    footer a { color: #1a1a1a; }
+
+    .scheme {
+      border: 1px solid #d0d7d2;
+      border-radius: 22px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 14px 32px rgba(26, 26, 26, 0.05);
+      display: flex;
+      flex-direction: column;
+      min-height: 640px;
+    }
+    .scheme.is-pick {
+      outline: 2px solid #1a1a1a;
+      outline-offset: 2px;
+    }
+    .scheme__meta {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid #e2e7e3;
+      background: #fff;
+    }
+    .scheme__meta .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .scheme__meta h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .scheme__meta .tag {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .scheme__meta p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #66726c;
+    }
+    .scheme__pick {
+      margin-top: 10px;
+      width: 100%;
+      border: 1px solid #1a1a1a;
+      background: #fff;
+      color: #1a1a1a;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font: 700 12px/1 inherit;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+    }
+    .scheme__pick:hover { background: #1a1a1a; color: #fff; }
+    .scheme.is-pick .scheme__pick {
+      background: #1a1a1a;
+      color: #fff;
+    }
+
+    .desk {
+      flex: 1;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 520px;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      background: var(--raised);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .top .brand { letter-spacing: 0.12em; margin-right: 4px; }
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: var(--raised);
+      color: var(--ink);
+    }
+    .chip.on {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+    .chip.soft {
+      background: color-mix(in srgb, var(--accent) 16%, #fff);
+      border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+      color: var(--ink);
+    }
+    .body {
+      display: grid;
+      grid-template-columns: 148px 1fr;
+      min-height: 0;
+      background: var(--bg);
+    }
+    .tower {
+      border-right: 1px solid var(--line);
+      background: var(--surface);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+    .tabs span {
+      text-align: center;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      padding: 6px 2px;
+      border-radius: 999px;
+      color: var(--muted);
+      border: 1px solid transparent;
+    }
+    .tabs span.on {
+      background: var(--ink);
+      color: #fff;
+    }
+    .stage {
+      position: relative;
+      padding: 12px;
+      overflow: hidden;
+    }
+    .stage .hud {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .rings {
+      position: absolute;
+      inset: 18% 12% 18% 18%;
+      border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .rings::before,
+    .rings::after {
+      content: "";
+      position: absolute;
+      inset: 18%;
+      border: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+      border-radius: 50%;
+    }
+    .rings::after { inset: 34%; }
+    .nodes { position: absolute; inset: 0; pointer-events: none; }
+    .node {
+      position: absolute;
+      width: 54px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: #fff;
+      font: 800 9px/1 ui-monospace, Consolas, monospace;
+      border-radius: 6px;
+    }
+    .node.a { left: 42%; top: 44%; }
+    .node.b { left: 62%; top: 28%; }
+    .node.c { left: 68%; top: 58%; }
+
+    .card {
+      border-radius: 14px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .card h3 {
+      margin: 0;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .slider {
+      height: 7px;
+      border-radius: 999px;
+      background: color-mix(in srgb, #fff 70%, transparent);
+      position: relative;
+    }
+    .slider > i {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 58%;
+      border-radius: inherit;
+      background: var(--ink);
+      opacity: 0.18;
+    }
+    .slider > b {
+      position: absolute;
+      top: 50%;
+      left: 58%;
+      width: 10px;
+      height: 10px;
+      margin: -5px 0 0 -5px;
+      border-radius: 2px;
+      background: var(--ink);
+    }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .sel {
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      background: color-mix(in srgb, #fff 78%, transparent);
+      font-size: 9px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      color: var(--ink);
+    }
+    .modes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+    }
+    .modes span {
+      text-align: center;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 5px 0;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+      background: color-mix(in srgb, #fff 75%, transparent);
+    }
+    .modes span.on {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+
+    .scheme-a {
+      --bg: #e8efe9;
+      --surface: #dfeae2;
+      --raised: #f7faf7;
+      --ink: #1a2420;
+      --muted: #5f7268;
+      --line: #c5d5cb;
+      --accent: #6aa88a;
+    }
+    .scheme-a .desk { background: var(--bg); }
+    .scheme-a .card {
+      background: #f7faf7;
+      border: 1px solid color-mix(in srgb, var(--line) 85%, transparent);
+      box-shadow: none;
+      padding-left: 10px;
+      border-left: 4px solid var(--mark);
+    }
+    .scheme-a .card.tempo { --mark: #c9a227; }
+    .scheme-a .card.scale { --mark: #7a6bb0; }
+    .scheme-a .card.node  { --mark: #c45f7a; }
+    .scheme-a .card.motion{ --mark: #3d9a74; }
+    .scheme-a .card h3 { color: var(--muted); }
+    .scheme-a .body {
+      background:
+        radial-gradient(ellipse 70% 50% at 90% 20%, color-mix(in srgb, #b9d9c5 35%, transparent), transparent 55%),
+        var(--bg);
+    }
+
+    .scheme-b {
+      --bg: #eef3f8;
+      --surface: #e4ebf3;
+      --raised: #f8fafc;
+      --ink: #17202a;
+      --muted: #617080;
+      --line: #c9d5e2;
+      --accent: #5a8fb8;
+    }
+    .scheme-b .desk { background: var(--bg); }
+    .scheme-b .card {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+    .scheme-b .card h3 { color: var(--ink); }
+    .scheme-b .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: #fff;
+      background: var(--mark);
+    }
+    .scheme-b .card.tempo .badge { --mark: #c9a227; }
+    .scheme-b .card.scale .badge { --mark: #6f6ab0; }
+    .scheme-b .card.node  .badge { --mark: #c45f7a; }
+    .scheme-b .card.motion .badge { --mark: #3d8f9a; }
+    .scheme-b .body {
+      background:
+        radial-gradient(ellipse 65% 45% at 85% 15%, color-mix(in srgb, #9fb8d4 30%, transparent), transparent 55%),
+        var(--bg);
+    }
+
+    .scheme-c {
+      --bg: #e7eef0;
+      --surface: #dce7ea;
+      --raised: #f5f9fa;
+      --ink: #1a2226;
+      --muted: #5f6e74;
+      --line: #c4d2d6;
+      --accent: #5f9aa8;
+    }
+    .scheme-c .desk { background: var(--bg); }
+    .scheme-c .card {
+      border: 1px solid color-mix(in srgb, var(--mark) 28%, var(--line));
+      background: color-mix(in srgb, var(--mark) 14%, #f5f9fa);
+      border-radius: 16px;
+    }
+    .scheme-c .card.tempo { --mark: #b9c98a; }
+    .scheme-c .card.scale { --mark: #9bb5c9; }
+    .scheme-c .card.node  { --mark: #a8c4b4; }
+    .scheme-c .card.motion{ --mark: #8eb8b4; }
+    .scheme-c .card h3 { color: color-mix(in srgb, var(--mark) 55%, var(--ink)); }
+    .scheme-c .body {
+      background:
+        radial-gradient(ellipse 70% 50% at 88% 18%, color-mix(in srgb, #a7c8c4 32%, transparent), transparent 55%),
+        var(--bg);
+    }
+
+    @media (max-width: 1100px) {
+      main, .look-grid, .font-grid { grid-template-columns: 1fr; max-width: 520px; }
+      .scheme { min-height: auto; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <!-- Latin Geometric + CJK 对比用 webfont；正式 Studio 已锁定 Geometric + DengXian -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Noto+Sans+SC:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/@callmebill/lxgw-wenkai-web@1.522.0/lxgwwenkai-regular/result.css" rel="stylesheet" />
+</head>
+<body>
+  <header>
+    <div>
+      <h1>QUAD LILY · LOOK + FONT COMPARE</h1>
+      <p>
+        上半：画风已选定 <strong>A · Mint Rail</strong>。下半：字体已锁定
+        <strong>Geometric + DengXian（等线）</strong>，并已写入正式 Studio（<code>--studio-font-ui</code>）。
+        等线为 <strong>Windows 系统字体</strong>；macOS / 无等线环境会回退到 Microsoft YaHei / PingFang SC。
+        落地页：<a href="/desk">/desk</a>。
+      </p>
+      <p class="font-pref" id="font-pref">当前倾向：Geometric + DengXian</p>
+    </div>
+    <div class="note" id="picked">当前倾向：方案 A</div>
+  </header>
+
+  <div class="look-grid" id="look-schemes">
+    <article class="scheme scheme-a is-pick" data-scheme="A" id="scheme-a">
+      <div class="scheme__meta">
+        <div class="row">
+          <h2>A · Mint Rail</h2>
+          <span class="tag">SELECTED</span>
+        </div>
+        <p>薄荷绿纸面。卡片统一白底，只靠左侧细色条区分节奏 / 音阶 / 节点 / 运动。差异清晰，整体不花。</p>
+        <button type="button" class="scheme__pick" data-pick="A">已选 A</button>
+      </div>
+      <div class="desk" aria-label="Scheme A preview">
+        <div class="top">
+          <span class="brand">QUAD LILY</span>
+          <span class="chip">1 PAD</span>
+          <span class="chip on">A</span>
+          <span class="chip">B</span>
+          <span class="chip soft" style="margin-left:auto">PLAY</span>
+        </div>
+        <div class="body">
+          <aside class="tower">
+            <div class="tabs"><span class="on">控制</span><span>分屏</span><span>图谱</span></div>
+            <div class="card tempo">
+              <h3>节奏与时钟</h3>
+              <div class="slider"><i></i><b></b></div>
+              <div class="slider"><i style="width:42%"></i><b style="left:42%"></b></div>
+            </div>
+            <div class="card scale">
+              <h3>调式与音阶</h3>
+              <div class="row2"><div class="sel">C</div><div class="sel">0 OCT</div></div>
+            </div>
+            <div class="card node">
+              <h3>中心源点</h3>
+              <div class="sel">C4 · ROOT</div>
+              <div class="slider"><i style="width:30%"></i><b style="left:30%"></b></div>
+            </div>
+            <div class="card motion">
+              <h3>运动自动化</h3>
+              <div class="modes"><span>OFF</span><span class="on">ORBIT</span><span>PEND</span><span>DRAW</span></div>
+            </div>
+          </aside>
+          <section class="stage">
+            <div class="hud"><span>A · 700 ms</span><span>LOCK</span></div>
+            <div class="rings"></div>
+            <div class="nodes">
+              <div class="node a">ROOT</div>
+              <div class="node b">N1</div>
+              <div class="node c">N2</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+
+    <article class="scheme scheme-b" data-scheme="B" id="scheme-b">
+      <div class="scheme__meta">
+        <div class="row">
+          <h2>B · Cool Badge</h2>
+          <span class="tag">BLUE</span>
+        </div>
+        <p>冷蓝纸面。卡片全同色白卡；功能差异只靠标题旁的小色标胶囊。最克制，偏产品工具感。</p>
+        <button type="button" class="scheme__pick" data-pick="B">备选 B</button>
+      </div>
+      <div class="desk" aria-label="Scheme B preview">
+        <div class="top">
+          <span class="brand">QUAD LILY</span>
+          <span class="chip">1 PAD</span>
+          <span class="chip on">A</span>
+          <span class="chip">B</span>
+          <span class="chip soft" style="margin-left:auto">PLAY</span>
+        </div>
+        <div class="body">
+          <aside class="tower">
+            <div class="tabs"><span class="on">控制</span><span>分屏</span><span>图谱</span></div>
+            <div class="card tempo">
+              <h3><span class="badge">TIME</span> 节奏与时钟</h3>
+              <div class="slider"><i></i><b></b></div>
+              <div class="slider"><i style="width:42%"></i><b style="left:42%"></b></div>
+            </div>
+            <div class="card scale">
+              <h3><span class="badge">SCALE</span> 调式与音阶</h3>
+              <div class="row2"><div class="sel">C</div><div class="sel">0 OCT</div></div>
+            </div>
+            <div class="card node">
+              <h3><span class="badge">NODE</span> 中心源点</h3>
+              <div class="sel">C4 · ROOT</div>
+              <div class="slider"><i style="width:30%"></i><b style="left:30%"></b></div>
+            </div>
+            <div class="card motion">
+              <h3><span class="badge">MOVE</span> 运动自动化</h3>
+              <div class="modes"><span>OFF</span><span class="on">ORBIT</span><span>PEND</span><span>DRAW</span></div>
+            </div>
+          </aside>
+          <section class="stage">
+            <div class="hud"><span>A · 700 ms</span><span>LOCK</span></div>
+            <div class="rings"></div>
+            <div class="nodes">
+              <div class="node a">ROOT</div>
+              <div class="node b">N1</div>
+              <div class="node c">N2</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+
+    <article class="scheme scheme-c" data-scheme="C" id="scheme-c">
+      <div class="scheme__meta">
+        <div class="row">
+          <h2>C · Soft Tint Family</h2>
+          <span class="tag">TEAL</span>
+        </div>
+        <p>青蓝绿同一色族。卡片有极淡底色差（全是绿蓝亲戚），能分区但不彩虹。介于 A 与 B 之间。</p>
+        <button type="button" class="scheme__pick" data-pick="C">备选 C</button>
+      </div>
+      <div class="desk" aria-label="Scheme C preview">
+        <div class="top">
+          <span class="brand">QUAD LILY</span>
+          <span class="chip">1 PAD</span>
+          <span class="chip on">A</span>
+          <span class="chip">B</span>
+          <span class="chip soft" style="margin-left:auto">PLAY</span>
+        </div>
+        <div class="body">
+          <aside class="tower">
+            <div class="tabs"><span class="on">控制</span><span>分屏</span><span>图谱</span></div>
+            <div class="card tempo">
+              <h3>节奏与时钟</h3>
+              <div class="slider"><i></i><b></b></div>
+              <div class="slider"><i style="width:42%"></i><b style="left:42%"></b></div>
+            </div>
+            <div class="card scale">
+              <h3>调式与音阶</h3>
+              <div class="row2"><div class="sel">C</div><div class="sel">0 OCT</div></div>
+            </div>
+            <div class="card node">
+              <h3>中心源点</h3>
+              <div class="sel">C4 · ROOT</div>
+              <div class="slider"><i style="width:30%"></i><b style="left:30%"></b></div>
+            </div>
+            <div class="card motion">
+              <h3>运动自动化</h3>
+              <div class="modes"><span>OFF</span><span class="on">ORBIT</span><span>PEND</span><span>DRAW</span></div>
+            </div>
+          </aside>
+          <section class="stage">
+            <div class="hud"><span>A · 700 ms</span><span>LOCK</span></div>
+            <div class="rings"></div>
+            <div class="nodes">
+              <div class="node a">ROOT</div>
+              <div class="node b">N1</div>
+              <div class="node c">N2</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <section class="fonts-section" id="font-compare" aria-label="CJK font comparison with Geometric Latin">
+    <div class="fonts-section__head">
+      <h2>CJK × GEOMETRIC · 中文字体可选项</h2>
+      <p>
+        已选定并落地：<strong>Plus Jakarta Sans / DM Sans + DengXian（等线）</strong>。
+        下方仍保留对比卡便于回看；点选会更新 localStorage（<code>quad-lily-font-latin=geometric</code> + <code>quad-lily-font-cjk</code>）。
+        <strong>等线</strong>仅 Windows 常见；macOS 等环境回退雅黑 / 苹方，观感会变。
+      </p>
+    </div>
+    <div class="font-grid" id="cjk-font-grid">
+      <article class="font-card" data-cjk="noto-sans-sc" data-cjk-label="Noto Sans SC" tabindex="0" role="button" aria-pressed="false">
+        <div class="font-card__meta">
+          <div class="row">
+            <h3>1 · Noto Sans SC</h3>
+            <span class="tag is-rec">REC · UI</span>
+          </div>
+          <p>思源黑体的 Google Fonts 发行名 · 与 Geometric 最稳的 webfont 搭配</p>
+          <div class="font-card__facts">
+            <span><strong>来源</strong> Google Fonts（开源 OFL）</span>
+            <span><strong>气质</strong> 现代 / 工具感</span>
+            <span><strong>默认 UI</strong> 适合 · 正文可读性高</span>
+          </div>
+          <button type="button" class="font-card__pick" data-pick-cjk="noto-sans-sc">选用此中文</button>
+        </div>
+        <div class="font-card__sample ff-cjk-noto">
+          <div class="ui-block">
+            <div class="title">节奏与时钟 · TEMPO</div>
+            <div class="row-controls">
+              <span class="label">Cycle Length 周期</span>
+              <span class="value">700 ms</span>
+            </div>
+            <div class="btn-row">
+              <span class="btn on">PLAY</span>
+              <span class="btn">LOCK 锁定</span>
+            </div>
+            <p class="mix-note">中英混排：CJK webfont 与 Latin Geometric 字重较齐；加载体积较大，生产建议 subset。</p>
+          </div>
+        </div>
+        <div class="font-card__note">推荐作默认 UI。选定后可落地 Studio：Jakarta/DM + Noto Sans SC。</div>
+      </article>
+
+      <article class="font-card" data-cjk="system-cjk" data-cjk-label="System CJK" tabindex="0" role="button" aria-pressed="false">
+        <div class="font-card__meta">
+          <div class="row">
+            <h3>2 · System CJK</h3>
+            <span class="tag is-rec">REC · ZERO COST</span>
+          </div>
+          <p>PingFang SC / Microsoft YaHei / DengXian · 常见系统回退栈</p>
+          <div class="font-card__facts">
+            <span><strong>来源</strong> 系统字体（无需 webfont）</span>
+            <span><strong>气质</strong> 稳妥现代 / 平台原生感</span>
+            <span><strong>默认 UI</strong> 适合 · 跨端最稳、零加载</span>
+          </div>
+          <button type="button" class="font-card__pick" data-pick-cjk="system-cjk">选用此中文</button>
+        </div>
+        <div class="font-card__sample ff-cjk-system">
+          <div class="ui-block">
+            <div class="title">节奏与时钟 · TEMPO</div>
+            <div class="row-controls">
+              <span class="label">Cycle Length 周期</span>
+              <span class="value">700 ms</span>
+            </div>
+            <div class="btn-row">
+              <span class="btn on">PLAY</span>
+              <span class="btn">LOCK 锁定</span>
+            </div>
+            <p class="mix-note">中英混排：零下载；macOS 偏苹方、Windows 偏雅黑，两端字形会有差异。</p>
+          </div>
+        </div>
+        <div class="font-card__note">正式 Studio 当前已锁定 DengXian；此卡仅作「更泛系统栈」对照。</div>
+      </article>
+
+      <article class="font-card is-pick" data-cjk="dengxian" data-cjk-label="DengXian" tabindex="0" role="button" aria-pressed="true">
+        <div class="font-card__meta">
+          <div class="row">
+            <h3>3 · DengXian 等线</h3>
+            <span class="tag is-current">SELECTED · IN DESK</span>
+          </div>
+          <p>等线优先 · Geometric Latin 正式落地搭档（Windows 系统字）</p>
+          <div class="font-card__facts">
+            <span><strong>来源</strong> 系统字体（Windows：DengXian / 等线；他端回退雅黑/苹方）</span>
+            <span><strong>气质</strong> 工具感 / 更偏几何</span>
+            <span><strong>默认 UI</strong> 已选定 · Win 最佳；macOS 观感会变</span>
+          </div>
+          <button type="button" class="font-card__pick" data-pick-cjk="dengxian">已选 · DengXian</button>
+        </div>
+        <div class="font-card__sample ff-cjk-dengxian">
+          <div class="ui-block">
+            <div class="title">节奏与时钟 · TEMPO</div>
+            <div class="row-controls">
+              <span class="label">Cycle Length 周期</span>
+              <span class="value">700 ms</span>
+            </div>
+            <div class="btn-row">
+              <span class="btn on">PLAY</span>
+              <span class="btn">LOCK 锁定</span>
+            </div>
+            <p class="mix-note">中英混排：等线与 Geometric 气质更贴；非 Windows 会落到雅黑/苹方。</p>
+          </div>
+        </div>
+        <div class="font-card__note">正式 Studio 已写入此组合。Windows 用 DengXian/等线；macOS 回退 Microsoft YaHei / PingFang SC。</div>
+      </article>
+
+      <article class="font-card" data-cjk="lxgw-wenkai" data-cjk-label="LXGW WenKai" tabindex="0" role="button" aria-pressed="false">
+        <div class="font-card__meta">
+          <div class="row">
+            <h3>4 · LXGW WenKai</h3>
+            <span class="tag is-alt">ALT · LITERARY</span>
+          </div>
+          <p>霞鹜文楷 · 书卷感备选，不建议作默认控件正文</p>
+          <div class="font-card__facts">
+            <span><strong>来源</strong> 开源 OFL · jsDelivr CDN（@callmebill/lxgw-wenkai-web）</span>
+            <span><strong>气质</strong> 人文 / 书卷</span>
+            <span><strong>默认 UI</strong> 不太适合 · 可作标题/空态备选</span>
+          </div>
+          <button type="button" class="font-card__pick" data-pick-cjk="lxgw-wenkai">选用此中文</button>
+        </div>
+        <div class="font-card__sample ff-cjk-wenkai">
+          <div class="ui-block">
+            <div class="title">节奏与时钟 · TEMPO</div>
+            <div class="row-controls">
+              <span class="label">Cycle Length 周期</span>
+              <span class="value">700 ms</span>
+            </div>
+            <div class="btn-row">
+              <span class="btn on">PLAY</span>
+              <span class="btn">LOCK 锁定</span>
+            </div>
+            <p class="mix-note">中英混排：楷体中文 + Geometric 英文反差大；仪表控件可读性偏弱。</p>
+          </div>
+        </div>
+        <div class="font-card__note">备选气质参考，不推荐作为 Studio 默认 UI。</div>
+      </article>
+
+      <article class="font-card" data-cjk="zcool-xiaowei" data-cjk-label="ZCOOL XiaoWei" tabindex="0" role="button" aria-pressed="false">
+        <div class="font-card__meta">
+          <div class="row">
+            <h3>5 · ZCOOL XiaoWei</h3>
+            <span class="tag is-title">TITLE ONLY</span>
+          </div>
+          <p>站酷小薇 · 标题感强；正文请回退 Noto / 系统无衬线</p>
+          <div class="font-card__facts">
+            <span><strong>来源</strong> Google Fonts（开源）</span>
+            <span><strong>气质</strong> 标题感 / 展示</span>
+            <span><strong>默认 UI</strong> 不适合正文 · 仅标题/品牌</span>
+          </div>
+          <button type="button" class="font-card__pick" data-pick-cjk="zcool-xiaowei">选用此中文</button>
+        </div>
+        <div class="font-card__sample ff-cjk-xiaowei">
+          <div class="ui-block">
+            <div class="title">节奏与时钟 · TEMPO</div>
+            <div class="row-controls">
+              <span class="label">Cycle Length 周期</span>
+              <span class="value">700 ms</span>
+            </div>
+            <div class="btn-row">
+              <span class="btn on">PLAY</span>
+              <span class="btn">LOCK 锁定</span>
+            </div>
+            <p class="mix-note">中英混排：标题用小薇，标签/按钮仍走无衬线；勿整页套用。</p>
+          </div>
+        </div>
+        <div class="font-card__note">仅作标题层对比。若选用，落地时应「标题 XiaoWei + UI Noto/系统」。</div>
+      </article>
+    </div>
+  </section>
+
+  <footer>
+    <span>Look=A · Font=Geometric + DengXian 已落地 Studio。等线=Windows 系统字；macOS 回退雅黑/苹方。</span>
+    <span><a href="/desk">Open /desk</a> · <a href="#font-compare">CJK fonts</a></span>
+  </footer>
+
+  <script>
+    const pickedEl = document.getElementById("picked");
+    const fontPrefEl = document.getElementById("font-pref");
+    const schemes = [...document.querySelectorAll(".scheme")];
+    const cjkCards = [...document.querySelectorAll("[data-cjk]")];
+
+    const CJK_LABELS = {
+      "noto-sans-sc": "Noto Sans SC",
+      "system-cjk": "System CJK",
+      dengxian: "DengXian",
+      "lxgw-wenkai": "LXGW WenKai",
+      "zcool-xiaowei": "ZCOOL XiaoWei",
+    };
+
+    function pick(id) {
+      schemes.forEach((s) => s.classList.toggle("is-pick", s.dataset.scheme === id));
+      pickedEl.textContent = "当前倾向：方案 " + id;
+      try { localStorage.setItem("quad-lily-look-pick", id); } catch (_) {}
+    }
+
+    function updateFontPref(cjkId) {
+      const label = CJK_LABELS[cjkId] || cjkId || "—";
+      fontPrefEl.innerHTML =
+        "当前倾向：Geometric + <strong>" + label + "</strong> · <code>quad-lily-font-cjk=" +
+        (cjkId || "—") +
+        "</code>";
+    }
+
+    function pickCjk(id) {
+      if (!CJK_LABELS[id]) return;
+      cjkCards.forEach((card) => {
+        const on = card.dataset.cjk === id;
+        card.classList.toggle("is-pick", on);
+        card.setAttribute("aria-pressed", on ? "true" : "false");
+        const btn = card.querySelector(".font-card__pick");
+        if (btn) btn.textContent = on ? "已选 · " + (CJK_LABELS[id] || id) : "选用此中文";
+      });
+      updateFontPref(id);
+      try {
+        localStorage.setItem("quad-lily-font-latin", "geometric");
+        localStorage.setItem("quad-lily-font-cjk", id);
+      } catch (_) {}
+    }
+
+    document.querySelectorAll("[data-pick]").forEach((btn) => {
+      btn.addEventListener("click", () => pick(btn.getAttribute("data-pick")));
+    });
+
+    cjkCards.forEach((card) => {
+      const id = card.dataset.cjk;
+      card.addEventListener("click", (e) => {
+        if (e.target.closest("[data-pick]")) return;
+        pickCjk(id);
+      });
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          pickCjk(id);
+        }
+      });
+    });
+
+    document.querySelectorAll("[data-pick-cjk]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        pickCjk(btn.getAttribute("data-pick-cjk"));
+      });
+    });
+
+    try {
+      localStorage.setItem("quad-lily-look-pick", "A");
+      localStorage.setItem("quad-lily-font-latin", "geometric");
+      localStorage.setItem("quad-lily-font-cjk", "dengxian");
+    } catch (_) {}
+    pick("A");
+    // 用户已锁定 Geometric + DengXian；始终以 DengXian 为默认 SELECTED
+    pickCjk("dengxian");
+  </script>
+</body>
+</html>

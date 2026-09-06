@@ -1,0 +1,7 @@
+{
+  "name": "音乐画布 · MusiCanvas",
+  "description": "A spatial four-pad musical instrument with independent cycles, motion sequencing, MIDI output, and a reusable pattern library.",
+  "requestFramePermissions": [],
+  "prompt": "",
+  "majorCapabilities": []
+}

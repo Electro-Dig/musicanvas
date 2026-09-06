@@ -1,0 +1,27 @@
+{
+  "name": "musicanvas",
+  "license": "MIT",
+  "private": true,
+  "version": "0.31.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test --test-isolation=none --experimental-strip-types tests/*.test.ts"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.0.2",
+    "@netlify/functions": "^6.0.0",
+    "@netlify/identity": "^2.0.0",
+    "lucide-react": "^1.40.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

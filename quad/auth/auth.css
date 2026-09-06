@@ -1,0 +1,296 @@
+/* ==========================================================================
+   auth.css — AuthModal 登录/注册/找回密码弹窗样式
+   设计语言：继承 Mint Rail 主题，轻量现代感，圆角卡片
+   ========================================================================== */
+
+.auth-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000; /* 高于所有 Studio UI */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.auth-backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--quad-bg, #0d1210) 60%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* ---- 卡片 ---- */
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  background: var(--quad-surface-raised, #f7faf7);
+  border: 1.5px solid var(--quad-ink, #1a2420);
+  border-radius: 18px;
+  box-shadow:
+    0 24px 64px color-mix(in srgb, var(--quad-ink, #1a2420) 18%, transparent),
+    0 4px 16px color-mix(in srgb, var(--quad-ink, #1a2420) 8%, transparent);
+  overflow: hidden;
+  animation: auth-card-enter 200ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+@keyframes auth-card-enter {
+  from { opacity: 0; transform: translateY(12px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---- 头部 ---- */
+.auth-card__header {
+  position: relative;
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid var(--quad-line, color-mix(in srgb, var(--quad-ink, #1a2420) 15%, transparent));
+}
+
+.auth-card__eyebrow {
+  display: block;
+  font: 700 9px / 1 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif);
+  letter-spacing: .2em;
+  color: var(--quad-muted, #5a6e67);
+  margin-bottom: 4px;
+}
+
+.auth-card__title {
+  margin: 0;
+  font: 800 1.3rem / 1.1 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif);
+  color: var(--quad-ink, #1a2420);
+  letter-spacing: .02em;
+}
+
+.auth-card__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--quad-line, color-mix(in srgb, var(--quad-ink) 15%, transparent));
+  border-radius: 8px;
+  color: var(--quad-muted, #5a6e67);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.auth-card__close:hover {
+  border-color: var(--quad-ink, #1a2420);
+  color: var(--quad-ink, #1a2420);
+}
+
+/* ---- 通知条 ---- */
+.auth-notice {
+  margin: 12px 24px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font: 600 .75rem / 1.4 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif);
+}
+.auth-notice--error {
+  background: color-mix(in srgb, #e53e3e 10%, transparent);
+  border: 1px solid color-mix(in srgb, #e53e3e 35%, transparent);
+  color: #9b2c2c;
+}
+.auth-notice--info {
+  background: color-mix(in srgb, var(--quad-stamen, #3db88a) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--quad-stamen, #3db88a) 30%, transparent);
+  color: color-mix(in srgb, var(--quad-stamen, #3db88a) 80%, var(--quad-ink));
+}
+.auth-notice--progress {
+  background: color-mix(in srgb, var(--quad-surface, #e8f0ea) 70%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--quad-ink, #1a2420) 12%, transparent);
+  color: var(--quad-ink, #1a2420);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* 旋转 loading 环 */
+.auth-spinner {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--quad-ink, #1a2420) 18%, transparent);
+  border-top-color: var(--quad-stamen, #3db88a);
+  animation: auth-spin 0.7s linear infinite;
+}
+.auth-spinner--on-dark {
+  border-color: color-mix(in srgb, #fff 28%, transparent);
+  border-top-color: #fff;
+}
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- 表单 ---- */
+.auth-form {
+  display: grid;
+  gap: 14px;
+  padding: 20px 24px 0;
+}
+
+.auth-field {
+  display: grid;
+  gap: 5px;
+}
+
+.auth-field span {
+  font: 700 .7rem / 1 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif);
+  letter-spacing: .06em;
+  color: var(--quad-muted, #5a6e67);
+  text-transform: uppercase;
+}
+
+.auth-field__optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--quad-muted);
+  opacity: .7;
+}
+
+.auth-field__hint {
+  font: 500 .72rem / 1.35 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif) !important;
+  letter-spacing: .01em !important;
+  text-transform: none !important;
+  color: var(--quad-muted, #5a6e67) !important;
+  opacity: .9;
+}
+
+.auth-field input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1.5px solid color-mix(in srgb, var(--quad-ink, #1a2420) 20%, transparent);
+  border-radius: 10px;
+  background: var(--quad-bg, #f0f7f4);
+  color: var(--quad-ink, #1a2420);
+  font: 500 .88rem / 1 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif);
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+}
+.auth-field input:focus {
+  border-color: var(--quad-ink, #1a2420);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--quad-stamen, #3db88a) 18%, transparent);
+}
+.auth-field input::placeholder {
+  color: var(--quad-muted, #5a6e67);
+  opacity: .6;
+}
+
+/* ---- 按钮 ---- */
+.auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  font: 700 .82rem / 1 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif);
+  letter-spacing: .04em;
+  transition: filter .15s, opacity .15s;
+}
+.auth-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.auth-btn--primary {
+  width: 100%;
+  height: 42px;
+  background: var(--quad-ink, #1a2420);
+  border: 1.5px solid var(--quad-ink, #1a2420);
+  color: var(--quad-surface-raised, #f7faf7);
+  margin-top: 4px;
+}
+.auth-btn--primary:hover:not(:disabled) { filter: brightness(1.12); }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px 0;
+  color: var(--quad-muted, #5a6e67);
+  font: 600 .68rem / 1 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--quad-ink, #1a2420) 14%, transparent);
+}
+
+.auth-oauth {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 10px 24px 0;
+}
+
+.auth-btn--oauth {
+  height: 40px;
+  background: var(--quad-surface-raised, #f7faf7);
+  border: 1.5px solid color-mix(in srgb, var(--quad-ink, #1a2420) 20%, transparent);
+  color: var(--quad-ink, #1a2420);
+  font-size: 0.8rem;
+}
+.auth-btn--oauth:hover {
+  border-color: var(--quad-ink, #1a2420);
+  background: color-mix(in srgb, var(--quad-ink, #1a2420) 5%, var(--quad-surface-raised));
+}
+
+/* ---- 底部链接 ---- */
+.auth-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 24px 20px;
+}
+
+.auth-link {
+  background: transparent;
+  border: none;
+  color: var(--quad-stamen, #3db88a);
+  font: 600 .75rem / 1 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif);
+  cursor: pointer;
+  padding: 2px 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color .15s;
+}
+.auth-link:hover { text-decoration-color: currentColor; }
+
+/* ---- 底部版本号占位 ---- */
+.auth-version {
+  margin: 0;
+  padding: 8px 24px 14px;
+  font: 600 .68rem / 1.4 var(--studio-font-ui, "Plus Jakarta Sans", sans-serif);
+  letter-spacing: 0.06em;
+  color: var(--quad-muted, #5a6e67);
+  opacity: .55;
+  text-align: center;
+}
+
+/* ---- 深色主题适配（data-theme="dark"） ---- */
+[data-theme="dark"] .auth-card,
+[data-ui-theme="dark"] .auth-card {
+  background: var(--quad-surface-raised, #0f1712);
+  border-color: color-mix(in srgb, var(--quad-ink, #d8f0e6) 30%, transparent);
+}
+[data-theme="dark"] .auth-notice--error,
+[data-ui-theme="dark"] .auth-notice--error {
+  color: #fc8181;
+}
+[data-theme="dark"] .auth-field input {
+  background: var(--quad-bg, #080d0b);
+}

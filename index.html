@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" class="dark"> 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>音乐画布 · MusiCanvas</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="/brand/musicanvas-favicon.png" />
+  <link rel="apple-touch-icon" href="/brand/musicanvas-icon.png" />
+  <link rel="preload" as="image" href="/onboarding/guides/start.webp?v=brand-20260905" type="image/webp" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Studio UI: Geometric Latin（CJK 用系统 DengXian/等线，不加载 CJK webfont） -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=VT323&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class', // Enable class-based dark mode
+      theme: {
+        extend: {
+          fontFamily: {
+            'vt323': ['VT323', 'monospace'],
+          },
+          colors: {
+            'theme-bg': 'var(--theme-bg)',
+            'theme-text': 'var(--theme-text)',
+            'theme-border': 'var(--theme-border)',
+            'theme-accent': 'var(--theme-accent)',
+            'theme-interactive': 'var(--theme-interactive)',
+            'theme-interactive-text': 'var(--theme-interactive-text)',
+            'theme-muted-text': 'var(--theme-muted-text)',
+            'theme-highlight-bg': 'var(--theme-highlight-bg)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --theme-bg: #ffffff;
+      --theme-text: #000000;
+      --theme-border: #000000;
+      --theme-accent: #000000; /* Accents will be subtle differences or borders */
+      --theme-interactive: #000000; /* Button bg in light, text in dark */
+      --theme-interactive-text: #ffffff; /* Button text in light, bg in dark */
+      --theme-muted-text: #555555;
+      --theme-highlight-bg: #eeeeee;
+    }
+    html.dark {
+      --theme-bg: #000000;
+      --theme-text: #ffffff;
+      --theme-border: #ffffff;
+      --theme-accent: #ffffff;
+      --theme-interactive: #ffffff; /* Button bg in dark (white outline effect) */
+      --theme-interactive-text: #000000; /* Button text in dark (black text on white button) */
+      --theme-muted-text: #aaaaaa;
+      --theme-highlight-bg: #111111;
+    }
+    body {
+      margin: 0;
+      font-family: 'VT323', monospace;
+      background-color: var(--theme-bg);
+      color: var(--theme-text);
+      font-size: 18px; /* Slightly larger base for retro feel */
+      line-height: 1.4;
+    }
+    /* Simple solid scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--theme-highlight-bg);
+      border: 1px solid var(--theme-border);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--theme-border);
+      border: 1px solid var(--theme-bg);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--theme-accent);
+    }
+    /* General element styling */
+    button, input, select, textarea {
+      font-family: 'VT323', monospace;
+      border: 1px solid var(--theme-border);
+      background-color: var(--theme-bg);
+      color: var(--theme-text);
+      padding: 8px 12px;
+      outline: none;
+      border-radius: 0; /* Sharp corners */
+      font-size: 1em;
+    }
+    button:focus, input:focus, select:focus, textarea:focus {
+      outline: 1px dashed var(--theme-accent);
+      box-shadow: 0 0 0 2px var(--theme-bg), 0 0 0 3px var(--theme-accent); /* Inset outline */
+    }
+    button {
+      background-color: var(--theme-interactive);
+      color: var(--theme-interactive-text);
+      cursor: pointer;
+    }
+    html.dark button:not(.quad-workbench button) {
+      background-color: var(--theme-bg); /* Black background */
+      color: var(--theme-text); /* White text */
+      border: 1px solid var(--theme-border); /* White border */
+    }
+    button:hover {
+      opacity: 0.8;
+    }
+    button:active {
+       transform: translate(1px, 1px);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background-color: var(--theme-muted-text);
+      color: var(--theme-bg);
+      border-color: var(--theme-muted-text);
+    }
+    html.dark button:disabled:not(.quad-workbench button) {
+        background-color: var(--theme-muted-text);
+        color: var(--theme-text);
+        opacity: 0.4;
+    }
+
+    select {
+      appearance: none; /* Remove default arrow */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23000000' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 1.5em;
+      padding-right: 2.5em; /* Space for arrow */
+    }
+    html.dark select:not(.quad-workbench select) {
+       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23FFFFFF' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--theme-border);
+      outline: none;
+      padding: 0;
+      border: none; /* Range track has no border, just background */
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--theme-text);
+      border: 2px solid var(--theme-bg);
+      box-shadow: 0 0 0 1px var(--theme-border);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: var(--theme-text);
+      border: 2px solid var(--theme-bg);
+      box-shadow: 0 0 0 1px var(--theme-border);
+      cursor: pointer;
+      border-radius:0;
+    }
+    /* Tailwind helpers for components */
+    .component-panel {
+      border: 1px solid var(--theme-border);
+      background-color: var(--theme-bg);
+      padding: 1rem;
+    }
+    .main-container {
+      background-color: var(--theme-bg);
+      color: var(--theme-text);
+    }
+  </style>
+</head>
+<body class="font-vt323">
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

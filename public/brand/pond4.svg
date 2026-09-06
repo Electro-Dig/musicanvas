@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="presentation">
+  <!-- Pond IV: shoreline waves plus reeds, the most restrained option -->
+  <g fill="none" stroke="#2f6b52" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity="0.18" stroke-width="1.7">
+      <path d="M-10 96c60-18 120 18 180 0s120-18 240 0" />
+      <path d="M-10 130c60-18 120 18 180 0s120-18 240 0" opacity="0.72" />
+    </g>
+    <g opacity="0.15" stroke-width="1.4">
+      <path d="M-10 268c70-16 140 16 210 0s130-14 210 0" />
+      <path d="M-10 296c70-16 140 16 210 0s130-14 210 0" opacity="0.7" />
+      <path d="M-10 324c70-16 140 16 210 0s130-14 210 0" opacity="0.45" />
+    </g>
+    <g opacity="0.16" stroke-width="1.6">
+      <path d="M44 330c-6-52-2-92 10-124" />
+      <path d="M62 330c2-46 12-80 30-106" />
+      <path d="M80 330c8-40 24-68 48-88" />
+      <path d="M54 206c-8-10-8-20 0-28 8 8 8 18 0 28z" opacity="0.8" />
+      <path d="M92 224c-8-10-8-20 0-28 8 8 8 18 0 28z" opacity="0.8" />
+    </g>
+  </g>
+</svg>

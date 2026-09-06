@@ -1,0 +1,3373 @@
+/* ==========================================================================
+   QUAD LILY - UI VARIANT SWITCHER & VARIANT-SPECIFIC STYLES
+   ========================================================================== */
+
+/* --- UI Switcher Floating Bar --- */
+.quad-ui-switcher {
+  position: fixed;
+  bottom: 112px;
+  right: 16px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 10px;
+  background: rgba(18, 22, 26, 0.94);
+  border: 1px solid rgba(78, 237, 178, 0.45);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  font-family: inherit;
+  font-size: 11px;
+  color: #e6f0eb;
+  backdrop-filter: blur(12px);
+  max-width: 440px;
+  transition: all 0.2s ease-out;
+}
+
+.quad-ui-switcher.is-collapsed {
+  padding: 4px 10px;
+  background: rgba(18, 22, 26, 0.85);
+}
+
+.quad-ui-switcher__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.quad-ui-switcher__tag {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8ce6cc;
+  font-size: 10px;
+}
+
+.quad-ui-switcher__collapse-btn {
+  background: transparent;
+  border: none;
+  color: #a8b8b0;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 10px;
+  border-radius: 4px;
+}
+.quad-ui-switcher__collapse-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.quad-ui-switcher__buttons {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.quad-ui-switcher__btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  color: #ccd8d2;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.quad-ui-switcher__btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.quad-ui-switcher__btn.is-active {
+  background: #1b4d3e;
+  border-color: #4eedb2;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(78, 237, 178, 0.3);
+}
+
+.quad-ui-switcher__btn-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.4);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.quad-ui-switcher__desc {
+  font-size: 10px;
+  color: #9eb5aa;
+  line-height: 1.35;
+  margin-top: 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 4px;
+}
+.quad-ui-switcher__desc strong {
+  color: #d1f2e5;
+}
+
+/* ==========================================================================
+   COMMON DRAWER & OVERLAY STYLES
+   ========================================================================== */
+
+.quad-cycle-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 440px;
+  max-width: 85vw;
+  background: var(--quad-bg, #0d1210);
+  border-left: 2px solid var(--quad-border, rgba(140, 200, 180, 0.3));
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.65);
+  z-index: 5000;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.quad-cycle-drawer.is-open {
+  transform: translateX(0);
+}
+
+.quad-cycle-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--quad-border, rgba(140, 200, 180, 0.2));
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.quad-cycle-drawer__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  font-size: 13px;
+}
+
+.quad-cycle-drawer__close {
+  background: transparent;
+  border: 1px solid var(--quad-border, rgba(140, 200, 180, 0.3));
+  border-radius: 4px;
+  color: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.quad-cycle-drawer__close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.quad-cycle-drawer__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.quad-cycle-drawer__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 4999;
+}
+
+/* ==========================================================================
+   VARIANT WRAPPERS & FULL VIEWPORT DISPLAY
+   ========================================================================== */
+
+.quad-workbench[data-ui-variant="studio"],
+.quad-workbench[data-ui-variant="floating"],
+.quad-workbench[data-ui-variant="performer"] {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+.quad-studio-wrapper,
+.quad-performer-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.quad-floating-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+[data-ui-variant="studio"] .quad-main-stage,
+[data-ui-variant="floating"] .quad-main-stage,
+[data-ui-variant="performer"] .quad-main-stage {
+  grid-template-columns: 1fr !important;
+  display: flex !important;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-ui-variant="studio"] .quad-lily-canvas,
+[data-ui-variant="floating"] .quad-lily-canvas,
+[data-ui-variant="performer"] .quad-lily-canvas {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+}
+
+[data-ui-variant="studio"] .quad-lily-canvas[data-layout="single"],
+[data-ui-variant="floating"] .quad-lily-canvas[data-layout="single"],
+[data-ui-variant="performer"] .quad-lily-canvas[data-layout="single"] {
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+}
+
+[data-ui-variant="studio"] .quad-main-stage > .quad-cycle-trace,
+[data-ui-variant="floating"] .quad-main-stage > .quad-cycle-trace,
+[data-ui-variant="performer"] .quad-main-stage > .quad-cycle-trace {
+  display: none !important; /* Managed inside drawer */
+}
+
+/*
+ * Studio Top Bar — 真·三栏
+ * 左/右各 1fr；品牌用 absolute + translateX(-50%) 几何居中，
+ * 不受左右内容宽度不对称拉偏。提高选择器优先级，压过 quad.css 四栏 grid。
+ */
+.quad-workbench[data-ui-variant="studio"] .quad-topbar,
+.quad-workbench[data-ui-variant="studio"][data-view-mode="single"] .quad-topbar,
+.quad-workbench[data-ui-variant="studio"][data-view-mode="quad"] .quad-topbar {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-template-rows: auto !important;
+  align-items: center;
+  justify-content: stretch;
+  min-height: 52px;
+  padding: 8px 16px;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+[data-ui-variant="studio"] .quad-brand {
+  min-width: 0;
+}
+[data-ui-variant="studio"] .quad-brand p {
+  display: none; /* Hide verbose subtitle */
+}
+
+/* Left: view · pads · global transport — 组间距收紧 */
+.quad-workbench[data-ui-variant="studio"] .quad-studio-left-cluster {
+  grid-column: 1;
+  justify-self: start;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  max-width: calc(50% - 110px);
+  flex-wrap: nowrap;
+  overflow: visible;
+}
+
+[data-ui-variant="studio"] .quad-studio-left-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+[data-ui-variant="studio"] .quad-studio-left-cluster .quad-view-switch {
+  flex-shrink: 0;
+  display: inline-flex;
+  grid-template-columns: none;
+  border: 1px solid var(--quad-line);
+  border-radius: 999px;
+  overflow: hidden;
+  border-right: 1px solid var(--quad-line);
+}
+
+[data-ui-variant="studio"] .quad-studio-left-cluster .quad-view-switch button {
+  min-width: 28px;
+  padding: 5px 8px;
+  border-right: 1px solid var(--quad-line);
+  font: 700 var(--studio-fs-control) / 1 var(--studio-font-ui);
+  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+[data-ui-variant="studio"] .quad-studio-left-cluster .quad-view-switch button svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+[data-ui-variant="studio"] .quad-studio-left-cluster .quad-view-switch button.is-active,
+[data-ui-variant="studio"] .quad-studio-left-cluster .quad-view-switch button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--selected-pad-color, var(--quad-stamen)) 12%, var(--quad-surface-raised));
+  color: var(--quad-ink);
+  box-shadow: none;
+}
+
+[data-ui-variant="studio"] .quad-studio-transport-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Center brand — 视口水平几何居中（不被左右栏宽度拉偏） */
+.quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+  user-select: none;
+  width: max-content;
+  max-width: calc(100% - 48px);
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-studio-brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--quad-ink) 12%, transparent);
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-studio-brand-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center h1 {
+  margin: 0;
+  font: 800 var(--studio-fs-brand) / 1 var(--studio-font-ui);
+  letter-spacing: 0.16em;
+  color: var(--quad-ink);
+  white-space: nowrap;
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center p {
+  margin: 0;
+  font: 700 9px / 1 var(--studio-font-ui);
+  letter-spacing: 0.22em;
+  color: var(--quad-muted);
+  white-space: nowrap;
+}
+
+/* Legacy center cluster kept for any residual markup */
+[data-ui-variant="studio"] .quad-studio-center-cluster {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-start;
+  margin-left: 8px;
+}
+
+[data-ui-variant="studio"] .quad-studio-tabs {
+  display: inline-flex;
+  gap: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid var(--quad-line);
+  overflow: hidden;
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-brand h1,
+.quad-workbench[data-ui-variant="studio"][data-view-mode="single"] .quad-brand h1,
+.quad-workbench[data-ui-variant="studio"][data-view-mode="quad"] .quad-brand h1,
+.quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center h1 {
+  margin: 0;
+  font: 800 var(--studio-fs-brand) / 1 var(--studio-font-ui);
+  letter-spacing: 0.14em;
+  color: var(--quad-ink);
+}
+
+[data-ui-variant="studio"] .quad-studio-status {
+  padding: 3px 14px;
+  font-size: var(--studio-fs-label);
+  font-family: var(--studio-font-ui);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--quad-muted);
+  border-bottom: 1px solid var(--quad-line);
+}
+
+[data-ui-variant="studio"] .quad-studio-tab-btn {
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--quad-line);
+  color: var(--quad-muted);
+  padding: 4px 7px;
+  border-radius: 0;
+  font-size: var(--studio-fs-control);
+  font-family: var(--studio-font-ui);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+[data-ui-variant="studio"] .quad-studio-tab-btn__dot {
+  font-size: var(--studio-fs-micro);
+}
+
+[data-ui-variant="studio"] .quad-studio-tab-btn:last-child {
+  border-right: 0;
+}
+
+[data-ui-variant="studio"] .quad-studio-tab-btn[data-active="true"] {
+  background: color-mix(in srgb, var(--selected-pad-color, var(--quad-stamen)) 12%, var(--quad-surface-raised));
+  color: var(--quad-ink);
+  box-shadow: none;
+}
+
+/*
+ * Transport 共享按钮（Play / Save / Library 同尺寸字号）
+ * 标记：Save/Library 可加 class="quad-studio-transport-btn"（或复用 play-btn）。
+ * 下方 :has 规则让现有 icon-btn + drawer-trigger 在无改 TSX 时也对齐。
+ */
+[data-ui-variant="studio"] .quad-studio-play-btn,
+[data-ui-variant="studio"] .quad-studio-transport-btn,
+[data-ui-variant="studio"] .quad-studio-left-group:has(.quad-drawer-trigger-btn) > .quad-studio-icon-btn,
+[data-ui-variant="studio"] .quad-studio-left-group:has(.quad-studio-icon-btn) > .quad-drawer-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: auto;
+  min-height: 0;
+  width: auto;
+  min-width: 0;
+  font-size: var(--studio-fs-control);
+  font-family: var(--studio-font-ui);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 5px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  border: 1px solid var(--quad-line);
+  background: var(--quad-surface-raised);
+  color: var(--quad-ink);
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+[data-ui-variant="studio"] .quad-studio-play-btn svg {
+  flex-shrink: 0;
+  display: block;
+}
+
+[data-ui-variant="studio"] .quad-studio-transport-btn svg,
+[data-ui-variant="studio"] .quad-studio-left-group:has(.quad-drawer-trigger-btn) > .quad-studio-icon-btn svg,
+[data-ui-variant="studio"] .quad-studio-left-group:has(.quad-studio-icon-btn) > .quad-drawer-trigger-btn svg {
+  flex-shrink: 0;
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+[data-ui-variant="studio"] .quad-studio-left-group:has(.quad-drawer-trigger-btn) > .quad-studio-icon-btn:hover,
+[data-ui-variant="studio"] .quad-studio-left-group:has(.quad-studio-icon-btn) > .quad-drawer-trigger-btn:hover,
+[data-ui-variant="studio"] .quad-studio-transport-btn:hover {
+  border-color: var(--selected-pad-color, var(--quad-stamen));
+  color: var(--selected-pad-color, var(--quad-stamen));
+  background: var(--quad-surface-raised);
+}
+
+/* 小窗降级：顶栏左簇不允许横向溢出，先缩字号再隐藏次要文字 */
+@media (max-width: 1180px) {
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-left-cluster {
+    gap: 10px;
+    max-width: calc(50% - 84px);
+  }
+  [data-ui-variant="studio"] .quad-studio-play-btn,
+  [data-ui-variant="studio"] .quad-studio-transport-btn {
+    padding: 5px 8px;
+    letter-spacing: 0.02em;
+  }
+}
+
+@media (max-width: 980px) {
+  /* 只留图标，全局播放 / 全局保存 / 图案库文字收起 */
+  [data-ui-variant="studio"] .quad-studio-play-btn > span,
+  [data-ui-variant="studio"] .quad-studio-transport-btn > span {
+    display: none;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-copy {
+    display: none;
+  }
+}
+
+/* Playing = ink solid (no traffic-light green/red). */
+[data-ui-variant="studio"] .quad-studio-play-btn[data-playing="true"] {
+  background: var(--quad-ink);
+  border-color: var(--quad-ink);
+  color: var(--quad-surface-raised);
+}
+
+[data-ui-variant="studio"] .quad-studio-play-btn[data-playing="false"] {
+  background: var(--quad-surface-raised);
+  border-color: var(--quad-line);
+  color: var(--quad-ink);
+}
+
+[data-ui-variant="studio"] .quad-studio-play-btn[data-playing="false"]:hover {
+  border-color: var(--selected-pad-color, var(--quad-stamen));
+  color: var(--selected-pad-color, var(--quad-stamen));
+}
+
+/* Studio IO selects — 独立可点下拉，不再挤成一条窄 pill */
+[data-ui-variant="studio"] .quad-studio-io-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 110px;
+  max-width: 142px;
+  height: 30px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  background: var(--quad-surface-raised);
+  border: 1.5px solid var(--quad-ink);
+  border-radius: 10px;
+  color: var(--quad-ink);
+  font-size: var(--studio-fs-control);
+  font-family: var(--studio-font-ui);
+  cursor: pointer;
+  color-scheme: inherit;
+  transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select:hover,
+[data-ui-variant="studio"] .quad-studio-io-select:focus-within {
+  border-color: var(--quad-ink);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--quad-ink) 12%, transparent);
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select--ext {
+  min-width: 120px;
+  max-width: 150px;
+  gap: 6px;
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select:has(.quad-studio-io-select__refresh) {
+  min-width: 118px;
+  max-width: 145px;
+  padding-right: 6px;
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select__label {
+  flex-shrink: 0;
+  font-size: var(--studio-fs-label);
+  color: var(--quad-ink);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select__dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--quad-muted);
+  flex-shrink: 0;
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select__dot[data-connected="true"] {
+  background: var(--quad-stamen);
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select__chip {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: inherit;
+  padding: 2px 8px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  font: 600 var(--studio-fs-micro) / 1.2 var(--studio-font-ui);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select select {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  max-width: none;
+  background: var(--quad-surface-raised);
+  color: var(--quad-ink);
+  border: 0;
+  border-radius: 0;
+  font-size: var(--studio-fs-control);
+  font-family: var(--studio-font-ui);
+  font-weight: 650;
+  cursor: pointer;
+  padding: 2px 0;
+  outline: none;
+  text-overflow: ellipsis;
+  color-scheme: inherit;
+  accent-color: var(--quad-ink);
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select .quad-soft-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: stretch;
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select select option,
+[data-ui-variant="studio"] .quad-studio-io-select select optgroup {
+  background: #f7faf7;
+  color: #1a2420;
+  font-family: var(--studio-font-ui);
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select select:hover {
+  color: var(--quad-ink);
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select__refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-right: -4px;
+  background: transparent;
+  border: none;
+  color: var(--quad-muted);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  border-radius: 999px;
+}
+
+[data-ui-variant="studio"] .quad-studio-io-select__refresh:hover {
+  color: var(--quad-ink);
+  background: color-mix(in srgb, var(--quad-ink) 6%, transparent);
+}
+
+/* Legacy midi-pill kept for other layouts if referenced */
+[data-ui-variant="studio"] .quad-studio-midi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px 3px 9px;
+  background: var(--quad-surface-raised);
+  border: 1px solid var(--quad-line);
+  border-radius: 999px;
+  font-size: var(--studio-fs-control);
+  font-family: var(--studio-font-ui);
+  box-shadow: none;
+  max-width: 100%;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__label {
+  font-size: var(--studio-fs-micro);
+  color: var(--quad-muted);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__ext {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__chip {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: inherit;
+  padding: 1px 6px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  font: 600 var(--studio-fs-micro) / 1.2 var(--studio-font-ui);
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__sep {
+  width: 1px;
+  height: 12px;
+  background: var(--quad-line);
+  margin: 0 1px;
+  flex-shrink: 0;
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--quad-muted);
+  flex-shrink: 0;
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__dot[data-connected="true"] {
+  background: var(--quad-stamen);
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--quad-muted);
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__refresh:hover {
+  color: var(--quad-ink);
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill select {
+  background: transparent;
+  color: var(--quad-ink);
+  border: 0;
+  border-radius: 0;
+  font-size: var(--studio-fs-control);
+  font-family: var(--studio-font-ui);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 1px 2px;
+  outline: none;
+  max-width: 96px;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill__field:last-of-type select {
+  max-width: 84px;
+}
+
+[data-ui-variant="studio"] .quad-studio-midi-pill select:hover {
+  border-color: transparent;
+  color: var(--selected-pad-color, var(--quad-stamen));
+}
+
+/* Studio Right Trigger Cluster — SND/MIDI · Library · Settings，贴最右 */
+.quad-workbench[data-ui-variant="studio"] .quad-studio-right-tools {
+  grid-column: 2;
+  justify-self: end;
+  z-index: 50;           /* 高于 brand z-index:3，确保弹出菜单不被裁 */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+  max-width: calc(50% - 100px);
+  flex-wrap: nowrap;
+  overflow: visible;     /* 允许 Settings 菜单溢出 header */
+}
+
+[data-ui-variant="studio"] .quad-studio-right-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--quad-line);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-studio-right-tools .quad-studio-midi-pill {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+[data-ui-variant="studio"] .quad-drawer-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid var(--quad-line);
+  border-radius: 999px;
+  color: var(--quad-muted);
+  font-size: var(--studio-fs-label);
+  font-family: var(--studio-font-ui);
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+[data-ui-variant="studio"] .quad-drawer-trigger-btn:hover {
+  background: var(--quad-surface-raised);
+  border-color: var(--quad-line-strong);
+  color: var(--quad-ink);
+}
+
+[data-ui-variant="studio"] .quad-drawer-trigger-btn--labeled {
+  padding: 5px 9px;
+}
+
+[data-ui-variant="studio"] .quad-studio-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--quad-line);
+  border-radius: 999px;
+  color: var(--quad-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+[data-ui-variant="studio"] .quad-studio-icon-btn:hover,
+[data-ui-variant="studio"] .quad-studio-icon-btn.is-active {
+  background: var(--quad-surface-raised);
+  border-color: var(--quad-line-strong);
+  color: var(--quad-ink);
+}
+
+[data-ui-variant="studio"] .quad-studio-settings {
+  position: relative;
+}
+
+[data-ui-variant="studio"] .quad-studio-settings__menu {
+  position: fixed;       /* fixed 脱离所有 overflow 裁剪上下文 */
+  top: var(--settings-menu-top, 48px);
+  right: 12px;
+  z-index: 9000;
+  min-width: 248px;
+  padding: 8px;
+  background: var(--quad-surface-raised);
+  border: 1.5px solid var(--quad-ink);
+  border-radius: 14px;
+  box-shadow: 0 10px 32px color-mix(in srgb, var(--quad-ink) 14%, transparent);
+}
+
+[data-ui-variant="studio"] .quad-studio-settings__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--quad-ink);
+  font: 650 var(--studio-fs-control) / 1.2 var(--studio-font-ui);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-align: left;
+}
+
+.quad-locale-chip {
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  width: 42px;
+  height: 18px;
+  border: 1px solid var(--quad-ink);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.quad-locale-chip em {
+  flex: 1 1 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  font: 800 8px / 1 var(--studio-font-ui);
+  letter-spacing: 0;
+  font-style: normal;
+  color: var(--quad-ink);
+  background: transparent;
+}
+
+.quad-locale-chip em[data-on="true"] {
+  background: var(--quad-ink);
+  color: var(--quad-surface-raised);
+}
+
+[data-ui-variant="studio"] .quad-studio-settings__item:hover {
+  background: color-mix(in srgb, var(--quad-stamen) 10%, var(--quad-surface-raised));
+}
+
+[data-ui-variant="studio"] .quad-studio-settings__value {
+  margin-left: auto;
+  color: var(--quad-muted);
+  font-size: var(--studio-fs-micro);
+  letter-spacing: 0.1em;
+}
+
+/* Studio Sub-Banner: Hide verbose tips */
+[data-ui-variant="studio"] .quad-status em {
+  display: none !important;
+}
+[data-ui-variant="studio"] .quad-pad-tabs {
+  display: none !important; /* Integrated into top bar */
+}
+
+/* ==========================================================================
+   GLOBAL SELECT FIX: Eliminate duplicate background SVG arrows
+   ========================================================================== */
+.quad-workbench select,
+.node-motion select,
+.node-pitch select,
+.quad-sidebar-select,
+.quad-pro-select {
+  background-repeat: no-repeat !important;
+  background-position: right 6px center !important;
+  background-size: 13px 13px !important;
+}
+
+/* ==========================================================================
+   STUDIO TYPE SCALE (统一字号层级 — 顶栏 / 侧栏 / 控件共用)
+   ========================================================================== */
+[data-ui-variant="studio"],
+.quad-studio-wrapper {
+  /* Size tokens */
+  --studio-fs-brand: 24px;       /* topbar brand — true hero signal */
+  --studio-fs-section: 11px;     /* parameter card / section titles */
+  --studio-fs-control: 11px;     /* tabs, buttons, selects, status */
+  --studio-fs-label: 10px;       /* field labels, topbar micro labels */
+  --studio-fs-value: 11px;       /* scrub badges, numeric values */
+  --studio-fs-micro: 9px;        /* muted helper, kbd, status dots text */
+  /* Family: Geometric Latin + DengXian（等线；Win 系统字，他端回退雅黑/苹方） */
+  --studio-font-ui: "Plus Jakarta Sans", "DM Sans", "DengXian", "等线", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  --studio-font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+/* 覆盖 quad.css 里硬编码的 Segoe，让 Studio 全树吃到 Geometric + 等线 */
+.quad-workbench[data-ui-variant="studio"],
+.quad-workbench[data-ui-variant="studio"] .quad-lily-canvas {
+  font-family: var(--studio-font-ui);
+}
+
+/* Studio：去掉点击时的系统虚线焦点框；键盘可达性改用实线描边 */
+[data-ui-variant="studio"] *:focus,
+[data-ui-variant="studio"] *:focus-visible {
+  outline: none;
+}
+[data-ui-variant="studio"] button:focus-visible,
+[data-ui-variant="studio"] summary:focus-visible,
+[data-ui-variant="studio"] a:focus-visible,
+[data-ui-variant="studio"] input:focus-visible,
+[data-ui-variant="studio"] [role="button"]:focus-visible,
+[data-ui-variant="studio"] .quad-soft-select__trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1.5px var(--selected-pad-color, var(--quad-pad-color, var(--quad-stamen, #c44569)));
+}
+
+/* 折叠柄不要焦点描边，否则按下会像「跳一下」 */
+[data-ui-variant="studio"] .quad-studio-tower__collapse-handle:focus,
+[data-ui-variant="studio"] .quad-studio-tower__collapse-handle:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 覆盖 pad 抬头里旧的 outline 焦点（避免与实线框叠出「虚线感」） */
+.quad-workbench[data-ui-variant="studio"] .quad-lily-pad button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1.5px var(--quad-pad-color, var(--selected-pad-color));
+}
+
+/* 覆盖 .quad-workbench button 的硬编码 mono：塔 tab / LOCK / Cycle Trace 走 Studio 字族 */
+.quad-workbench[data-ui-variant="studio"] button,
+.quad-workbench[data-ui-variant="studio"] input,
+.quad-workbench[data-ui-variant="studio"] select,
+.quad-workbench[data-ui-variant="studio"] a,
+.quad-workbench[data-ui-variant="studio"] .quad-lily-pad button,
+.quad-workbench[data-ui-variant="studio"] .cycle-trace__mode-switch button,
+.quad-workbench[data-ui-variant="studio"] .cycle-trace > summary {
+  font-family: var(--studio-font-ui);
+}
+
+.quad-workbench[data-ui-variant="studio"] kbd,
+.quad-workbench[data-ui-variant="studio"] .quad-val-badge,
+.quad-workbench[data-ui-variant="studio"] .quad-scrub-badge,
+.quad-workbench[data-ui-variant="studio"] .quad-pitch-badge,
+.quad-workbench[data-ui-variant="studio"] .quad-lily-node__badge-label {
+  font-family: var(--studio-font-mono);
+}
+
+/* ==========================================================================
+   STUDIO UNIFIED TOWER LAYOUT (Left ~317px Tower + Right Giant Canvas)
+   ========================================================================== */
+
+.quad-studio-body {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 1. Left Unified Tower：默认 ~317px 为下限，可拖宽（图谱更易读） */
+.quad-studio-tower {
+  --studio-tower-width: 317px;
+  position: relative;
+  flex: 0 0 var(--studio-tower-width);
+  width: var(--studio-tower-width);
+  min-width: 28px;
+  max-width: none;
+  height: 100%;
+  /* visible：折叠柄骑在分割线上时，右半边不被裁掉 */
+  overflow: visible;
+  /* 高于 stage，保证骑线折叠柄右半边不被画布盖住 */
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background: var(--quad-surface);
+  border-right: 1px solid var(--quad-line);
+  box-sizing: border-box;
+  /* 不用宽度过渡：避免折叠时柄相对分割线「漂移」 */
+  transition: none;
+}
+
+.quad-studio-tower.is-resizing {
+  user-select: none;
+}
+
+body:has(.quad-studio-tower.is-resizing) {
+  cursor: col-resize !important;
+}
+
+body:has(.quad-studio-tower.is-resizing) * {
+  cursor: col-resize !important;
+}
+
+/* 折叠：保留可点的展开条，避免 12px 把 chevron 挤成「叉」 */
+.quad-studio-tower.is-collapsed,
+.quad-studio-tower[data-collapsed="true"] {
+  flex: 0 0 28px;
+  width: 28px;
+  max-width: 28px;
+  min-width: 28px;
+  border-right-color: color-mix(in srgb, var(--quad-line) 70%, transparent);
+  overflow: visible;
+}
+
+/* 右缘拖宽热区：上下两段，中间让开折叠钮，避免抢点击 */
+.quad-studio-tower__resize-handle {
+  position: absolute;
+  right: -4px;
+  z-index: 15;
+  width: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+}
+.quad-studio-tower__resize-handle--top {
+  top: 0;
+  bottom: calc(50% + 40px);
+}
+.quad-studio-tower__resize-handle--bottom {
+  top: calc(50% + 40px);
+  bottom: 0;
+}
+.quad-studio-tower__resize-handle:hover,
+.quad-studio-tower.is-resizing .quad-studio-tower__resize-handle {
+  background: color-mix(in srgb, var(--quad-stamen, #6aa88a) 28%, transparent);
+}
+.quad-studio-tower.is-collapsed .quad-studio-tower__resize-handle,
+.quad-studio-tower[data-collapsed="true"] .quad-studio-tower__resize-handle {
+  display: none;
+}
+
+/* 折叠柄：钉在右缘骑线；无位移动画，避免按下时「漂移」导致 click 丢失 */
+.quad-studio-tower__collapse-handle {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 20;
+  transform: translate(50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--quad-line);
+  border-radius: 8px;
+  background: var(--quad-surface-raised, var(--quad-surface));
+  color: var(--quad-ink);
+  cursor: pointer;
+  opacity: 1;
+  pointer-events: auto;
+  touch-action: manipulation;
+  transition: none;
+  box-shadow: none;
+}
+.quad-studio-tower__collapse-handle::before {
+  content: "";
+  position: absolute;
+  inset: -6px -8px;
+}
+.quad-studio-tower.is-collapsed .quad-studio-tower__collapse-handle,
+.quad-studio-tower[data-collapsed="true"] .quad-studio-tower__collapse-handle {
+  height: 48px;
+}
+.quad-studio-tower__collapse-handle svg {
+  display: block;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.quad-studio-tower__collapse-handle:hover {
+  border-color: var(--quad-stamen, var(--quad-ink));
+  color: var(--quad-stamen, var(--quad-ink));
+  background: color-mix(in srgb, var(--quad-surface) 85%, var(--quad-stamen, #2f6b4f));
+}
+.quad-studio-tower__collapse-handle:focus,
+.quad-studio-tower__collapse-handle:focus-visible,
+.quad-studio-tower__collapse-handle:active {
+  outline: none !important;
+  box-shadow: none !important;
+  transform: translate(50%, -50%) !important;
+}
+
+/* Mode Segment Controller Navigation */
+.quad-tower-nav {
+  display: flex;
+  padding: 6px 8px;
+  gap: 4px;
+  background: color-mix(in srgb, var(--quad-surface) 75%, var(--quad-surface-raised));
+  border-bottom: 1px solid var(--quad-line);
+  flex-shrink: 0;
+}
+
+.quad-tower-nav__tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 6px;
+  font-size: var(--studio-fs-control, 11px);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--quad-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  text-align: center;
+  font-family: var(--studio-font-ui, inherit);
+}
+.quad-tower-nav__tab svg {
+  flex: 0 0 auto;
+  opacity: 0.88;
+}
+.quad-tower-nav__tab:hover {
+  color: var(--quad-ink);
+  background: transparent;
+}
+.quad-tower-nav__tab.is-active {
+  background: var(--quad-ink);
+  border-color: var(--quad-ink);
+  border-bottom: 1px solid var(--quad-ink);
+  border-radius: 999px;
+  /* P1: 减轻黑胶囊阴影 */
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--quad-ink) 8%, transparent);
+  color: #fff;
+}
+.quad-tower-nav__tab.is-active svg {
+  opacity: 1;
+}
+
+/* Parameter Cards Container — denser for 1080p controls view */
+.quad-studio-tower__params {
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* 右侧多留一点，给骑线折叠柄的左半边让路 */
+  padding: 8px 14px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  /* Mint 细轨滚动条（Firefox） */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--quad-stamen, #6aa88a) 55%, transparent) transparent;
+  font-family: var(--studio-font-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif);
+}
+.quad-studio-tower__params.is-full {
+  flex: 1 1 0;
+  height: 100%;
+}
+.quad-studio-tower__params.is-split {
+  flex: 0 0 auto;
+  max-height: 52%;
+  border-bottom: 1px solid var(--quad-line);
+}
+
+/* Mint 细轨滚动条（WebKit）— params + map 滚动区 */
+.quad-studio-tower__params::-webkit-scrollbar,
+.quad-studio-tower__map::-webkit-scrollbar,
+.quad-tower-map-body::-webkit-scrollbar,
+.quad-studio-tower .cycle-trace__body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.quad-studio-tower__params::-webkit-scrollbar-button,
+.quad-studio-tower__map::-webkit-scrollbar-button,
+.quad-tower-map-body::-webkit-scrollbar-button,
+.quad-studio-tower .cycle-trace__body::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.quad-studio-tower__params::-webkit-scrollbar-track,
+.quad-studio-tower__map::-webkit-scrollbar-track,
+.quad-tower-map-body::-webkit-scrollbar-track,
+.quad-studio-tower .cycle-trace__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.quad-studio-tower__params::-webkit-scrollbar-thumb,
+.quad-studio-tower__map::-webkit-scrollbar-thumb,
+.quad-tower-map-body::-webkit-scrollbar-thumb,
+.quad-studio-tower .cycle-trace__body::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--quad-stamen, #6aa88a) 50%, transparent);
+  border-radius: 999px;
+}
+.quad-studio-tower__params::-webkit-scrollbar-thumb:hover,
+.quad-studio-tower__map::-webkit-scrollbar-thumb:hover,
+.quad-tower-map-body::-webkit-scrollbar-thumb:hover,
+.quad-studio-tower .cycle-trace__body::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--quad-stamen, #6aa88a) 72%, transparent);
+}
+.quad-studio-tower__map,
+.quad-tower-map-body,
+.quad-studio-tower .cycle-trace__body {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--quad-stamen, #6aa88a) 55%, transparent) transparent;
+}
+
+/* Pro Parameter Cards — Scheme A Mint Rail (white card + left accent) */
+.quad-pro-card {
+  font-family: var(--studio-font-ui, sans-serif);
+  --cat-fill: var(--quad-surface-raised);
+  --cat-ink: var(--quad-muted);
+  --cat-accent: var(--quad-stamen);
+  --cat-rail: var(--quad-stamen);
+  background: var(--cat-fill);
+  border: 1px solid color-mix(in srgb, var(--quad-line) 90%, transparent);
+  border-left: 4px solid var(--cat-rail);
+  border-radius: 10px;
+  padding: 8px 8px 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--quad-ink) 3%, transparent);
+}
+
+.quad-pro-card:first-child {
+  border-top: 1px solid color-mix(in srgb, var(--quad-line) 90%, transparent);
+  padding-top: 8px;
+}
+
+.quad-pro-card--tempo {
+  --cat-fill: var(--cat-tempo);
+  --cat-ink: var(--cat-tempo-ink);
+  --cat-accent: var(--cat-tempo-rail);
+  --cat-rail: var(--cat-tempo-rail);
+}
+.quad-pro-card--scale {
+  --cat-fill: var(--cat-scale);
+  --cat-ink: var(--cat-scale-ink);
+  --cat-accent: var(--cat-scale-rail);
+  --cat-rail: var(--cat-scale-rail);
+}
+.quad-pro-card--node {
+  --cat-fill: var(--cat-node);
+  --cat-ink: var(--cat-node-ink);
+  --cat-accent: var(--cat-node-rail);
+  --cat-rail: var(--cat-node-rail);
+}
+.quad-pro-card--motion {
+  --cat-fill: var(--cat-motion);
+  --cat-ink: var(--cat-motion-ink);
+  --cat-accent: var(--cat-motion-rail);
+  --cat-rail: var(--cat-motion-rail);
+}
+.quad-pro-card--group {
+  --cat-fill: color-mix(in srgb, #5b8def 14%, transparent);
+  --cat-ink: #2a4a8a;
+  --cat-accent: #5b8def;
+  --cat-rail: #5b8def;
+}
+.quad-pro-card--tools {
+  --cat-fill: var(--cat-tools);
+  --cat-ink: var(--cat-tools-ink);
+  --cat-accent: var(--cat-tools-rail);
+  --cat-rail: var(--cat-tools-rail);
+  align-items: stretch;
+}
+
+.quad-pro-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 20px;
+  flex-wrap: wrap;
+}
+
+.quad-pro-card__title {
+  line-height: 1.4;
+  font-size: var(--studio-fs-section, 10px);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cat-ink);
+  font-family: var(--studio-font-ui, inherit);
+}
+
+.quad-pro-card__tag {
+  font-size: var(--studio-fs-micro, 9px);
+  font-weight: 700;
+  font-family: var(--studio-font-mono, ui-monospace, monospace);
+  color: var(--quad-ink);
+  opacity: 0.85;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--quad-surface) 70%, #fff);
+  border: 1px solid var(--quad-line);
+}
+
+.quad-val-badge {
+  font-family: var(--studio-font-mono, ui-monospace, "Cascadia Mono", monospace);
+  font-size: var(--studio-fs-micro, 9px);
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #fff 70%, transparent);
+  color: var(--quad-ink);
+  border: 1px solid color-mix(in srgb, var(--cat-rail, var(--quad-stamen)) 35%, transparent);
+}
+
+.quad-pro-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quad-pro-field__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--studio-fs-label, 10px);
+  color: var(--quad-ink);
+  opacity: 0.9;
+}
+
+.quad-pro-field__sublabel {
+  font-size: var(--studio-fs-label, 10px);
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.quad-pro-slider-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--quad-surface) 55%, #fff);
+}
+
+.quad-pro-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  accent-color: var(--cat-rail, var(--selected-pad-color, var(--quad-stamen)));
+  cursor: pointer;
+  /* P1: 自定义 Mint thumb（WebKit + Firefox） */
+  -webkit-appearance: none;
+  appearance: none;
+  background: color-mix(in srgb, var(--cat-rail, var(--quad-stamen)) 28%, var(--quad-line));
+  outline: none;
+}
+.quad-pro-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cat-rail, var(--quad-stamen)) 28%, var(--quad-line));
+}
+.quad-pro-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -4px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--cat-rail, var(--quad-stamen, #6aa88a));
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--quad-ink) 18%, transparent);
+  cursor: pointer;
+}
+.quad-pro-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cat-rail, var(--quad-stamen)) 28%, var(--quad-line));
+}
+.quad-pro-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--cat-rail, var(--quad-stamen, #6aa88a));
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--quad-ink) 18%, transparent);
+  cursor: pointer;
+}
+
+.quad-pro-grid-3 {
+  display: grid;
+  /* 根音 + 八度并排；音阶体系单独占满下一行，避免长名溢出 */
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 5px;
+  align-items: end;
+}
+
+.quad-pro-grid-3__scale {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.quad-pro-select-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--studio-fs-label, 10px);
+  font-weight: 700;
+  color: var(--quad-ink);
+  opacity: 0.9;
+}
+
+.quad-pro-select {
+  width: 100%;
+  height: 26px;
+  font-size: var(--studio-fs-control, 11px);
+  padding: 1px 20px 1px 8px;
+  border: 1px solid color-mix(in srgb, var(--quad-ink) 10%, transparent);
+  border-radius: 999px;
+  background-color: color-mix(in srgb, #fff 78%, transparent) !important;
+  color: var(--quad-ink);
+  font-family: var(--studio-font-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif) !important;
+  letter-spacing: normal !important;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 12px 12px !important;
+  cursor: pointer;
+}
+
+.quad-pro-modes {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.quad-pro-modes--group {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* 组合顺序：横向芯片，避免每音占一行 */
+.quad-pro-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.quad-pro-group-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 2px 2px 2px 4px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--quad-ink) 10%, transparent);
+  background: color-mix(in srgb, #fff 78%, transparent);
+}
+.quad-pro-group-chip.is-primary {
+  border-color: color-mix(in srgb, var(--cat-accent, #5b8def) 55%, transparent);
+  background: color-mix(in srgb, var(--cat-accent, #5b8def) 14%, #fff);
+}
+.quad-pro-group-chip__main {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--quad-ink);
+  cursor: pointer;
+  max-width: 72px;
+}
+.quad-pro-group-chip__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--quad-ink) 12%, transparent);
+  font-size: 8px;
+}
+.quad-pro-group-chip__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.quad-pro-group-chip__move {
+  display: inline-flex;
+  gap: 0;
+}
+.quad-pro-group-chip__move button {
+  border: 0;
+  background: transparent;
+  padding: 0 3px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  color: color-mix(in srgb, var(--quad-ink) 55%, transparent);
+  cursor: pointer;
+}
+.quad-pro-group-chip__move button:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.quad-pro-group-order {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.quad-pro-group-order__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--quad-ink) 8%, transparent);
+  background: color-mix(in srgb, #fff 70%, transparent);
+}
+.quad-pro-group-order__row.is-primary {
+  border-color: color-mix(in srgb, var(--cat-accent, #5b8def) 55%, transparent);
+  background: color-mix(in srgb, var(--cat-accent, #5b8def) 12%, #fff);
+}
+.quad-pro-group-order__label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-size: var(--studio-fs-label, 10px);
+  font-weight: 700;
+  color: var(--quad-ink);
+  cursor: pointer;
+  text-align: left;
+}
+.quad-pro-group-order__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--quad-ink) 10%, transparent);
+  font-size: 9px;
+  font-weight: 800;
+}
+.quad-pro-group-order__actions {
+  display: flex;
+  gap: 2px;
+}
+
+.quad-pro-mode-pill {
+  padding: 5px 3px;
+  font-size: var(--studio-fs-label, 10px);
+  font-weight: 800;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--quad-ink) 10%, transparent);
+  background: color-mix(in srgb, #fff 72%, transparent);
+  color: var(--quad-ink);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  font-family: var(--studio-font-ui, inherit);
+}
+.quad-pro-mode-pill:hover {
+  transform: translateY(-1px);
+}
+.quad-pro-mode-pill.is-active {
+  background: var(--quad-ink);
+  color: #fff;
+  border-color: var(--quad-ink);
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--quad-ink) 18%, transparent);
+}
+
+.quad-pro-motion-params {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px dashed color-mix(in srgb, var(--cat-rail, var(--cat-accent)) 40%, transparent);
+}
+
+.quad-pro-action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: var(--studio-fs-control, 11px);
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  border: 1px solid color-mix(in srgb, var(--quad-ink) 12%, transparent);
+  background: color-mix(in srgb, #fff 78%, transparent);
+  color: var(--quad-ink);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  text-align: center;
+  font-family: var(--studio-font-ui, inherit);
+}
+.quad-pro-action-btn:hover {
+  transform: translateY(-1px);
+}
+.quad-pro-action-btn.is-locked {
+  background: var(--quad-ink);
+  border-color: var(--quad-ink);
+  color: #fff;
+}
+.quad-pro-action-btn--danger {
+  border-color: color-mix(in srgb, #c45a5a 45%, transparent);
+  color: #a53d3d;
+  background: color-mix(in srgb, #fff 70%, #ffd0d0);
+}
+.quad-pro-action-btn--danger:hover {
+  background: color-mix(in srgb, #ffb8b8 35%, #fff);
+}
+
+.quad-pro-mini-btn {
+  min-height: 24px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  padding: 3px 8px;
+  font-size: var(--studio-fs-label, 10px);
+  font-weight: 750;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--quad-ink) 12%, transparent);
+  background: color-mix(in srgb, #fff 75%, transparent);
+  color: var(--quad-ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--studio-font-ui, inherit);
+}
+.quad-pro-mini-btn:hover {
+  border-color: var(--cat-accent, var(--quad-stamen));
+  color: var(--cat-ink, var(--quad-stamen));
+}
+
+.quad-pro-mini-btn[aria-pressed="true"] {
+  background: var(--quad-ink);
+  color: var(--quad-surface);
+}
+
+.quad-pro-card .quad-pro-help,
+.quad-pro-card .quad-experiment-hint {
+  margin: 4px 0 0;
+  font: 400 var(--studio-fs-micro, 9px) / 1.5 var(--studio-font-ui, sans-serif);
+  color: var(--quad-muted);
+}
+
+.quad-pro-card .quad-pro-card__tag {
+  font-family: var(--studio-font-ui, sans-serif);
+  line-height: 1.4;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+.quad-pro-mini-btn--accent {
+  border-color: transparent;
+  background: var(--quad-ink);
+  color: #fff;
+}
+
+.quad-pro-card__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.quad-pro-btn {
+  padding: 2px 7px;
+  font-size: var(--studio-fs-label, 10px);
+  font-weight: 700;
+  border-radius: 3px;
+  border: 1px solid var(--quad-line);
+  background: var(--quad-surface);
+  color: var(--quad-ink);
+  cursor: pointer;
+  font-family: var(--studio-font-ui, inherit);
+}
+
+/* Shortcuts Cheat Sheet — 画布 LOCK 下方，默认可折叠 */
+.quad-studio-stage .quad-shortcuts-card {
+  position: absolute;
+  top: 48px;
+  /* 与 LOCK 右缘对齐（pad actions 贴舞台右缘） */
+  right: 0;
+  z-index: 6;
+  width: 176px;
+  max-width: calc(100% - 20px);
+  background: color-mix(in srgb, var(--quad-surface) 94%, #fff);
+  border: 1px solid color-mix(in srgb, var(--quad-line) 85%, transparent);
+  border-radius: 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--quad-ink) 6%, transparent);
+  pointer-events: auto;
+}
+
+.quad-shortcuts-card__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--quad-ink);
+  font: 700 var(--studio-fs-label, 10px) / 1 var(--studio-font-ui);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0.78;
+}
+.quad-shortcuts-card__toggle:hover {
+  opacity: 1;
+  color: var(--quad-ink);
+}
+.quad-shortcuts-card__toggle-hint {
+  font-size: var(--studio-fs-micro, 9px);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+}
+
+.quad-shortcuts-card__body {
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 10px 8px;
+  border-top: 1px solid color-mix(in srgb, var(--quad-line) 70%, transparent);
+  padding-top: 6px;
+}
+.quad-shortcuts-card.is-open .quad-shortcuts-card__body {
+  display: flex;
+}
+.quad-shortcuts-card.is-open .quad-shortcuts-card__toggle {
+  border-radius: 8px 8px 0 0;
+  opacity: 1;
+}
+
+.quad-shortcuts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quad-shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--studio-fs-label, 10px);
+  color: var(--quad-ink);
+}
+
+.quad-shortcut-row > span:last-child {
+  text-align: right;
+  opacity: 0.78;
+  font-size: var(--studio-fs-micro, 9px);
+  line-height: 1.25;
+}
+
+.quad-shortcut-badges {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.quad-shortcut-badges kbd {
+  display: inline-block;
+  padding: 1px 4px;
+  font-family: var(--studio-font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace);
+  font-size: var(--studio-fs-micro, 9px);
+  font-weight: 700;
+  background: var(--quad-surface);
+  border: 1px solid var(--quad-line);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+  color: var(--quad-ink);
+}
+
+/* 侧栏旧位置快捷键卡：Studio 下已迁走，保留类以防残留 */
+.quad-studio-tower .quad-shortcuts-card {
+  display: none;
+}
+
+/* Polished Integrated Node Pitch Stepper */
+.quad-studio-tower .node-pitch {
+  background: var(--quad-surface) !important;
+  border: 1px solid var(--quad-line) !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+}
+
+.quad-studio-tower .node-pitch > header {
+  background: color-mix(in srgb, var(--quad-surface) 90%, var(--quad-ink) 10%) !important;
+  border-right: 1px solid var(--quad-line) !important;
+}
+
+.quad-studio-tower .node-pitch > small {
+  border-top: 1px solid var(--quad-line) !important;
+  background: color-mix(in srgb, var(--quad-surface) 93%, var(--quad-ink) 7%) !important;
+  font-size: var(--studio-fs-micro, 9px) !important;
+}
+
+/* --- Scrubbable Wheel Badges & Inputs --- */
+.quad-scrub-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  font-family: var(--studio-font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace);
+  font-size: var(--studio-fs-value, 11px);
+  font-weight: 700;
+  border-radius: 999px;
+  background: color-mix(in srgb, #fff 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cat-accent, var(--quad-stamen)) 28%, transparent);
+  color: var(--cat-ink, var(--selected-pad-color, var(--quad-stamen)));
+  cursor: ew-resize;
+  user-select: none;
+  touch-action: none;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quad-scrub-badge:hover {
+  background: #fff;
+  border-color: var(--cat-accent, var(--quad-stamen));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--cat-accent, var(--quad-stamen)) 22%, transparent);
+}
+
+.quad-scrub-badge:active {
+  background: #fff;
+  cursor: ew-resize;
+}
+
+.quad-scrub-badge.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quad-scrub-badge__text {
+  letter-spacing: -0.02em;
+}
+
+.quad-scrub-badge__icon {
+  font-size: var(--studio-fs-micro, 9px);
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.quad-scrub-wrap.is-editing {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.quad-scrub-input {
+  width: 52px;
+  padding: 2px 5px;
+  font-family: var(--studio-font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace);
+  font-size: var(--studio-fs-value, 11px);
+  font-weight: 700;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--cat-accent, var(--selected-pad-color, var(--quad-stamen)));
+  border-radius: 999px;
+  color: var(--quad-ink);
+  outline: none;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--cat-accent, var(--quad-stamen)) 28%, transparent);
+}
+
+.quad-scrub-unit {
+  font-size: var(--studio-fs-label, 10px);
+  opacity: 0.7;
+  font-family: var(--studio-font-mono, ui-monospace, monospace);
+}
+
+/* --- Pitch Direct Input & Bar --- */
+.quad-pro-pitch-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: color-mix(in srgb, #fff 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--quad-ink) 8%, transparent);
+  border-radius: 12px;
+  margin-bottom: 2px;
+}
+
+.quad-pitch-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  font-family: var(--studio-font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace);
+  font-size: var(--studio-fs-value, 11px);
+  font-weight: 800;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--cat-accent, var(--quad-stamen)) 30%, transparent);
+  border-radius: 999px;
+  color: var(--cat-ink, var(--selected-pad-color, var(--quad-stamen)));
+  cursor: ew-resize;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.quad-pitch-badge:hover {
+  border-color: var(--cat-accent, var(--quad-stamen));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--cat-accent, var(--quad-stamen)) 22%, transparent);
+}
+
+.quad-pitch-badge__note {
+  letter-spacing: 0.02em;
+}
+
+.quad-pitch-badge__step {
+  font-size: var(--studio-fs-micro, 9px);
+  opacity: 0.7;
+}
+
+.quad-pro-btn-step {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--quad-ink) 12%, transparent);
+  background: #fff;
+  color: var(--quad-ink);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.1s ease;
+}
+
+.quad-pro-btn-step:hover:not(:disabled) {
+  background: var(--quad-ink);
+  border-color: var(--quad-ink);
+  color: #fff;
+}
+
+/* Lower Cabin: Integrated Cycle Map */
+.quad-studio-tower__map {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--quad-map-surface);
+}
+
+.quad-studio-tower__map.is-fullscreen {
+  flex: 1 1 0;
+  height: 100%;
+}
+
+.quad-studio-tower__map.is-split {
+  flex: 1 1 0;
+  min-height: 260px;
+  height: 100%;
+}
+
+.quad-tower-map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--quad-line);
+  background: color-mix(in srgb, var(--quad-surface) 88%, var(--quad-ink) 12%);
+  min-height: 28px;
+  flex-shrink: 0;
+}
+
+.quad-tower-map-title {
+  font-weight: 700;
+  font-size: var(--studio-fs-section, 10px);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--quad-muted);
+  font-family: var(--studio-font-ui, inherit);
+}
+
+.quad-tower-map-body {
+  flex: 1 1 0;
+  min-height: 220px;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.quad-tower-map-body .cycle-trace,
+.quad-studio-tower .cycle-trace,
+.cycle-trace {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 220px !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+  overflow: hidden !important;
+  background: var(--quad-map-surface) !important;
+}
+
+/* CYCLE MAP：去掉 VT323，标题/模式/footer 走 Studio 字阶 */
+.quad-studio-tower .cycle-trace__header,
+.quad-studio-tower .cycle-trace__title,
+.quad-studio-tower .cycle-trace__count,
+.quad-studio-tower .cycle-trace__legend,
+.quad-studio-tower .cycle-trace__footer,
+.quad-studio-tower .cycle-trace__mode-switch button {
+  font-family: var(--studio-font-ui) !important;
+}
+
+.quad-studio-tower .cycle-trace__title strong {
+  font: 750 var(--studio-fs-control, 11px) / 1.15 var(--studio-font-ui) !important;
+  letter-spacing: 0.08em;
+}
+
+.quad-studio-tower .cycle-trace__title span {
+  font-size: var(--studio-fs-micro, 9px) !important;
+  letter-spacing: 0.06em;
+}
+
+.quad-studio-tower .cycle-trace__mode-switch button {
+  font: 650 var(--studio-fs-control, 11px) / 1 var(--studio-font-ui) !important;
+  letter-spacing: 0.04em;
+}
+
+.quad-studio-tower .cycle-trace__count,
+.quad-studio-tower .cycle-trace__legend {
+  font: 600 var(--studio-fs-label, 10px) / 1.2 var(--studio-font-ui) !important;
+}
+
+.quad-studio-tower .cycle-trace__footer {
+  font: 600 11px / 1.25 var(--studio-font-ui) !important;
+  letter-spacing: 0.02em;
+}
+
+.quad-tower-map-body .cycle-flow,
+.quad-tower-map-body .cycle-map,
+.cycle-flow,
+.cycle-map {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 160px !important;
+  position: relative !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+/* 分屏 cycle-flow：去掉异形 ::before 环，弱化选中/虚线抢戏 */
+.quad-studio-tower .cycle-flow__node::before {
+  content: none !important;
+  display: none !important;
+}
+
+.quad-studio-tower .cycle-flow__node[data-selected="true"] {
+  border-color: var(--selected-pad-color, var(--quad-stamen)) !important;
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--selected-pad-color, var(--quad-stamen)) 55%, transparent) !important;
+}
+
+.quad-studio-tower .cycle-flow__node[data-change="retimed"],
+.quad-studio-tower .cycle-flow__node[data-change="rewired"],
+.quad-studio-tower .cycle-flow__node[data-change="repitched"] {
+  border-style: solid !important;
+  border-color: color-mix(in srgb, var(--selected-pad-color) 42%, var(--quad-rule-strong)) !important;
+}
+
+.quad-studio-tower .cycle-flow__edge[data-layer="next"] {
+  stroke-dasharray: 3 5 !important;
+  opacity: 0.55 !important;
+  stroke-width: 1.1 !important;
+}
+
+/* Real-time Glowing Highlights for Reached Nodes */
+.cycle-flow__node[data-reached="true"],
+.cycle-map__node[data-reached="true"] {
+  box-shadow: 0 0 10px var(--selected-pad-color, #c44569) !important;
+  border-color: var(--selected-pad-color, #c44569) !important;
+  transition: box-shadow 0.12s ease;
+}
+
+.cycle-map__playhead {
+  background: #4eedb2 !important;
+  box-shadow: 0 0 8px rgba(78, 237, 178, 0.8) !important;
+  width: 2px !important;
+}
+
+/* 2. Center Stage (100% of remaining width: ~1540px!) */
+.quad-studio-stage {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.quad-studio-stage .quad-lily-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  border: none !important;
+}
+
+/* Studio：主画布节点 chrome — 实线选中环；传播圆更淡更细；LOCK 边框语言统一 */
+.quad-workbench[data-ui-variant="studio"] .quad-lily-pad__ranges circle {
+  stroke-width: 0.32;
+  opacity: 0.12;
+}
+.quad-workbench[data-ui-variant="studio"] .quad-lily-pad__ranges circle[data-center="true"] {
+  opacity: 0.2;
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-lily-node__selection {
+  stroke: var(--quad-pad-color);
+  stroke-width: 0.7;
+  stroke-dasharray: none;
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-lily-node__badge-label {
+  font-family: var(--studio-font-mono);
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-lily-node__badge-id {
+  font-size: 1.2px;
+}
+.quad-workbench[data-ui-variant="studio"] .quad-lily-node__badge-note {
+  font-size: 1.55px;
+}
+.quad-workbench[data-ui-variant="studio"] .quad-lily-node__badge-label[data-label-density="compact"] .quad-lily-node__badge-id {
+  font-size: 0.84px;
+}
+.quad-workbench[data-ui-variant="studio"] .quad-lily-node__badge-label[data-label-density="compact"] .quad-lily-node__badge-note {
+  font-size: 1.14px;
+}
+
+.quad-workbench[data-ui-variant="studio"] .quad-lily-node[data-active="true"] .quad-lily-node__pulse {
+  stroke-width: 0.55;
+}
+
+/* P1: LOCK 边框语言与侧栏 action 统一（细线 + 按下实心） */
+.quad-workbench[data-ui-variant="studio"] .quad-lily-pad__actions button {
+  border-left: 1px solid color-mix(in srgb, var(--quad-line) 90%, transparent);
+  font-family: var(--studio-font-ui);
+  letter-spacing: 0.06em;
+}
+.quad-workbench[data-ui-variant="studio"] .quad-lily-pad__actions button.quad-action--secondary[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--quad-ink) 92%, transparent);
+  color: #fff;
+  border-color: var(--quad-ink);
+}
+.quad-workbench[data-ui-variant="studio"] .quad-pro-action-btn {
+  border-width: 1px;
+}
+
+/* --------------------------------------------------------------------------
+   单轨画布抬头：身份靠左；音色+通道+图标操作合成一组居中。
+   HUD 已迁到画布左下角，不再占抬头。
+   -------------------------------------------------------------------------- */
+.quad-lily-pad__header[data-compact="true"] {
+  position: relative;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding-right: 0;
+  flex-wrap: nowrap;
+  overflow: visible;
+  min-height: 36px;
+}
+
+.quad-lily-pad__header[data-compact="true"] .quad-lily-pad__identity {
+  flex: 0 0 auto;
+  padding-right: 4px;
+  z-index: 1;
+}
+
+/* 居中工具条：音色 / 通道 + 图标操作 */
+.quad-lily-pad__toolbar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 72px);
+  z-index: 2;
+}
+
+/* HUD：贴画布左下角，低对比次要信息 */
+.quad-lily-pad__hud {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: baseline;
+  line-height: 1;
+  gap: 6px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--quad-surface) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--quad-line) 55%, transparent);
+  color: var(--quad-muted);
+  font-family: var(--studio-font-mono, ui-monospace, Consolas, monospace);
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.quad-lily-pad__hud-item {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.quad-lily-pad__hud-item + .quad-lily-pad__hud-item::before {
+  content: "·";
+  margin-right: 6px;
+  opacity: 0.55;
+}
+
+.quad-lily-pad__hud-item b {
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--quad-ink) 62%, var(--quad-muted));
+}
+
+/*
+ * 音色 / Channel：与图标操作同组。
+ */
+.quad-lily-pad__io {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+/*
+ * 旧规则在 single 布局隐藏了 Pad 抬头的第一个按钮（当时顶栏是单轨播放）。
+ * 顶栏改成全局 transport 后，单轨播放键必须回到抬头。
+ */
+.quad-lily-canvas[data-layout="single"]
+  .quad-lily-pad__header[data-compact="true"]
+  .quad-lily-pad__actions
+  button:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quad-lily-pad__io-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 111px; /* 原 ~148 收紧约 1/4 */
+  height: 24px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border: 1px solid var(--quad-line);
+  border-radius: 8px;
+  background: var(--quad-surface-raised, var(--quad-surface));
+  color: var(--quad-ink);
+  cursor: pointer;
+}
+
+/* Channel：可见数字用 strong；原生 select 透明覆盖仅负责点选 */
+.quad-lily-pad__io-select--channel {
+  position: relative;
+  max-width: 78px;
+  min-width: 68px;
+  padding: 0 8px 0 5px;
+  gap: 3px;
+}
+
+.quad-lily-pad__channel-value {
+  flex: 1 1 auto;
+  min-width: 1.1em;
+  font: 700 13px / 1 "Segoe UI", system-ui, -apple-system, sans-serif !important;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0 !important;
+  text-align: center;
+  color: var(--quad-ink);
+  pointer-events: none;
+}
+
+.quad-lily-pad__io-select--channel select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 13px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.quad-lily-pad__io-select:hover,
+.quad-lily-pad__io-select:focus-within {
+  border-color: var(--quad-pad-color);
+}
+
+.quad-lily-pad__io-select > span {
+  flex: 0 0 auto;
+  font: 700 9px / 1 var(--studio-font-ui, inherit);
+  letter-spacing: 0.08em;
+  color: var(--quad-muted);
+  white-space: nowrap;
+}
+
+.quad-lily-pad__io-select select {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  padding: 0;
+  background: transparent;
+  color: var(--quad-ink);
+  font: 650 11px / 1 "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: 0;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  color-scheme: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.quad-lily-pad__io-select select option,
+.quad-lily-pad__io-select select optgroup {
+  background: #f7faf7;
+  color: #1a2420;
+}
+
+/* 操作按钮：图标化紧凑横排 */
+.quad-lily-pad__header[data-compact="true"] .quad-lily-pad__actions {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+  border: 1px solid var(--quad-line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--quad-surface-raised, var(--quad-surface));
+}
+
+.quad-lily-pad__header[data-compact="true"] .quad-lily-pad__actions button,
+.quad-lily-pad__header[data-compact="true"] .quad-lily-pad__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  width: 30px;
+  height: 24px;
+  padding: 0;
+  border-left: 1px solid color-mix(in srgb, var(--quad-line) 90%, transparent);
+  font-size: 0;
+  letter-spacing: 0;
+}
+
+.quad-lily-pad__header[data-compact="true"] .quad-lily-pad__actions button:first-child {
+  border-left: 0;
+}
+
+.quad-lily-pad__header[data-compact="true"] .quad-lily-pad__actions button:disabled {
+  color: var(--quad-muted);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.quad-lily-pad__header[data-compact="true"] .quad-lily-pad__icon-btn[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--quad-ink) 88%, transparent);
+  color: #fff;
+}
+
+.quad-lily-pad__header[data-compact="true"] .quad-lily-pad__icon-btn svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+/* 小窗：缩音色下拉；HUD 仍留左下角但可再淡 */
+@media (max-width: 1180px) {
+  .quad-soft-select--default {
+    width: 112px;
+    max-width: 112px;
+    min-width: 112px;
+    flex-basis: 112px;
+  }
+  .quad-lily-pad__toolbar { gap: 6px; max-width: calc(100% - 56px); }
+}
+
+@media (max-width: 980px) {
+  .quad-soft-select--default .quad-soft-select__prefix,
+  .quad-soft-select--channel .quad-soft-select__prefix { display: none; }
+  .quad-soft-select--default {
+    width: 96px;
+    max-width: 96px;
+    min-width: 96px;
+    flex-basis: 96px;
+  }
+  .quad-soft-select--channel {
+    width: 44px;
+    max-width: 44px;
+    min-width: 44px;
+    flex-basis: 44px;
+  }
+}
+
+@media (max-width: 720px) {
+  .quad-workbench[data-ui-variant="studio"] {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+  .quad-lily-pad__hud { opacity: 0.55; gap: 4px; padding: 2px 5px; }
+  .quad-lily-pad__hud-item:nth-child(n + 3) { display: none; }
+}
+
+/* ==========================================================================
+   VARIANT 2: FLOATING CANVAS (极简通透画廊)
+   ========================================================================== */
+
+[data-ui-variant="floating"] {
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+}
+
+[data-ui-variant="floating"] .quad-main-stage {
+  grid-template-columns: 1fr !important;
+  display: block !important;
+  height: calc(100vh - 80px) !important;
+  border: none !important;
+}
+[data-ui-variant="floating"] .quad-main-stage > .quad-cycle-trace {
+  display: none !important;
+}
+
+[data-ui-variant="floating"] .quad-topbar,
+[data-ui-variant="floating"] .quad-pad-tabs,
+[data-ui-variant="floating"] .quad-status {
+  display: none !important; /* Replaced by Floating Island HUD */
+}
+
+/* Floating Top Island HUD */
+.quad-floating-island {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px;
+  background: rgba(15, 20, 18, 0.85);
+  border: 1px solid rgba(140, 210, 180, 0.35);
+  border-radius: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(14px);
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.quad-floating-island__tabs {
+  display: flex;
+  gap: 2px;
+}
+.quad-floating-island__tab-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #a0b4aa;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 11px;
+}
+.quad-floating-island__tab-btn[data-active="true"] {
+  background: var(--selected-pad-color, #9c27b0);
+  color: #ffffff;
+}
+
+.quad-floating-island__divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.quad-floating-island__play {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: none;
+  font-weight: 800;
+  font-size: 11px;
+  cursor: pointer;
+  color: #ffffff;
+}
+.quad-floating-island__play[data-playing="true"] {
+  background: #2e7d32;
+}
+.quad-floating-island__play[data-playing="false"] {
+  background: #c2185b;
+}
+
+/* Floating Right Edge Tab */
+.quad-floating-map-edge {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 4000;
+  background: rgba(18, 24, 22, 0.85);
+  border: 1px solid rgba(140, 210, 180, 0.35);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+  padding: 10px 6px;
+  color: #8ce6cc;
+  font-weight: 700;
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+  backdrop-filter: blur(8px);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.4);
+}
+.quad-floating-map-edge:hover {
+  background: rgba(28, 44, 38, 0.95);
+  color: #ffffff;
+}
+
+/* Floating Bottom Context Dock */
+.quad-floating-dock {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 18px;
+  background: rgba(15, 20, 18, 0.92);
+  border: 1px solid rgba(140, 210, 180, 0.4);
+  border-radius: 24px;
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(16px);
+  max-width: 90vw;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   VARIANT 3: LIVE PERFORMER DECK (现场演奏台)
+   ========================================================================== */
+
+[data-ui-variant="performer"] .quad-main-stage {
+  grid-template-columns: 1fr !important;
+  display: block !important;
+}
+[data-ui-variant="performer"] .quad-main-stage > .quad-cycle-trace {
+  display: none !important;
+}
+
+[data-ui-variant="performer"] .quad-pad-tabs {
+  display: none !important; /* Handled in central command deck */
+}
+
+/* Performer Central Command Deck at Top */
+.quad-performer-deck-top {
+  display: grid;
+  grid-template-columns: 240px 1fr auto;
+  align-items: center;
+  padding: 6px 14px;
+  background: #090c0a;
+  border-bottom: 2px solid var(--quad-border, #1f362b);
+  gap: 16px;
+}
+
+.quad-performer-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: #4eedb2;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+}
+
+.quad-performer-center-deck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.quad-performer-pads {
+  display: flex;
+  gap: 4px;
+}
+.quad-performer-pad-trigger {
+  padding: 6px 12px;
+  font-weight: 800;
+  font-size: 12px;
+  background: #141b17;
+  border: 1px solid #2e4438;
+  color: #b0c4b8;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.quad-performer-pad-trigger[data-active="true"] {
+  background: var(--selected-pad-color, #d81b60);
+  border-color: #ff80ab;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 128, 171, 0.4);
+}
+
+.quad-performer-play-switch {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  border-radius: 6px;
+  border: 2px solid;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.quad-performer-play-switch[data-playing="true"] {
+  background: #1b5e20;
+  border-color: #69f0ae;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(105, 240, 174, 0.5);
+}
+.quad-performer-play-switch[data-playing="false"] {
+  background: #880e4f;
+  border-color: #ff4081;
+  color: #ffffff;
+}
+
+/* Performer Bottom Card Grid */
+.quad-performer-bottom-grid {
+  display: grid;
+  grid-template-columns: 280px 320px 1fr;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #090c0a;
+  border-top: 2px solid var(--quad-border, #1f362b);
+  box-sizing: border-box;
+}
+
+.quad-performer-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(140, 200, 180, 0.18);
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.quad-performer-card__title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #8ce6cc;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+/* ==========================================================================
+   用户账号区 (.quad-user-area)
+   ========================================================================== */
+
+.quad-user-area {
+  position: relative;
+}
+
+/* 未登录 Sign in 按钮 */
+.quad-user-signin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--quad-ink);
+  background: var(--quad-ink);
+  color: var(--quad-surface-raised, #f7faf7);
+  font-family: var(--studio-font-ui);
+  font-size: var(--studio-fs-label, 0.65rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: filter .15s;
+  white-space: nowrap;
+}
+.quad-user-signin-btn:hover { filter: brightness(1.15); }
+
+/* 已登录头像按钮 */
+.quad-user-avatar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--quad-stamen) 50%, transparent);
+  background: color-mix(in srgb, var(--quad-stamen) 10%, var(--quad-surface-raised));
+  color: var(--quad-stamen);
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.quad-user-avatar-btn:hover,
+.quad-user-avatar-btn.is-active {
+  border-color: var(--quad-stamen);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--quad-stamen) 15%, transparent);
+  background: color-mix(in srgb, var(--quad-stamen) 16%, var(--quad-surface-raised));
+}
+
+/* 用户下拉菜单 */
+.quad-user-menu {
+  position: fixed;
+  top: var(--user-menu-top, 48px);
+  right: 12px;
+  z-index: 9000;
+  min-width: 220px;
+  background: var(--quad-surface-raised, #f7faf7);
+  border: 1.5px solid color-mix(in srgb, var(--quad-ink) 18%, transparent);
+  border-radius: 14px;
+  box-shadow:
+    0 12px 40px color-mix(in srgb, var(--quad-ink) 14%, transparent),
+    0 2px 8px color-mix(in srgb, var(--quad-ink) 8%, transparent);
+  overflow: hidden;
+  animation: auth-card-enter 150ms cubic-bezier(.2, .8, .2, 1) both;
+}
+
+/* 用户信息区 */
+.quad-user-menu__profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.quad-user-menu__avatar {
+  color: var(--quad-stamen);
+  flex-shrink: 0;
+}
+
+.quad-user-menu__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.quad-user-menu__name {
+  font-family: var(--studio-font-ui);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--quad-ink);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quad-user-menu__email {
+  font-family: var(--studio-font-ui);
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--quad-muted, #5a6e67);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quad-user-menu__sep {
+  margin: 0;
+  border: none;
+  border-top: 1px solid color-mix(in srgb, var(--quad-ink) 10%, transparent);
+}
+
+.quad-user-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: var(--quad-ink);
+  font-family: var(--studio-font-ui);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .12s;
+}
+.quad-user-menu__item:hover {
+  background: color-mix(in srgb, var(--quad-ink) 5%, var(--quad-surface-raised));
+}
+
+.quad-user-menu__item--danger {
+  color: #d9534f;
+}
+.quad-user-menu__item--danger:hover {
+  background: color-mix(in srgb, #d9534f 8%, var(--quad-surface-raised));
+}
+
+.quad-user-menu__stats {
+  display: grid;
+  gap: 8px;
+  padding: 4px 16px 12px;
+}
+
+.quad-user-menu__stats > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.quad-user-menu__stats span {
+  font: 700 9px / 1 var(--studio-font-ui);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--quad-muted);
+}
+
+.quad-user-menu__stats strong {
+  font: 750 .82rem / 1.2 var(--studio-font-ui);
+  color: var(--quad-ink);
+}
+
+.quad-user-menu__edit {
+  justify-self: start;
+  width: max-content;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: var(--quad-muted) !important;
+  font: 650 .72rem / 1 var(--studio-font-ui) !important;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.quad-user-menu__account {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 16px 12px;
+}
+
+.quad-user-menu__account label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--studio-font-ui);
+  font-size: var(--studio-fs-micro, 9px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--quad-muted, #5a6e67);
+}
+
+.quad-user-menu__account input {
+  width: 100%;
+  height: 30px;
+  padding: 0 9px;
+  box-sizing: border-box;
+  border: 1.5px solid color-mix(in srgb, var(--quad-ink) 18%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--quad-surface-raised, #f7faf7) 92%, var(--quad-ink));
+  color: var(--quad-ink);
+  font-family: var(--studio-font-ui);
+  font-size: 0.75rem;
+  font-weight: 650;
+  outline: none;
+}
+
+.quad-user-menu__account input:focus {
+  border-color: var(--quad-stamen);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--quad-stamen) 18%, transparent);
+}
+
+.quad-user-menu__account button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1.5px solid var(--quad-ink);
+  border-radius: 8px;
+  background: var(--quad-ink);
+  color: var(--quad-surface-raised, #f7faf7);
+  font-family: var(--studio-font-ui);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.quad-user-menu__account button:hover {
+  filter: brightness(1.08);
+}
+
+.quad-user-menu__account button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* ==========================================================================
+   STUDIO — 侧栏折叠后画布居中
+   `data-sidebar-collapsed` 同时挂在 .quad-studio-body 和 .quad-studio-stage 上，
+   两种写法都覆盖，避免只改一处时失效。
+   ========================================================================== */
+
+.quad-studio-body[data-sidebar-collapsed="true"] .quad-studio-stage,
+.quad-studio-stage[data-sidebar-collapsed="true"] {
+  align-items: center;
+  justify-content: center;
+}
+
+.quad-studio-body[data-sidebar-collapsed="true"] .quad-studio-stage > .quad-lily-canvas,
+.quad-studio-stage[data-sidebar-collapsed="true"] > .quad-lily-canvas {
+  margin-inline: auto;
+  align-self: center;
+  justify-self: center;
+  place-content: center;
+}
+
+/* 单 Pad + 折叠 + 超宽屏：给画布一个上限，别把一个 Pad 拉成扁长条 */
+@media (min-width: 1600px) {
+  .quad-studio-body[data-sidebar-collapsed="true"] .quad-studio-stage > .quad-lily-canvas[data-layout="single"],
+  .quad-studio-stage[data-sidebar-collapsed="true"] > .quad-lily-canvas[data-layout="single"] {
+    width: min(100%, 1480px) !important;
+  }
+}
+
+/* ==========================================================================
+   STUDIO RESPONSIVE — 小窗不横向溢出
+   1180 / 980 断点已在上文处理左簇按钮文字；这里补品牌、右侧工具与整体堆叠。
+   ========================================================================== */
+
+/* 兜底：顶层容器不产生横向滚动条（fixed 定位的设置菜单不受 clip 影响） */
+.quad-studio-wrapper {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+@media (max-width: 1180px) {
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center h1 {
+    font-size: 15px;
+    letter-spacing: 0.1em;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center p {
+    letter-spacing: 0.14em;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-right-tools {
+    gap: 8px;
+    max-width: calc(50% - 84px);
+  }
+  [data-ui-variant="studio"] .quad-studio-io-group { gap: 6px; }
+  [data-ui-variant="studio"] .quad-studio-io-select { min-width: 0; }
+  [data-ui-variant="studio"] .quad-studio-io-select select { max-width: 76px; }
+}
+
+@media (max-width: 980px) {
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-mark {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+  }
+  /* 音色下拉先让位，MIDI 端口更关键 */
+  [data-ui-variant="studio"] .quad-studio-io-select__label { display: none; }
+  [data-ui-variant="studio"] .quad-studio-io-select select { max-width: 64px; }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-left-cluster,
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-right-tools {
+    max-width: calc(50% - 22px);
+  }
+}
+
+/* ≤880px：顶栏放弃"绝对居中品牌"，改成可换行的流式栏；主体上下堆叠 */
+@media (max-width: 880px) {
+  .quad-workbench[data-ui-variant="studio"] .quad-topbar,
+  .quad-workbench[data-ui-variant="studio"][data-view-mode="single"] .quad-topbar,
+  .quad-workbench[data-ui-variant="studio"][data-view-mode="quad"] .quad-topbar {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    row-gap: 8px;
+    padding: 8px 10px;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center {
+    position: static;
+    transform: none;
+    order: -1;
+    width: auto;
+    max-width: none;
+    margin-right: auto;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-copy { display: none; }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-left-cluster,
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-right-tools {
+    max-width: 100%;
+    flex-wrap: wrap;
+    row-gap: 6px;
+    justify-self: auto;
+    justify-content: flex-start;
+  }
+
+  /* 侧栏改为顶部面板，画布拿到整个宽度 */
+  .quad-studio-body { flex-direction: column; }
+  .quad-studio-tower {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: 46vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--quad-line);
+  }
+  .quad-studio-tower.is-collapsed,
+  .quad-studio-tower[data-collapsed="true"] {
+    flex: 0 0 28px;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    height: 28px;
+  }
+  .quad-studio-tower__collapse-handle {
+    top: auto;
+    bottom: -1px;
+    right: 50%;
+    transform: translate(50%, 50%) rotate(90deg);
+  }
+  .quad-studio-stage { min-height: 58vh; }
+  .quad-studio-stage .quad-shortcuts-card {
+    top: auto;
+    bottom: 8px;
+    right: 8px;
+  }
+}
+
+.quad-studio-tower__collapse-label { display: none; }
+
+/* 手机网页：同一产品界面按视口重排，参数塔默认由组件收起，画布保持第一层。 */
+@media (max-width: 720px) {
+  .quad-workbench[data-ui-variant="studio"] .quad-topbar,
+  .quad-workbench[data-ui-variant="studio"][data-view-mode="single"] .quad-topbar,
+  .quad-workbench[data-ui-variant="studio"][data-view-mode="quad"] .quad-topbar {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "brand tools"
+      "controls controls";
+    align-items: center;
+    gap: 6px 8px;
+    min-height: 0;
+    padding: 6px 8px;
+  }
+
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center {
+    grid-area: brand;
+    position: static;
+    width: min-content;
+    margin: 0;
+    transform: none;
+    justify-self: start;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-copy {
+    display: flex;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center h1 {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-brand-center p {
+    display: block;
+    font-size: 8px;
+    letter-spacing: 0.06em;
+    text-transform: none;
+  }
+
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-left-cluster {
+    grid-area: controls;
+    width: 100%;
+    max-width: none;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-left-cluster > .quad-studio-left-group:first-child {
+    display: flex;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-left-cluster .quad-view-switch {
+    height: 30px;
+    min-height: 30px;
+    max-height: 30px;
+    align-items: center;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-left-cluster .quad-view-switch button {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    min-height: 28px;
+    padding: 0;
+  }
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-left-cluster .quad-view-switch button svg {
+    width: 14px;
+    height: 14px;
+  }
+  [data-ui-variant="studio"] .quad-studio-left-group,
+  [data-ui-variant="studio"] .quad-studio-transport-pair {
+    gap: 3px;
+  }
+
+  .quad-workbench[data-ui-variant="studio"] .quad-studio-right-tools {
+    grid-area: tools;
+    max-width: none;
+    gap: 4px;
+    flex-wrap: nowrap;
+    justify-self: end;
+  }
+  [data-ui-variant="studio"] .quad-studio-right-sep,
+  [data-ui-variant="studio"] .quad-studio-io-select__label,
+  [data-ui-variant="studio"] .quad-user-signin-btn span {
+    display: none;
+  }
+  [data-ui-variant="studio"] .quad-studio-io-select select {
+    max-width: 68px;
+  }
+
+  .quad-studio-body {
+    flex-direction: column;
+    min-height: 0;
+  }
+  .quad-studio-body > .quad-studio-stage { order: 0; }
+  .quad-studio-body > .quad-studio-tower { order: 1; border-top: 1px solid var(--quad-line); }
+  .quad-studio-tower {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: 42svh;
+    border-right: 0;
+    border-bottom: 1px solid var(--quad-line);
+  }
+  .quad-studio-tower.is-collapsed,
+  .quad-studio-tower[data-collapsed="true"] {
+    flex: 0 0 34px;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    height: 34px;
+  }
+  .quad-studio-tower__collapse-handle,
+  .quad-studio-tower.is-collapsed .quad-studio-tower__collapse-handle,
+  .quad-studio-tower[data-collapsed="true"] .quad-studio-tower__collapse-handle {
+    top: 0;
+    right: 50%;
+    bottom: auto;
+    width: 120px;
+    height: 34px;
+    transform: translateX(50%);
+  }
+  .quad-studio-tower__collapse-handle:focus,
+  .quad-studio-tower__collapse-handle:focus-visible,
+  .quad-studio-tower__collapse-handle:active {
+    transform: translateX(50%) !important;
+  }
+  .quad-studio-tower__collapse-handle svg { transform: rotate(-90deg); }
+  .quad-studio-tower__collapse-label { display: inline; font-size: 12px; }
+  .quad-studio-tower:not(.is-collapsed):not([data-collapsed="true"]) {
+    height: 42dvh;
+    flex-basis: 42dvh;
+    padding-top: 34px;
+    padding-bottom: 0;
+    box-sizing: border-box;
+  }
+  .quad-lily-pad__hud-item:nth-child(n + 3) { display: inline-flex; }
+  .quad-studio-tower__resize-handle {
+    display: none;
+  }
+
+  .quad-studio-stage {
+    min-height: 0;
+    flex: 1 1 0;
+    height: auto;
+  }
+  .quad-studio-stage .quad-shortcuts-card {
+    display: none;
+  }
+
+  .quad-lily-pad__header[data-compact="true"] {
+    gap: 2px;
+    min-height: 38px;
+  }
+  .quad-lily-pad__header[data-compact="true"] .quad-lily-pad__identity {
+    padding: 0 4px 0 8px;
+  }
+  .quad-lily-pad__toolbar {
+    left: auto;
+    right: 4px;
+    max-width: calc(100% - 40px);
+    gap: 3px;
+    transform: translateY(-50%);
+  }
+  .quad-soft-select--default {
+    width: 84px;
+    max-width: 84px;
+    min-width: 84px;
+    flex-basis: 84px;
+  }
+  .quad-soft-select--channel {
+    width: 40px;
+    max-width: 40px;
+    min-width: 40px;
+    flex-basis: 40px;
+  }
+  .quad-lily-pad__header[data-compact="true"] .quad-lily-pad__actions button,
+  .quad-lily-pad__header[data-compact="true"] .quad-lily-pad__icon-btn {
+    width: 28px;
+    min-width: 28px;
+  }
+}

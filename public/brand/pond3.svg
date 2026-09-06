@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="presentation">
+  <!-- Pond III: lotus line art (top right), petals outlined only -->
+  <g fill="none" stroke="#2f6b52" stroke-linecap="round" stroke-linejoin="round" opacity="0.17">
+    <g stroke-width="1.8" transform="translate(286 104)">
+      <path d="M0 34C-14 12-14-14 0-34c14 20 14 46 0 68z" />
+      <path d="M0 34C-30 24-48 4-52-24c26 6 44 26 52 58z" />
+      <path d="M0 34C30 24 48 4 52-24c-26 6-44 26-52 58z" />
+      <path d="M0 34C-38 40-62 34-78 16c26-8 52-2 78 18z" />
+      <path d="M0 34C38 40 62 34 78 16c-26-8-52-2-78 18z" />
+      <path d="M-84 40h168" opacity="0.6" />
+    </g>
+    <g stroke-width="1.4" opacity="0.7">
+      <path d="M64 296a58 58 0 1 0 0-1l-5 .7z" />
+      <path d="M59 297 96 260" />
+      <path d="M59 297 116 312" />
+      <path d="M59 297 70 352" />
+      <path d="M59 297 12 268" />
+    </g>
+    <g stroke-width="1.1" opacity="0.5">
+      <path d="M170 372c44-14 88 14 132 0s70-10 98 0" />
+    </g>
+  </g>
+</svg>
