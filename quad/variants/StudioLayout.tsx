@@ -465,15 +465,9 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                   <time dateTime="2026-09-08">2026-09-08</time>
                   <ul>
                     {(locale === 'zh' ? [
-                      '全局播放、重新起拍、保存与清空整合为一个操作组。',
-                      '四宫格可通过 A–D 或画布标题切换到单画布，播放不中断。',
-                      '支持统一调整全部画布的 BPM、乐句长度、自动模式与音量。',
-                      '优化桌面与手机的顶部操作布局。',
+                      '优化全局操作与四宫格切换，新增多画布参数统一调整。',
                     ] : [
-                      'Grouped global playback, restart, save and clear controls.',
-                      'Switch from the grid to any canvas via A–D or its title without interrupting playback.',
-                      'Adjust BPM, phrase length, auto mode and volume across all canvases.',
-                      'Refined desktop and mobile toolbar layout.',
+                      'Refined global controls and grid navigation; added shared parameter editing across canvases.',
                     ]).map(note => <li key={note}>{note}</li>)}
                   </ul>
                 </section>
