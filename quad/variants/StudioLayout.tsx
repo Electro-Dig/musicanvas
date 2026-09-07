@@ -5,6 +5,8 @@ import {
   Pause,
   Play,
   RefreshCw,
+  RotateCcw,
+  Trash2,
   Save,
   Settings2,
   Flower2,
@@ -112,6 +114,9 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
     onRefreshMidi,
     onPlayAll,
     onPauseAll,
+    onRestartAll,
+    onClearAll,
+    onPatchAllTiming,
     soundPresetId,
     onSetSoundPresetId,
     canvasBackgroundPattern = DEFAULT_CANVAS_BACKGROUND,
@@ -233,11 +238,11 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
             </div>
           </div>
 
-          {viewMode === 'single' && (
+          {(
             <div className="quad-studio-left-group" role="presentation">
               <div className="quad-studio-tabs" role="tablist">
                 {QUAD_PAD_IDS.map((padId) => {
-                  const isCurrent = selectedPadId === padId;
+                  const isCurrent = viewMode === 'quad' || selectedPadId === padId;
                   return (
                     <button
                       key={padId}
@@ -245,9 +250,12 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                       role="tab"
                       className="quad-studio-tab-btn"
                       data-active={isCurrent ? 'true' : 'false'}
-                      onClick={() => onChoosePad(padId)}
+                      aria-selected={isCurrent}
+                      onClick={() => { onChoosePad(padId); onSetViewMode('single'); }}
                       style={{
                         borderBottom: isCurrent ? `3px solid ${PAD_COLORS[padId]}` : 'none',
+                        background: isCurrent ? 'var(--quad-ink)' : undefined,
+                        color: isCurrent ? 'var(--quad-surface)' : undefined,
                       }}
                     >
                       <span>{padId}</span>
@@ -260,7 +268,8 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
 
           {/* 全局 transport：single / quad 都作用于四个 Pad */}
           <div className="quad-studio-left-group" role="presentation">
-            <div className="quad-studio-transport-pair">
+            <div className="quad-studio-transport-pair" role="group" aria-label="全局操作">
+              <span className="quad-global-label">全局</span>
               <button
                 type="button"
                 className="quad-studio-play-btn"
@@ -274,23 +283,15 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                 ) : (
                   <Play size={ICON_MD} strokeWidth={2.25} aria-hidden />
                 )}
-                <span>{masterPlayLabel}</span>
               </button>
+              <button className="quad-studio-icon-btn" type="button" onClick={onRestartAll} title="全局重新起拍" aria-label="全局重新起拍"><RotateCcw size={ICON_SM} /></button>
+              <button className="quad-studio-icon-btn" type="button" onClick={onQuickSave} title="全局保存" aria-label="全局保存"><Save size={ICON_MD} /></button>
+              <button className="quad-studio-icon-btn quad-global-clear" type="button" onClick={onClearAll} title="清空全部画布" aria-label="清空全部画布"><Trash2 size={ICON_SM} /></button>
             </div>
           </div>
 
           {/* 全局保存 / 图案库 — 统一 transport 样式 */}
           <div className="quad-studio-left-group" role="presentation">
-            <button
-              type="button"
-              className="quad-studio-transport-btn"
-              onClick={onQuickSave}
-              title={t(locale, 'globalSave')}
-              aria-label={t(locale, 'globalSave')}
-            >
-              <Save size={ICON_MD} strokeWidth={2.25} aria-hidden />
-              <span>{t(locale, 'globalSave')}</span>
-            </button>
             <button
               type="button"
               className="quad-studio-transport-btn"
@@ -459,6 +460,23 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                     {locale === 'zh' ? '中文 / EN' : 'EN / 中文'}
                   </span>
                 </button>
+                <section className="quad-studio-release-notes" aria-label={locale === 'zh' ? '更新说明' : 'What’s new'}>
+                  <h3>{locale === 'zh' ? '更新说明' : 'What’s new'} <span>v0.32.0</span></h3>
+                  <time dateTime="2026-09-08">2026-09-08</time>
+                  <ul>
+                    {(locale === 'zh' ? [
+                      '全局播放、重新起拍、保存与清空整合为一个操作组。',
+                      '四宫格可通过 A–D 或画布标题切换到单画布，播放不中断。',
+                      '支持统一调整全部画布的 BPM、乐句长度、自动模式与音量。',
+                      '优化桌面与手机的顶部操作布局。',
+                    ] : [
+                      'Grouped global playback, restart, save and clear controls.',
+                      'Switch from the grid to any canvas via A–D or its title without interrupting playback.',
+                      'Adjust BPM, phrase length, auto mode and volume across all canvases.',
+                      'Refined desktop and mobile toolbar layout.',
+                    ]).map(note => <li key={note}>{note}</li>)}
+                  </ul>
+                </section>
               </div>
             )}
           </div>
@@ -582,6 +600,9 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
           comparisonPads={padViews.map(p => ({ id: p.id, phase: p.cyclePhase, steps: Math.round(getPadCycleDurationMs(p.timingPad) / (p.timingPad.intervalMs / 4)), bpm: Math.round(60000 / p.timingPad.intervalMs), playing: p.playing }))}
           overviewPads={padViews.map(p => ({ ...p.timingPad, playing: p.playing }))}
           selectedPadId={selectedPadId}
+          allPads={QUAD_PAD_IDS.map(id => workspace.pads[id])}
+          onPatchAllTiming={onPatchAllTiming}
+          onRestartAll={onRestartAll}
           selectedPad={selectedPad}
           selectedNode={selectedNode}
           selectedScale={selectedScale}
@@ -644,6 +665,7 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
           <QuadLilyCanvas
             pads={padViews}
             layout={viewMode}
+            onFocusPad={id => { onChoosePad(id); onSetViewMode('single'); }}
             showNodeLabels={nodeLabelVisibility.canvas}
             mobilePadId={selectedPadId}
             onSelectPad={onChoosePad}

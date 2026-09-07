@@ -56,6 +56,9 @@ const SCALE_OPTIONS = SCALES.filter((s) => s.intervals.length).map((s) => ({
 export type TowerViewMode = 'controls' | 'map';
 
 export interface StudioSidebarProps {
+  allPads?: QuadLilyPad[];
+  onPatchAllTiming?: (patch: QuadLilyPadPatch) => void;
+  onRestartAll?: () => void;
   comparisonPads?: PhaseComparisonPad[];
   overviewPads?: QuadLilyPad[];
   selectedPadId: QuadPadId;
@@ -129,6 +132,7 @@ function formatNodeInfoTitle(pad: QuadLilyPad, node: LilyNode): string {
 }
 
 export const StudioSidebar: React.FC<StudioSidebarProps> = ({
+  allPads = [], onPatchAllTiming, onRestartAll,
   comparisonPads = [],
   overviewPads = [],
   selectedPadId,
@@ -150,7 +154,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
   onToggleCollapsed,
   widthPx = STUDIO_TOWER_WIDTH_MIN,
   onWidthChange,
-  onPatchSelectedPad,
+  onPatchSelectedPad: patchCurrentPad,
   onRestartSelectedPad,
   onPatchSelectedNode,
   onToggleEndpointPitch,
@@ -175,6 +179,13 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
   onChangeGroupRadius,
   onToggleCycleMap,
 }) => {
+  const [timingScope, setTimingScope] = useState<'current' | 'all'>('current');
+  const mixed = (key: 'intervalMs' | 'velocity' | 'phraseSteps' | 'phraseMode') => timingScope === 'all' && allPads.some(p => p[key] !== allPads[0]?.[key]);
+  const onPatchSelectedPad = (patch: QuadLilyPadPatch) => {
+    const keys = Object.keys(patch);
+    if (timingScope === 'all' && onPatchAllTiming && keys.every(k => ['intervalMs', 'velocity', 'phraseSteps', 'phraseMode'].includes(k))) onPatchAllTiming(patch);
+    else patchCurrentPad(patch);
+  };
   const [towerMode, setTowerMode] = useState<TowerViewMode>('controls');
   const [mapView, setMapView] = useState<'current' | 'overview' | 'phase'>('current');
   const [internalCollapsed, setInternalCollapsed] = useState(false);
@@ -345,11 +356,16 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         <div className="quad-studio-tower__params is-full">
           {/* Card 1: BPM 速度 */}
           <section className="quad-pro-card quad-pro-card--tempo" data-cat="tempo">
+            <div className="quad-timing-scope" role="group" aria-label="参数作用范围">
+              <button type="button" aria-pressed={timingScope === 'current'} onClick={() => setTimingScope('current')}>当前画布</button>
+              <button type="button" aria-pressed={timingScope === 'all'} onClick={() => setTimingScope('all')}>全部画布</button>
+            </div>
             <header className="quad-pro-card__header">
               <span className="quad-pro-card__title">BPM速度</span>
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <ScrubbableWheelInput
                   value={bpm}
+                  formatValue={mixed('intervalMs') ? () => '不同' : undefined}
                   min={MIN_BPM}
                   max={MAX_BPM}
                   step={1}
@@ -360,7 +376,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 <button
                   type="button"
                   className="quad-pro-mini-btn"
-                  onClick={onRestartSelectedPad}
+                  onClick={timingScope === 'all' ? onRestartAll : onRestartSelectedPad}
                   title="立即对齐重置起拍"
                 >
                   起拍 ↺
@@ -388,8 +404,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               <div className="quad-pro-field__meta">
                 <span className="quad-pro-field__sublabel">乐句长度</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <ScrubbableWheelInput value={selectedPad.phraseSteps ?? 4} min={4} max={64} step={1} unit="步" title="乐句长度：4–64 步" onChange={value => onPatchSelectedPad({ phraseMode: 'fixed', phraseSteps: Math.max(4, Math.min(64, Math.round(value))) })} />
-                  <button className="quad-pro-mini-btn" type="button" aria-pressed={selectedPad.phraseMode === 'auto'} onClick={() => onPatchSelectedPad({ phraseMode: selectedPad.phraseMode === 'auto' ? 'fixed' : 'auto' })}>自动</button>
+                  <ScrubbableWheelInput formatValue={mixed('phraseSteps') ? () => '不同' : undefined} value={selectedPad.phraseSteps ?? 4} min={4} max={64} step={1} unit="步" title="乐句长度：4–64 步" onChange={value => onPatchSelectedPad({ phraseMode: 'fixed', phraseSteps: Math.max(4, Math.min(64, Math.round(value))) })} />
+                  <button className="quad-pro-mini-btn" type="button" aria-pressed={mixed('phraseMode') ? 'mixed' : selectedPad.phraseMode === 'auto'} onClick={() => onPatchSelectedPad({ phraseMode: mixed('phraseMode') || selectedPad.phraseMode !== 'auto' ? 'auto' : 'fixed' })}>自动{mixed('phraseMode') ? ' · 不同' : ''}</button>
                 </div>
               </div>
               <div className="quad-pro-slider-wrap"><input className="quad-pro-slider" aria-label="乐句长度" type="range" min={4} max={64} step={1} value={selectedPad.phraseSteps ?? 4} onChange={e => onPatchSelectedPad({phraseMode:'fixed', phraseSteps:Number(e.target.value)})} /></div>
@@ -400,6 +416,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 <span className="quad-pro-field__sublabel">音量</span>
                 <ScrubbableWheelInput
                   value={volume}
+                  formatValue={mixed('velocity') ? () => '不同' : undefined}
                   min={MIN_VOLUME}
                   max={MAX_VOLUME}
                   step={1}

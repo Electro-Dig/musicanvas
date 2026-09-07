@@ -14,6 +14,7 @@ import {
   addLilyNode,
   getPadCycleDurationMs,
   clearLilyPad,
+  patchAllPadTiming,
   compileLilyCycle,
   deleteLilyNode,
   moveLilyNode,
@@ -1803,6 +1804,22 @@ export default function QuadLilyApp() {
   }, [clearReleaseTimers, setDrawCapture]);
 
   const clearSelectedPad = () => clearPad(selectedPadId);
+  const clearAllPads = () => {
+    if (!window.confirm('清空 A–D 四个画布的音符和编队？每个画布保留 ROOT 与音乐参数，图案库中的作品不受影响。此操作不可撤销。')) return;
+    runnerRef.current?.stopAll();
+    QUAD_PAD_IDS.forEach(id => {
+      clearReleaseTimers(id);
+      midiBusRef.current.releaseSlot(id);
+    });
+    dragRef.current = null;
+    setDrawPreview(null);
+    setDrawCapture(null);
+    setWorkspace(previous => QUAD_PAD_IDS.reduce((next, id) => updateLilyPad(clearLilyPad(next, id), id, { playing: false }), { ...previous, masterPlaying: false }));
+    setPausedPads({ A: false, B: false, C: false, D: false });
+    setSelectedNodes({ A: 'center', B: 'center', C: 'center', D: 'center' });
+    setGroupSelections({ A: ['center'], B: ['center'], C: ['center'], D: ['center'] });
+    setSelectedFormationIds({ A: null, B: null, C: null, D: null });
+  };
 
   const copySelectedNotes = () => {
     const clip = copyNotes(selectedPad, selectedGroupIds);
@@ -2255,6 +2272,8 @@ export default function QuadLilyApp() {
     onPlayAll: playAll,
     onPauseAll: pauseAll,
     onRestartAll: restartAll,
+    onClearAll: clearAllPads,
+    onPatchAllTiming: patch => setWorkspace(previous => patchAllPadTiming(previous, patch)),
     canvasBackgroundPattern,
     onCycleCanvasBackground: () => setCanvasBackgroundPattern(previous => cycleCanvasBackground(previous)),
     cycleContinue,

@@ -339,6 +339,28 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 3px;
+  border: 1px solid var(--quad-line);
+  border-radius: 999px;
+  background: var(--quad-surface-raised);
+  flex-shrink: 0;
+}
+
+[data-ui-variant="studio"] .quad-studio-transport-pair .quad-global-label {
+  padding: 5px 8px;
+  border-right: 1px solid var(--quad-line);
+}
+[data-ui-variant="studio"] .quad-studio-transport-pair button {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+[data-ui-variant="studio"] .quad-studio-transport-pair button:hover {
+  background: var(--quad-surface);
+}
+[data-ui-variant="studio"] .quad-studio-transport-pair button[data-playing="true"] {
+  background: var(--quad-ink);
+  color: var(--quad-surface);
 }
 
 /* Center brand — 视口水平几何居中（不被左右栏宽度拉偏） */
@@ -897,6 +919,9 @@
 }
 
 [data-ui-variant="studio"] .quad-studio-settings__menu {
+  width: min(340px, calc(100vw - 24px));
+  max-height: calc(100dvh - var(--settings-menu-top, 48px) - 12px);
+  overflow-y: auto;
   position: fixed;       /* fixed 脱离所有 overflow 裁剪上下文 */
   top: var(--settings-menu-top, 48px);
   right: 12px;
@@ -1316,6 +1341,55 @@ body:has(.quad-studio-tower.is-resizing) * {
 }
 
 /* Pro Parameter Cards — Scheme A Mint Rail (white card + left accent) */
+.quad-global-label {
+  font: 700 var(--studio-fs-label) / 1 var(--studio-font-ui);
+  padding: 0 5px;
+  white-space: nowrap;
+}
+
+[data-ui-variant="studio"] .quad-studio-release-notes {
+  margin-top: 6px;
+  padding: 12px 10px 4px;
+  border-top: 1px solid var(--quad-line);
+  color: var(--quad-ink);
+  font: 400 var(--studio-fs-label) / 1.6 var(--studio-font-ui);
+}
+
+[data-ui-variant="studio"] .quad-studio-release-notes h3 {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font: 650 var(--studio-fs-control) / 1.5 var(--studio-font-ui);
+}
+
+[data-ui-variant="studio"] .quad-studio-release-notes time { opacity: .65; }
+[data-ui-variant="studio"] .quad-studio-release-notes ul { margin: 8px 0 0; padding-left: 18px; }
+[data-ui-variant="studio"] .quad-studio-release-notes li + li { margin-top: 6px; }
+.quad-global-clear { margin-left: 5px; }
+.quad-timing-scope {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--quad-line);
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+.quad-timing-scope button {
+  flex: 1;
+  min-height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--quad-muted);
+  font: 600 var(--studio-fs-label) / 1.3 var(--studio-font-ui);
+  cursor: pointer;
+}
+.quad-timing-scope button[aria-pressed="true"] {
+  background: var(--quad-ink);
+  color: var(--quad-surface);
+}
+.quad-pro-mini-btn[aria-pressed="mixed"] { border-style: dashed; }
+
 .quad-pro-card {
   font-family: var(--studio-font-ui, sans-serif);
   --cat-fill: var(--quad-surface-raised);

@@ -123,6 +123,7 @@ export interface QuadLilyCanvasProps {
   className?: string;
   showNodeLabels?: boolean;
   onSelectPad: (padId: QuadPadId) => void;
+  onFocusPad?: (padId: QuadPadId) => void;
   onAddNode: (padId: QuadPadId, point: QuadLilyPoint) => void;
   onNodePointerDown: (
     padId: QuadPadId,
@@ -172,6 +173,7 @@ interface LilyConnection {
 }
 
 export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
+  onFocusPad,
   pads,
   layout = 'quad',
   mobilePadId = 'A',
@@ -214,6 +216,7 @@ export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
           mobileActive={pad.id === mobilePadId}
           showNodeLabels={showNodeLabels}
           onSelectPad={onSelectPad}
+          onFocusPad={onFocusPad}
           onAddNode={onAddNode}
           onNodePointerDown={onNodePointerDown}
           onSelectFormation={onSelectFormation}
@@ -242,6 +245,7 @@ const LilyQuadrant: React.FC<{
   mobileActive: boolean;
   showNodeLabels: boolean;
   onSelectPad: QuadLilyCanvasProps['onSelectPad'];
+  onFocusPad?: QuadLilyCanvasProps['onFocusPad'];
   onAddNode: QuadLilyCanvasProps['onAddNode'];
   onNodePointerDown: QuadLilyCanvasProps['onNodePointerDown'];
   onSelectFormation?: QuadLilyCanvasProps['onSelectFormation'];
@@ -259,6 +263,7 @@ const LilyQuadrant: React.FC<{
   onSavePad?: QuadLilyCanvasProps['onSavePad'];
   onToggleInfo?: QuadLilyCanvasProps['onToggleInfo'];
 }> = ({
+  onFocusPad,
   pad,
   layout,
   mobileActive,
@@ -404,7 +409,7 @@ const LilyQuadrant: React.FC<{
           className="quad-lily-pad__identity"
           aria-label={`选择 Pad ${pad.id}`}
           aria-pressed={pad.selected}
-          onClick={() => onSelectPad(pad.id)}
+          onClick={() => (onFocusPad ?? onSelectPad)(pad.id)}
         >
           <span className="quad-lily-pad__state" aria-hidden="true" />
           <strong>{pad.id}</strong>

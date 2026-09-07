@@ -181,6 +181,14 @@ export function updateLilyPad(
   });
 }
 
+export function patchAllPadTiming(workspace: QuadLilyWorkspace, patch: QuadLilyPadPatch): QuadLilyWorkspace {
+  const timing: QuadLilyPadPatch = {};
+  for (const key of ['intervalMs', 'velocity', 'phraseSteps', 'phraseMode'] as const) {
+    if (patch[key] !== undefined) Object.assign(timing, { [key]: patch[key] });
+  }
+  return QUAD_PAD_IDS.reduce((next, id) => updateLilyPad(next, id, timing), workspace);
+}
+
 export function addLilyNode(
   workspace: QuadLilyWorkspace,
   padId: QuadPadId,

@@ -156,6 +156,8 @@ export interface QuadLilyLayoutProps {
   onPlayAll: () => void;
   onPauseAll: () => void;
   onRestartAll: () => void;
+  onClearAll?: () => void;
+  onPatchAllTiming?: (patch: QuadLilyPadPatch) => void;
 
   soundPresetId?: string;
   onSetSoundPresetId?: (id: string) => void;
