@@ -167,14 +167,46 @@ test('channel, MIDI note and Note On velocity are rounded and clamped safely', (
 });
 
 function assertPanicMessages(messages: number[][]): void {
-  assert.equal(messages.length, 32);
+  messages = messages.filter(message => (message[0] & 0xf0) === 0xb0);
+  assert.equal(messages.length, 48);
   for (let channel = 0; channel < 16; channel += 1) {
-    assert.deepEqual(messages.slice(channel * 2, channel * 2 + 2), [
+    assert.deepEqual(messages.slice(channel * 3, channel * 3 + 3), [
+      [0xb0 | channel, 64, 0],
       [0xb0 | channel, 120, 0],
       [0xb0 | channel, 123, 0],
     ]);
   }
 }
+
+test('overlapping repeated pitches have balanced physical Note On and Note Off messages', () => {
+  const { output, messages } = recordingOutput();
+  const bus = new QuadMidiBus(output);
+  bus.trigger('A', 'one', 60, 100);
+  bus.trigger('A', 'two', 60, 90);
+  bus.trigger('A', 'two', 60, 80);
+  bus.releaseSlot('A');
+  assert.equal(messages.filter(m => m[0] === 0x90).length, messages.filter(m => m[0] === 0x80).length);
+});
+
+test('stopping before a queued attack schedules its release after that attack', () => {
+  const messages: { data: number[]; at: number }[] = [];
+  const bus = new QuadMidiBus({ send(data, at = 0) { messages.push({ data: [...data], at }); } });
+  bus.trigger('A', 'one', 60, 100, 0, 1000);
+  bus.releaseSlot('A');
+  assert.equal(messages[1].data[0], 0x80);
+  assert.ok(messages[1].at >= 1000);
+});
+
+test('panic clears future attacks before explicitly releasing notes and sustain', () => {
+  const events: (string | number[])[] = [];
+  const bus = new QuadMidiBus({ send(data) { events.push([...data]); }, clear() { events.push('clear'); } } as QuadMidiOutput);
+  bus.trigger('A', 'one', 60, 100, 0, 1000);
+  events.length = 0;
+  bus.masterPanic();
+  assert.equal(events[0], 'clear');
+  assert.ok(events.some(e => Array.isArray(e) && e[0] === 0x80 && e[1] === 60));
+  assert.ok(events.some(e => Array.isArray(e) && e[0] === 0xb0 && e[1] === 64 && e[2] === 0));
+});
 
 test('trigger rejects non-finite note and velocity values without touching MIDI', () => {
   const { output, messages } = recordingOutput();
