@@ -11,6 +11,7 @@ import {
   type QuadPadId,
 } from '../core.ts';
 import type { LilyNodeMotion } from '../motion.ts';
+import { createAirProgression, createAirEightProgression, createAirRhythm, createAirBass } from '../airProgression.ts';
 import {
   createPublicPadAsset,
   createPublicRecipeAsset,
@@ -108,6 +109,14 @@ const drawStationsPad = buildPad(
 );
 
 export const PUBLIC_PAD_TEMPLATES: readonly LibraryPadAsset[] = [
+  createPublicPadAsset({id:'air-light-bass',name:'轻盈落点 · 弹拨低音',description:'十六秒八和弦低音，每两秒落根音，间隔加入短补音。',tags:['低音','ambient'],pad:createAirBass(),now:TEMPLATE_TIMESTAMP}),
+  createPublicPadAsset({id:'air-light-rhythm',name:'轻盈错拍 · 木琴节奏',description:'两秒一轮的轻快错拍，独立 Marimba 音色，与空灵八和弦叠加。',tags:['节奏','ambient'],pad:createAirRhythm(),now:TEMPLATE_TIMESTAMP}),
+  createPublicPadAsset({ id: 'air-minor-eight-chords', name: '空灵小调 · 八和弦',
+    description: 'Am(add9) → Fmaj7 → Cmaj7 → G(add9)/B → Dm(add9) → Am7/C → Fmaj7 → E7。每和弦两秒，十六秒回归。使用 Air Pad。',
+    tags: ['和弦', 'ambient'], pad: createAirEightProgression(), now: TEMPLATE_TIMESTAMP }),
+  createPublicPadAsset({ id: 'air-minor-four-chords', name: '空灵小调 · 四和弦',
+    description: 'Am(add9) → Fmaj7 → Cmaj7 → Em7。60 BPM，每和弦两秒，八秒循环；配合 Air Pad 音色。',
+    tags: ['和弦', 'ambient'], pad: createAirProgression(), now: TEMPLATE_TIMESTAMP }),
   createPublicPadAsset({
     id: 'playbook-fixed-spine',
     name: 'Fixed Spine / 固定主干',

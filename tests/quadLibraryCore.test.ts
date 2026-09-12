@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   LIBRARY_ASSET_KIND,
   LIBRARY_ASSET_MAX_BYTES,
+  LIBRARY_MAX_NODES_PER_PAD,
   createUserPadAsset,
   createUserWorkspaceAsset,
   isPlayableLibraryAsset,
@@ -95,7 +96,7 @@ test('rejects too many nodes, an unknown scaleKey and a Pad without exactly one 
   const tooMany = structuredClone(base);
   tooMany.payload.pad.nodes = [
     tooMany.payload.pad.nodes[0],
-    ...Array.from({ length: 64 }, (_, index) => ({
+    ...Array.from({ length: LIBRARY_MAX_NODES_PER_PAD }, (_, index) => ({
       id: `node-${index}`, x: 0.5, y: 0.5, range: 0.1, scaleStep: index, isCenter: false,
     })),
   ];

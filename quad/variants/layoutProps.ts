@@ -26,6 +26,10 @@ import type { CanvasBackgroundPattern } from '../canvasBackground';
 import type { buildCycleTracePair, resolveVisibleCycleState } from '../cycleTraceModel';
 
 export interface QuadLilyLayoutProps {
+  sequencePanel?: React.ReactNode;
+  sequenceAtlas?: React.ReactNode;
+  structureMap?: React.ReactNode;
+  melodyFollow?: React.ReactNode;
   workspace: QuadLilyWorkspace;
   selectedPadId: QuadPadId;
   selectedPad: QuadLilyPad;
@@ -160,7 +164,7 @@ export interface QuadLilyLayoutProps {
   onPatchAllTiming?: (patch: QuadLilyPadPatch) => void;
 
   soundPresetId?: string;
-  onSetSoundPresetId?: (id: string) => void;
+  onSetSoundPresetId?: (id: string, padId?: QuadPadId) => void;
 
   /** 画布背景图案（荷塘装饰），默认 'none' */
   canvasBackgroundPattern?: CanvasBackgroundPattern;

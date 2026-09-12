@@ -6,11 +6,13 @@ import './softSelect.css';
 export type SoftSelectOption = {
   value: string;
   label: string;
+  category?: string;
 };
 
 export type SoftSelectProps = {
   value: string;
   options: SoftSelectOption[];
+  categories?: {value:string;label:string}[];
   onChange: (value: string) => void;
   'aria-label': string;
   /** 触发器左侧小标签，如「音色」「通道」 */
@@ -29,6 +31,7 @@ type MenuPos = { top: number; left: number; width: number; maxHeight: number };
 export function SoftSelect({
   value,
   options,
+  categories,
   onChange,
   'aria-label': ariaLabel,
   prefix,
@@ -38,10 +41,12 @@ export function SoftSelect({
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLUListElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<MenuPos | null>(null);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [category,setCategory] = useState('all');
+  const visibleOptions = React.useMemo(()=>category==='all'||!categories ? options : options.filter(o=>o.category===category),[options,category,categories]);
 
   const selected = options.find((option) => option.value === value) ?? options[0];
   const displayLabel = selected?.label ?? value;
@@ -60,7 +65,7 @@ export function SoftSelect({
           : variant === 'midi'
             ? Math.max(rect.width, 168)
             : 168; // default / 音色：固定宽，长名单行
-    const width = Math.min(preferredWidth, window.innerWidth - viewportPad * 2);
+    const width = Math.min(categories ? Math.max(260,preferredWidth) : preferredWidth, window.innerWidth - viewportPad * 2);
     let left = rect.left;
     if (variant === 'channel' || variant === 'default') {
       left = rect.left + rect.width / 2 - width / 2;
@@ -80,9 +85,9 @@ export function SoftSelect({
       return;
     }
     updatePosition();
-    const selectedIndex = options.findIndex((option) => option.value === value);
+    const selectedIndex = visibleOptions.findIndex((option) => option.value === value);
     setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
-  }, [open, options, value, variant]);
+  }, [open, visibleOptions, value, variant]);
 
   useEffect(() => {
     if (!open) return;
@@ -92,6 +97,7 @@ export function SoftSelect({
       setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
+      if((event.target as HTMLElement)?.closest('.quad-soft-select__categories') && event.key!=='Escape')return;
       if (event.key === 'Escape') {
         event.preventDefault();
         setOpen(false);
@@ -102,15 +108,15 @@ export function SoftSelect({
         event.preventDefault();
         const delta = event.key === 'ArrowDown' ? 1 : -1;
         setActiveIndex((prev) => {
-          const next = Math.max(0, Math.min(options.length - 1, (prev < 0 ? 0 : prev) + delta));
+          const next = Math.max(0, Math.min(visibleOptions.length - 1, (prev < 0 ? 0 : prev) + delta));
           return next;
         });
         return;
       }
       if (event.key === 'Enter' || event.key === ' ') {
-        if (activeIndex >= 0 && activeIndex < options.length) {
+        if (activeIndex >= 0 && activeIndex < visibleOptions.length) {
           event.preventDefault();
-          onChange(options[activeIndex].value);
+          onChange(visibleOptions[activeIndex].value);
           setOpen(false);
           triggerRef.current?.focus();
         }
@@ -127,7 +133,7 @@ export function SoftSelect({
       window.removeEventListener('resize', onReposition);
       window.removeEventListener('scroll', onReposition, true);
     };
-  }, [open, options, onChange, activeIndex]);
+  }, [open, visibleOptions, onChange, activeIndex]);
 
   useEffect(() => {
     if (!open || activeIndex < 0) return;
@@ -157,12 +163,9 @@ export function SoftSelect({
 
       {open && pos
         ? createPortal(
-            <ul
+            <div
               ref={menuRef}
-              id={listId}
-              className={`quad-soft-select__menu quad-soft-select__menu--${variant}`}
-              role="listbox"
-              aria-label={ariaLabel}
+              className={`quad-soft-select__menu quad-soft-select__menu--${variant}${categories ? ' quad-soft-select__menu--categorized' : ''}`}
               style={{
                 top: pos.top,
                 left: pos.left,
@@ -170,7 +173,11 @@ export function SoftSelect({
                 maxHeight: pos.maxHeight,
               }}
             >
-              {options.map((option, index) => {
+              {categories && <div className="quad-soft-select__categories" role="group" aria-label="音色分类">
+                {[{value:'all',label:'全部'},...categories].map(c=><button key={c.value} type="button" aria-pressed={category===c.value} onClick={()=>{setCategory(c.value);setActiveIndex(0);}}>{c.label}</button>)}
+              </div>}
+              <ul id={listId} role="listbox" aria-label={ariaLabel} className="quad-soft-select__items">
+              {visibleOptions.map((option, index) => {
                 const selectedOption = option.value === value;
                 const active = index === activeIndex;
                 return (
@@ -191,7 +198,8 @@ export function SoftSelect({
                   </li>
                 );
               })}
-            </ul>,
+              </ul>
+            </div>,
             document.body,
           )
         : null}

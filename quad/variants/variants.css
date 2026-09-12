@@ -1616,7 +1616,7 @@ body:has(.quad-studio-tower.is-resizing) * {
   gap: 4px;
 }
 .quad-pro-modes--group {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 /* 组合顺序：横向芯片，避免每音占一行 */
@@ -2389,6 +2389,70 @@ body:has(.quad-studio-tower.is-resizing) * {
   gap: 8px;
   max-width: calc(100% - 72px);
   z-index: 2;
+}
+
+/* Optional quadrant controls reuse the single-pad toolbar in normal flow.
+   The header grows only when its own quadrant is too narrow for one row. */
+.quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad {
+  container: quad-toolbar / inline-size;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad__header {
+  min-height: 42px;
+  padding: 5px 8px;
+  gap: 6px;
+}
+.quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad__identity {
+  padding: 0 4px;
+  gap: 5px;
+}
+.quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad__toolbar {
+  position: static;
+  transform: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad__io { gap: 5px; }
+.quad-lily-canvas[data-quad-toolbar="true"] .quad-soft-select--default {
+  width: 128px;
+  min-width: 100px;
+  max-width: 128px;
+  flex: 0 1 128px;
+}
+.quad-lily-canvas[data-quad-toolbar="true"] .quad-soft-select--channel {
+  width: 68px;
+  min-width: 58px;
+  max-width: 68px;
+  flex: 0 1 68px;
+}
+.quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad__actions button {
+  height: 28px;
+}
+.quad-lily-canvas[data-quad-toolbar="true"] .quad-soft-select__trigger { height: 28px; }
+.quad-studio-stage .quad-lily-canvas[data-quad-toolbar="true"] + .quad-shortcuts-card {
+  top: 76px;
+  bottom: auto;
+}
+@container quad-toolbar (max-width: 410px) {
+  .quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad__header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 5px;
+  }
+  .quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad__toolbar { display: contents; }
+  .quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad__actions { justify-self: end; }
+  .quad-lily-canvas[data-quad-toolbar="true"] .quad-lily-pad__io {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+  .quad-lily-canvas[data-quad-toolbar="true"] .quad-soft-select--default {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+  .quad-lily-canvas[data-quad-toolbar="true"] .quad-soft-select__prefix { display: inline; }
 }
 
 /* HUD：贴画布左下角，低对比次要信息 */

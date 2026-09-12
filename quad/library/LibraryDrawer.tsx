@@ -22,6 +22,7 @@ import {
   type LibraryAsset,
 } from './core.ts';
 import { buildPadLibraryPreviewModel } from './preview.ts';
+import { CanvasDecorationLayer } from '../CanvasDecorationLayer.tsx';
 import { LocalStorageLibraryRepository } from './localStorage.ts';
 import {
   PUBLIC_PAD_TEMPLATES,
@@ -714,14 +715,15 @@ export function LibraryDrawer({
 
   const handleImportFiles = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+    // The file input is cleared immediately; preserve the live FileList before awaiting.
+    const selectedFiles = Array.from(files);
     const repository = repositoryRef.current ?? new LocalStorageLibraryRepository(window.localStorage);
     repositoryRef.current = repository;
 
     let importedCount = 0;
     const errors: string[] = [];
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    for (const file of selectedFiles) {
       try {
         const text = await file.text();
         const assets = parseImportedJsonText(text);
@@ -1249,6 +1251,7 @@ function PadPreview({ pad }: { pad: QuadLilyPad }) {
   const model = buildPadLibraryPreviewModel(pad);
   return (
     <g className="library-preview__pad">
+      <g transform="scale(1 .68)"><CanvasDecorationLayer decoration={pad.decoration} /></g>
       {model.formations.map((formation) => {
         const trailPoints = formation.trail.map((point) => `${point.x},${point.y}`).join(' ');
         const ringPoints = formation.memberRing.map((point) => `${point.x},${point.y}`).join(' ');

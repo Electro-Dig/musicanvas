@@ -238,3 +238,11 @@
 .quad-soft-select__option.is-selected.is-active {
   background: color-mix(in srgb, var(--selected-pad-color, var(--quad-stamen, #c44569)) 18%, transparent);
 }
+.quad-soft-select__items { list-style:none; padding:0; margin:0; }
+.quad-soft-select__categories { position:sticky; top:0; z-index:1; display:flex; gap:4px; padding:6px 3px 9px; background:var(--quad-panel-bg, #eaf2ed); border-bottom:1px solid rgba(40,70,60,.12); margin-bottom:5px; }
+.quad-soft-select__categories button { flex:1; border:1px solid transparent; border-radius:7px; padding:5px 7px; background:transparent; color:inherit; font:inherit; font-size:12px; cursor:pointer; }
+.quad-soft-select__categories button[aria-pressed="true"] { background:#243c34; color:#fff; }
+.quad-soft-select__categories button:focus-visible { outline:2px solid #c05b7a; outline-offset:1px; }
+.quad-soft-select__menu--categorized { width:260px !important; max-width:calc(100vw - 16px); }
+.quad-soft-select__menu .quad-soft-select__categories button { min-width:0; min-height:28px; white-space:nowrap; background:transparent !important; color:#385249 !important; box-shadow:none !important; }
+.quad-soft-select__menu .quad-soft-select__categories button[aria-pressed="true"] { background:#243c34 !important; color:#fff !important; }

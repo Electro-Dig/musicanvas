@@ -11,7 +11,7 @@ import {
 export const LIBRARY_ASSET_KIND = 'gemidi.quad-lily-library-asset' as const;
 export const LIBRARY_ASSET_VERSION = 1 as const;
 export const LIBRARY_ASSET_MAX_BYTES = 512 * 1024;
-export const LIBRARY_MAX_NODES_PER_PAD = 64;
+export const LIBRARY_MAX_NODES_PER_PAD = 128;
 export const LIBRARY_MAX_WORKSPACE_NODES = LIBRARY_MAX_NODES_PER_PAD * QUAD_PAD_IDS.length;
 
 const PLAYABLE_SCALE_KEYS = new Set(

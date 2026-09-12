@@ -1,3 +1,8 @@
+import {SequenceAtlas} from './SequenceAtlas';
+import {StructureMap} from './StructureMap';
+import {MelodyFollow} from './MelodyFollow';
+import {SequenceWindow} from './SequenceWindow';
+import {archiveSequenceRound,sequenceRound, type SequenceRound} from './sequenceModel';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { DEFAULT_SCALE_KEY, ROOT_NOTES, SCALES } from './musicTheory.ts';
@@ -252,7 +257,18 @@ export default function QuadLilyApp() {
   const [lastSavedFingerprint, setLastSavedFingerprint] = useState(() =>
     libraryWorkspaceFingerprint(loadInitialWorkspace()),
   );
-  const isLibraryDirty = libraryWorkspaceFingerprint(workspace) !== lastSavedFingerprint;
+  const workspaceFingerprint = useMemo(() => libraryWorkspaceFingerprint(workspace), [workspace]);
+  const isLibraryDirty = workspaceFingerprint !== lastSavedFingerprint;
+  const [libraryRevision, setLibraryRevision] = useState(0);
+  useEffect(() => {
+    const changed = () => setLibraryRevision(v => v + 1);
+    window.addEventListener("quad-library-changed", changed);
+    window.addEventListener("storage", changed);
+    return () => { window.removeEventListener("quad-library-changed", changed); window.removeEventListener("storage", changed); };
+  }, []);
+  const createdPatternCount = useMemo(() => {
+    try { return new LocalStorageLibraryRepository(window.localStorage).list().filter(asset => asset.type !== "recipe").length; } catch { return 0; }
+  }, [libraryRevision]);
   const [theme, setTheme] = useState<QuadTheme>(loadInitialTheme);
   const [viewMode, setViewMode] = useState<QuadLilyCanvasLayout>('single');
   const [showNodeLabels, setShowNodeLabels] = useState(true);
@@ -326,6 +342,7 @@ export default function QuadLilyApp() {
   const [pausedPads, setPausedPads] = useState<PadBooleanState>(() => createPadRecord(() => false));
   const [cyclePhase, setCyclePhase] = useState<PadNumberState>(() => createPadRecord(() => 0));
   const [cycleIndex, setCycleIndex] = useState<PadNumberState>(() => createPadRecord(() => 0));
+  const [sequenceRounds, setSequenceRounds] = useState<Record<QuadPadId, {current:SequenceRound|null;previous:SequenceRound|null;history:SequenceRound[]}>>(() => createPadRecord(() => ({current:null,previous:null,history:[]})));
   const [cycleCompilations, setCycleCompilations] = useState<Record<QuadPadId, LilyCycleCompilation | null>>(
     () => createPadRecord<LilyCycleCompilation | null>(() => null),
   );
@@ -503,6 +520,7 @@ export default function QuadLilyApp() {
   }, []);
 
   const clearReleaseTimers = useCallback((padId: QuadPadId) => {
+    quadSynthEngine.stopTrack(padId);
     releaseTimersRef.current[padId].forEach(handle => window.clearTimeout(handle));
     releaseTimersRef.current[padId].clear();
   }, []);
@@ -522,8 +540,8 @@ export default function QuadLilyApp() {
       },
       resolveCycleSnapshot: (pad, cycle) => materializePadMotion(pad, cycle),
       continueBeyondCycle: () => cycleContinueRef.current,
-      onCycleStart: (padId, cycle, snapshot) => {
-        cycleStartedAtRef.current[padId] = performance.now();
+      onCycleStart: (padId, cycle, snapshot, startedAtMs) => {
+        cycleStartedAtRef.current[padId] = startedAtMs;
         cycleDurationRef.current[padId] = getPadCycleDurationMs(snapshot);
         if (mountedRef.current) {
           setPausedPads(previous => previous[padId] ? { ...previous, [padId]: false } : previous);
@@ -532,6 +550,7 @@ export default function QuadLilyApp() {
         }
       },
       onCycleCompiled: (padId, _cycle, compilation, snapshot) => {
+        setSequenceRounds(old => ({...old,[padId]:archiveSequenceRound(old[padId],sequenceRound(_cycle,compilation,snapshot))}));
         if (mountedRef.current) {
           setCycleCompilations(previous => ({ ...previous, [padId]: compilation }));
           setCycleSnapshots(previous => ({ ...previous, [padId]: snapshot }));
@@ -552,9 +571,12 @@ export default function QuadLilyApp() {
 
         const voiceId = `${cycle}:${event.nodeId}`;
         const velocity = Math.max(1, Math.min(127, Math.round(padSnapshot.velocity * 127)));
-        const noteLength = Math.max(110, Math.min(520, padSnapshot.intervalMs * 0.55));
+        const chordHold = padSnapshot.formations?.find(f => f.shape === 'chord' && f.nodeIds.includes(event.nodeId))?.holdSteps;
+        const explicitHold = chordHold ?? sourceNode?.holdSteps;
+        const noteLength = explicitHold ? explicitHold * padSnapshot.intervalMs / 4 : Math.max(110, Math.min(520, padSnapshot.intervalMs * 0.55));
         const isMidiConnected = Boolean(selectedOutputRef.current);
-        const useExternalTone = isMidiConnected && soundPresetIdRef.current === EXTERNAL_SOUND_PRESET_ID;
+        const trackPresetId = padSnapshot.soundPresetId ?? soundPresetIdRef.current;
+        const useExternalTone = isMidiConnected && trackPresetId === EXTERNAL_SOUND_PRESET_ID;
         const midiChannelZeroBased = Math.max(0, Math.min(15, (padSnapshot.midiChannel ?? 1) - 1));
         const dueAtMs = timing?.dueAtMs ?? performance.now();
         const audioWhenSec = timing?.audioWhenSec ?? undefined;
@@ -573,15 +595,16 @@ export default function QuadLilyApp() {
               midiOnAt,
             );
           } else {
-            const presetId = soundPresetIdRef.current === EXTERNAL_SOUND_PRESET_ID
+            const presetId = trackPresetId === EXTERNAL_SOUND_PRESET_ID
               ? lastBuiltInSoundRef.current || DEFAULT_SOUND_PRESET_ID
-              : soundPresetIdRef.current;
+              : trackPresetId;
             quadSynthEngine.playNote(
               midiNote,
               velocity,
               noteLength / 1000,
               presetId,
               audioWhenSec,
+              padId,
             );
           }
         }
@@ -589,6 +612,11 @@ export default function QuadLilyApp() {
         // 视觉点亮对齐 dueAt，避免提前 60ms 闪一下
         const armVisual = () => {
           if (!mountedRef.current) return;
+          setSequenceRounds(old => {
+            const entry=old[padId];
+            if(!entry.current || entry.current.cycle!==cycle || entry.current.played.includes(event.nodeId)) return old;
+            return {...old,[padId]:{...entry,current:{...entry.current,played:[...entry.current.played,event.nodeId]}}};
+          });
           setActiveNodes(previous => ({
             ...previous,
             [padId]: [...new Set([...previous[padId], event.nodeId])],
@@ -1945,6 +1973,7 @@ export default function QuadLilyApp() {
         ?? stopped.pads[padId].nodes[0]?.id
         ?? null
     )));
+    setSequenceRounds(createPadRecord(() => ({current:null,previous:null,history:[]})));
     setWorkspace(stopped);
     setLastSavedFingerprint(libraryWorkspaceFingerprint(stopped));
     setLibraryOpen(false);
@@ -2069,6 +2098,9 @@ export default function QuadLilyApp() {
     'restart-all': restartAll,
   };
 
+  const readFollowClocks = useCallback(() => createPadRecord(id => runnerRef.current?.readPosition(id) ??
+    {cycle:0,phase:0,playing:false,paused:false}), []);
+  const cachedFormations = useMemo(() => createPadRecord(id => getPadFormations(workspace.pads[id])), [workspace]);
   const padViews = QUAD_PAD_IDS.map((padId) => {
     const basePad = workspace.pads[padId];
     const isPaused = pausedPads[padId];
@@ -2099,7 +2131,7 @@ export default function QuadLilyApp() {
         ? { ...node, ...drawPreview.point }
         : node)
       : resolvedPad.nodes;
-    const formations = getPadFormations(basePad);
+    const formations = cachedFormations[padId];
     const formationMember = (nodeId: string) => Boolean(findFormationForNode(formations, nodeId));
     const motionRenderStates = basePad.nodes.flatMap((baseNode): LilyMotionRenderState[] => {
       if (formationMember(baseNode.id)) return [];
@@ -2180,6 +2212,10 @@ export default function QuadLilyApp() {
   });
 
   const layoutProps: QuadLilyLayoutProps = {
+    structureMap: <StructureMap pads={workspace.pads} clocks={createPadRecord(id => ({...resolveVisibleCycleState(workspace.pads[id],cycleIndex[id],cyclePhase[id],pausedPads[id]),playing:workspace.pads[id].playing,paused:pausedPads[id]}))} />,
+    melodyFollow: <MelodyFollow pads={workspace.pads} readClocks={readFollowClocks} transportKey={QUAD_PAD_IDS.map(id=>`${workspace.pads[id].playing}:${pausedPads[id]}:${cycleIndex[id]}`).join('|')} />,
+    sequencePanel: <SequenceWindow current={(selectedPad.playing||selectedIsPaused?sequenceRounds[selectedPadId].current:null) ?? sequenceRound(0,restingCycleCompilations[selectedPadId],restingPadSnapshots[selectedPadId])} previous={sequenceRounds[selectedPadId].previous} phase={selectedVisibleCycle.phase} playing={selectedPad.playing} padId={selectedPadId} selected={selectedNodeId} onSelect={nodeId=>setSelectedNodes(old=>({...old,[selectedPadId]:nodeId}))} />,
+    sequenceAtlas: <SequenceAtlas current={(selectedPad.playing||selectedIsPaused?sequenceRounds[selectedPadId].current:null) ?? sequenceRound(0,restingCycleCompilations[selectedPadId],restingPadSnapshots[selectedPadId])} pad={selectedPad} phase={selectedVisibleCycle.phase} playing={selectedPad.playing} onSelect={nodeId=>setSelectedNodes(old=>({...old,[selectedPadId]:nodeId}))} />,
     workspace,
     selectedPadId,
     selectedPad,
@@ -2279,25 +2315,17 @@ export default function QuadLilyApp() {
     cycleContinue,
     onToggleCycleContinue: () => setCycleContinue((previous) => !previous),
     soundPresetId,
-    onSetSoundPresetId: (id: string) => {
+    onSetSoundPresetId: (id: string, padId: QuadPadId = selectedPadId) => {
       quadSynthEngine.ensureRunning();
-      setSoundPresetId(id);
+      quadSynthEngine.stopTrack(padId);
+      setWorkspace(previous => updateLilyPad(previous, padId, {soundPresetId:id}));
     },
 
     // 认证
     identityUser: identity.user,
     onOpenAuth: () => setAuthModalOpen(true),
     onSignOut: () => { identity.logout(); },
-    createdPatternCount: (() => {
-      if (typeof window === 'undefined') return 0;
-      try {
-        return new LocalStorageLibraryRepository(window.localStorage)
-          .list()
-          .filter((asset) => asset.type !== 'recipe').length;
-      } catch {
-        return 0;
-      }
-    })(),
+    createdPatternCount,
     onUpdateNickname: (nickname: string) => identity.updateNickname(nickname),
     onEditNickname: () => {
       setNicknameModalDismissible(true);
@@ -2319,6 +2347,7 @@ export default function QuadLilyApp() {
       {uiVariant === 'studio' && <StudioLayout {...layoutProps} />}
       {uiVariant === 'floating' && <FloatingLayout {...layoutProps} />}
       {uiVariant === 'performer' && <PerformerLayout {...layoutProps} />}
+
 
       {uiVariant === 'original' && (
         <>

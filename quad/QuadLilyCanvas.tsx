@@ -4,6 +4,9 @@ import { Info, Lock, LockOpen, Pause, Play, Save, Trash2 } from 'lucide-react';
 import type { LilyCycleEdge, LilyNode, LilyNodePatch, QuadPadId } from './core.ts';
 import type { CanvasBackgroundPattern } from './canvasBackground.ts';
 import { DEFAULT_CANVAS_BACKGROUND } from './canvasBackground.ts';
+import type { CanvasDecoration } from './canvasDecoration.ts';
+import { CanvasDecorationLayer } from './CanvasDecorationLayer.tsx';
+import { useFeatherSway } from './useFeatherSway.ts';
 import type { NodePresentation } from './nodePresentation.ts';
 import { bpmFromIntervalMs, volumeFromVelocity } from './tempo.ts';
 import { SOUND_PRESETS, DEFAULT_SOUND_PRESET_ID, EXTERNAL_SOUND_PRESET_ID } from './synth/soundPresets.ts';
@@ -20,12 +23,15 @@ const MIDI_CHANNEL_OPTIONS = Array.from({ length: 16 }, (_, index) => {
 /** 内置音色平铺、按名称 A→Z */
 const BUILTIN_SOUND_OPTIONS = [...SOUND_PRESETS]
   .sort((a, b) => a.name.localeCompare(b.name, 'en'))
-  .map((preset) => ({ value: preset.id, label: preset.name }));
+  .map((preset) => ({ value: preset.id, label: preset.name, category:preset.id.startsWith('dx7-')?'fm':preset.kind==='piano'||preset.kind==='marimba'?'acoustic':'electronic' }));
+
+const SOUND_CATEGORIES=[{value:'fm',label:'FM'},{value:'electronic',label:'电子'},{value:'acoustic',label:'原声'}];
 
 const EXTERNAL_SOUND_OPTION = {
   value: EXTERNAL_SOUND_PRESET_ID,
   label: '外接音色',
 };
+const CONNECTED_SOUND_OPTIONS = [EXTERNAL_SOUND_OPTION, ...BUILTIN_SOUND_OPTIONS];
 
 const PITCH_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
 
@@ -61,6 +67,7 @@ const SCALE_STEP_LIMIT = 36;
 export interface QuadLilyPadViewModel {
   id: QuadPadId;
   nodes: readonly LilyNode[];
+  decoration?: CanvasDecoration;
   intervalMs: number;
   playing: boolean;
   paused?: boolean;
@@ -119,6 +126,9 @@ export interface LilyMotionRenderState {
 export interface QuadLilyCanvasProps {
   pads: readonly QuadLilyPadViewModel[];
   layout?: QuadLilyCanvasLayout;
+  /** Opt-in: reuse the single-pad controls in every quadrant. */
+  showQuadToolbar?: boolean;
+  featherSway?: boolean;
   mobilePadId?: QuadPadId;
   className?: string;
   showNodeLabels?: boolean;
@@ -152,7 +162,7 @@ export interface QuadLilyCanvasProps {
   /** 当前音色 id（含外接音色） */
   soundPresetId?: string;
   /** 切换音色（全局单音色引擎） */
-  onSetSoundPreset?: (presetId: string) => void;
+  onSetSoundPreset?: (presetId: string, padId?: QuadPadId) => void;
   /** 已连接外部 MIDI 端口时，音色列表出现「外接音色」 */
   midiConnected?: boolean;
   /** 设置该 Pad 的 MIDI Channel */
@@ -176,6 +186,8 @@ export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
   onFocusPad,
   pads,
   layout = 'quad',
+  showQuadToolbar = false,
+  featherSway = false,
   mobilePadId = 'A',
   className,
   showNodeLabels = true,
@@ -204,6 +216,7 @@ export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
     <section
       className={classes}
       data-layout={layout}
+      data-quad-toolbar={layout === 'quad' && showQuadToolbar ? 'true' : undefined}
       data-active-pad={mobilePadId}
       data-canvas-bg={canvasBackgroundPattern}
       aria-label="四组 Lily Pad 舞台"
@@ -213,6 +226,8 @@ export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
           key={pad.id}
           pad={pad}
           layout={layout}
+          showQuadToolbar={showQuadToolbar}
+          featherSway={featherSway}
           mobileActive={pad.id === mobilePadId}
           showNodeLabels={showNodeLabels}
           onSelectPad={onSelectPad}
@@ -226,7 +241,7 @@ export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
           onToggleLocked={onToggleLocked}
           onPatchNode={onPatchNode}
           locale={locale}
-          soundPresetId={soundPresetId}
+          soundPresetId={pad.soundPresetId ?? soundPresetId}
           onSetSoundPreset={onSetSoundPreset}
           midiConnected={midiConnected}
           onSetPadMidiChannel={onSetPadMidiChannel}
@@ -242,6 +257,8 @@ export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
 const LilyQuadrant: React.FC<{
   pad: QuadLilyPadViewModel;
   layout: QuadLilyCanvasLayout;
+  showQuadToolbar: boolean;
+  featherSway: boolean;
   mobileActive: boolean;
   showNodeLabels: boolean;
   onSelectPad: QuadLilyCanvasProps['onSelectPad'];
@@ -266,6 +283,8 @@ const LilyQuadrant: React.FC<{
   onFocusPad,
   pad,
   layout,
+  showQuadToolbar,
+  featherSway,
   mobileActive,
   showNodeLabels,
   onSelectPad,
@@ -298,10 +317,10 @@ const LilyQuadrant: React.FC<{
   const arrowId = `quad-lily-arrow-${pad.id}`;
 
   /**
-   * 单轨紧凑抬头只在 single 布局、且宿主提供了单轨回调时启用；
+   * 单轨工具条也可由宿主显式开启到四宫格；
    * 缺省时保持旧版 PLAY / LOCK 抬头，避免影响 Floating / Performer / 原版机架。
    */
-  const compactHeader = layout === 'single'
+  const compactHeader = (layout === 'single' || showQuadToolbar)
     && Boolean(onSavePad || onClearPad || onSetSoundPreset || onSetPadMidiChannel || onToggleInfo);
   const bpm = bpmFromIntervalMs(pad.intervalMs);
   const volume = pad.velocity === undefined ? null : volumeFromVelocity(pad.velocity);
@@ -314,6 +333,8 @@ const LilyQuadrant: React.FC<{
 
   /* --- 滚轮：空白处缩放画布，节点上步进音阶 --- */
   const viewportRef = React.useRef<HTMLDivElement | null>(null);
+  const svgRef = React.useRef<SVGSVGElement | null>(null);
+  const unprojectSway = useFeatherSway(svgRef, featherSway, pad.decoration, pad.nodes, pad.id);
   const [zoom, setZoom] = React.useState(1);
   /** 与视口宽高比匹配的 viewBox，消除 meet letterbox 造成的两侧空气墙 */
   const [viewBox, setViewBox] = React.useState(() => zoomViewBox(1, 16 / 9));
@@ -407,7 +428,8 @@ const LilyQuadrant: React.FC<{
         <button
           type="button"
           className="quad-lily-pad__identity"
-          aria-label={`选择 Pad ${pad.id}`}
+          aria-label={onFocusPad ? (layout === 'single' ? `Pad ${pad.id} · 返回四宫格` : `单独查看 Pad ${pad.id}`) : `选择 Pad ${pad.id}`}
+          title={onFocusPad ? (layout === 'single' ? '点击返回四宫格' : `点击单独查看 ${pad.id}`) : undefined}
           aria-pressed={pad.selected}
           onClick={() => (onFocusPad ?? onSelectPad)(pad.id)}
         >
@@ -417,7 +439,7 @@ const LilyQuadrant: React.FC<{
         </button>
 
         {compactHeader ? (
-          /* 单轨抬头：左侧播放组 · 右侧音色/通道，整体居中 */
+          /* Reuse the same per-pad callbacks in single and expanded quad headers. */
           <div className="quad-lily-pad__toolbar" role="toolbar" aria-label={`Pad ${pad.id} track controls`}>
             <div className="quad-lily-pad__actions" role="group">
               <button
@@ -498,7 +520,8 @@ const LilyQuadrant: React.FC<{
                 <SoftSelect
                   variant="default"
                   prefix={t(locale, 'sound')}
-                  aria-label="Sound preset"
+                  aria-label={layout === 'quad' ? `Pad ${pad.id} Sound preset` : 'Sound preset'}
+                  categories={SOUND_CATEGORIES}
                   value={
                     midiConnected
                       ? (soundPresetId || EXTERNAL_SOUND_PRESET_ID)
@@ -508,10 +531,10 @@ const LilyQuadrant: React.FC<{
                   }
                   options={
                     midiConnected
-                      ? [EXTERNAL_SOUND_OPTION, ...BUILTIN_SOUND_OPTIONS]
+                      ? CONNECTED_SOUND_OPTIONS
                       : BUILTIN_SOUND_OPTIONS
                   }
-                  onChange={(next) => onSetSoundPreset(next)}
+                  onChange={(next) => onSetSoundPreset(next, pad.id)}
                 />
               )}
               {onSetPadMidiChannel && (
@@ -557,7 +580,7 @@ const LilyQuadrant: React.FC<{
       </header>
 
       {/* 次要运行参数：贴画布左下角，避免抢抬头注意力 */}
-      {compactHeader && (
+      {compactHeader && layout === 'single' && (
         <div className="quad-lily-pad__hud" aria-label={`Pad ${pad.id} 运行参数`}>
           <span className="quad-lily-pad__hud-item" title="BPM">
             <b>{bpm}</b>
@@ -596,6 +619,7 @@ const LilyQuadrant: React.FC<{
         )}
 
       <svg
+        ref={svgRef}
         className="quad-lily-pad__canvas"
         /* viewBox 随视口比例变化，整块画布都可落点（无 letterbox 空气墙） */
         viewBox={viewBox}
@@ -607,7 +631,7 @@ const LilyQuadrant: React.FC<{
           if (event.button !== 0) return;
           onSelectPad(pad.id);
           if (pad.locked) return;
-          onAddNode(pad.id, pointerToViewBox(event));
+          onAddNode(pad.id, unprojectSway(pointerToViewBox(event)));
         }}
       >
         <title>{`Pad ${pad.id}，${pad.playing ? '播放中' : '已暂停'}，间隔 ${Math.round(pad.intervalMs)} 毫秒`}</title>
@@ -628,6 +652,8 @@ const LilyQuadrant: React.FC<{
           strokeDasharray={`${phase} ${1 - phase}`}
           data-active={pad.playing ? 'true' : 'false'}
         />
+
+        <CanvasDecorationLayer decoration={pad.decoration} />
 
         <g className="quad-lily-motion" aria-hidden="true">
           {motionRenderStates.map((motion) => {
@@ -694,6 +720,7 @@ const LilyQuadrant: React.FC<{
           {pad.nodes.map((node) => (
             <circle
               key={`range:${node.id}`}
+              data-range-node-id={node.id}
               cx={toViewBox(node.x)}
               cy={toViewBox(node.y)}
               r={rangeToRadius(node.range)}
@@ -774,7 +801,7 @@ const LilyQuadrant: React.FC<{
   );
 };
 
-const LilyNodeGlyph: React.FC<{
+type GlyphProps = {
   padId: QuadPadId;
   node: LilyNode;
   layout: QuadLilyCanvasLayout;
@@ -787,7 +814,20 @@ const LilyNodeGlyph: React.FC<{
   onSelectPad: QuadLilyCanvasProps['onSelectPad'];
   onNodePointerDown: QuadLilyCanvasProps['onNodePointerDown'];
   onDeleteNode: QuadLilyCanvasProps['onDeleteNode'];
-}> = ({
+};
+
+const LilyNodeGlyph: React.FC<GlyphProps> = (props) => {
+  const latest = React.useRef(props);
+  React.useLayoutEffect(() => { latest.current = props; });
+  const handlers = React.useMemo(() => ({
+    onSelectPad: ((...args) => latest.current.onSelectPad(...args)) as GlyphProps['onSelectPad'],
+    onNodePointerDown: ((...args) => latest.current.onNodePointerDown(...args)) as GlyphProps['onNodePointerDown'],
+    onDeleteNode: ((...args) => latest.current.onDeleteNode(...args)) as GlyphProps['onDeleteNode'],
+  }), []);
+  return <MemoGlyph {...props} {...handlers} />;
+};
+
+const MemoGlyph = React.memo(function Glyph({
   padId,
   node,
   layout,
@@ -800,7 +840,7 @@ const LilyNodeGlyph: React.FC<{
   onSelectPad,
   onNodePointerDown,
   onDeleteNode,
-}) => {
+}: GlyphProps) {
   const x = toViewBox(node.x);
   const y = toViewBox(node.y);
   /* 主画布黑节点约缩到 2/3，badge / hit / pulse / selection 同步 */
@@ -889,7 +929,14 @@ const LilyNodeGlyph: React.FC<{
       )}
     </g>
   );
-};
+}, (a, b) => {
+  const fields = ['padId','layout','active','selected','locked','playing','showLabel','onSelectPad','onNodePointerDown','onDeleteNode'] as const;
+  const nodeFields = ['id','x','y','isCenter','scaleStep','muted','hidden'] as const;
+  return fields.every(k => a[k] === b[k]) && nodeFields.every(k => a.node[k] === b.node[k])
+    && Boolean(a.presentation) === Boolean(b.presentation)
+    && a.presentation?.shortId === b.presentation?.shortId
+    && a.presentation?.noteName === b.presentation?.noteName;
+});
 
 function pointerToViewBox(event: React.PointerEvent<SVGSVGElement>): QuadLilyPoint {
   return clientPointToPad(event.currentTarget, event.clientX, event.clientY);

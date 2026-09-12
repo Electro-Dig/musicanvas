@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, LayoutPanelLeft, Map } from 'lucide-react';
 import { ROOT_NOTES, SCALES, type ScaleDefinition } from '../musicTheory';
+import { MAX_PHRASE_STEPS, normalizePhraseSteps } from '../core';
 import type {
   LilyCycleCompilation,
   LilyNode,
@@ -56,6 +57,10 @@ const SCALE_OPTIONS = SCALES.filter((s) => s.intervals.length).map((s) => ({
 export type TowerViewMode = 'controls' | 'map';
 
 export interface StudioSidebarProps {
+  sequencePanel?: React.ReactNode;
+  sequenceAtlas?: React.ReactNode;
+  structureMap?: React.ReactNode;
+  melodyFollow?: React.ReactNode;
   allPads?: QuadLilyPad[];
   onPatchAllTiming?: (patch: QuadLilyPadPatch) => void;
   onRestartAll?: () => void;
@@ -132,6 +137,10 @@ function formatNodeInfoTitle(pad: QuadLilyPad, node: LilyNode): string {
 }
 
 export const StudioSidebar: React.FC<StudioSidebarProps> = ({
+  sequencePanel,
+  sequenceAtlas,
+  structureMap,
+  melodyFollow,
   allPads = [], onPatchAllTiming, onRestartAll,
   comparisonPads = [],
   overviewPads = [],
@@ -186,8 +195,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
     if (timingScope === 'all' && onPatchAllTiming && keys.every(k => ['intervalMs', 'velocity', 'phraseSteps', 'phraseMode'].includes(k))) onPatchAllTiming(patch);
     else patchCurrentPad(patch);
   };
-  const [towerMode, setTowerMode] = useState<TowerViewMode>('controls');
-  const [mapView, setMapView] = useState<'current' | 'overview' | 'phase'>('current');
+  const [towerMode, setTowerMode] = useState<TowerViewMode>('map');
+  const [mapView, setMapView] = useState<'current' | 'overview' | 'phase' | 'sequence' | 'structure' | 'follow'>('sequence');
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const collapsed = collapsedProp ?? internalCollapsed;
@@ -404,11 +413,11 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               <div className="quad-pro-field__meta">
                 <span className="quad-pro-field__sublabel">乐句长度</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <ScrubbableWheelInput formatValue={mixed('phraseSteps') ? () => '不同' : undefined} value={selectedPad.phraseSteps ?? 4} min={4} max={64} step={1} unit="步" title="乐句长度：4–64 步" onChange={value => onPatchSelectedPad({ phraseMode: 'fixed', phraseSteps: Math.max(4, Math.min(64, Math.round(value))) })} />
+                  <ScrubbableWheelInput formatValue={mixed('phraseSteps') ? () => '不同' : undefined} value={selectedPad.phraseSteps ?? 4} min={4} max={MAX_PHRASE_STEPS} step={1} unit="步" title={`乐句长度：4–${MAX_PHRASE_STEPS} 步`} onChange={value => onPatchSelectedPad({ phraseMode: 'fixed', phraseSteps: normalizePhraseSteps(value) })} />
                   <button className="quad-pro-mini-btn" type="button" aria-pressed={mixed('phraseMode') ? 'mixed' : selectedPad.phraseMode === 'auto'} onClick={() => onPatchSelectedPad({ phraseMode: mixed('phraseMode') || selectedPad.phraseMode !== 'auto' ? 'auto' : 'fixed' })}>自动{mixed('phraseMode') ? ' · 不同' : ''}</button>
                 </div>
               </div>
-              <div className="quad-pro-slider-wrap"><input className="quad-pro-slider" aria-label="乐句长度" type="range" min={4} max={64} step={1} value={selectedPad.phraseSteps ?? 4} onChange={e => onPatchSelectedPad({phraseMode:'fixed', phraseSteps:Number(e.target.value)})} /></div>
+              <div className="quad-pro-slider-wrap"><input className="quad-pro-slider" aria-label="乐句长度" type="range" min={4} max={MAX_PHRASE_STEPS} step={1} value={selectedPad.phraseSteps ?? 4} onChange={e => onPatchSelectedPad({phraseMode:'fixed', phraseSteps:Number(e.target.value)})} /></div>
             </div>
             {/* Slider 2: 音量（UI 10–200 ↔ 内部 velocity） */}
             <div className="quad-pro-field" style={{ marginTop: '6px' }}>
@@ -602,6 +611,12 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               )}
             </div>
 
+            <div className="quad-pro-field" style={{ marginTop: 6 }}>
+              <div className="quad-pro-field__meta">
+                <span className="quad-pro-field__sublabel">停留步数</span>
+                <ScrubbableWheelInput value={selectedNode.holdSteps ?? 1} min={1} max={MAX_PHRASE_STEPS} step={1} unit="步" disabled={selectedPad.locked} title="节点停留步数：延长时值与传递间隔；和弦成员以整组保持步数为准" onChange={holdSteps => onPatchSelectedNode({ holdSteps })} />
+              </div>
+            </div>
             {/* 范围半径比例 */}
             <div className="quad-pro-field" style={{ marginTop: '6px' }}>
               <div className="quad-pro-field__meta">
@@ -709,7 +724,10 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             </div>
             {formationFocus && activeFormation ? (
               <div className="quad-pro-help">
-                正在编辑编队 {activeFormation.id}：调半径/周期即改整组形状。
+                正在编辑编队 {activeFormation.id}：{activeFormation.shape==='chord'?'任一成员被触达，整组同时触发；隐藏成员不参与。':'调半径/周期即改整组形状。'}
+                {activeFormation.shape === 'chord' && <label>和弦保持
+                  <ScrubbableWheelInput value={activeFormation.holdSteps ?? 1} min={1} max={64} step={1} unit="步" title="和弦保持步数" onChange={holdSteps => onPatchSelectedPad({ formations: (selectedPad.formations ?? []).map(f => f.id === activeFormation.id ? {...f, holdSteps} : f) })} />
+                </label>}
               </div>
             ) : null}
 
@@ -1180,7 +1198,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               </div>
               <div className="quad-pro-help">
                 {groupNodeIds.length < 2
-                  ? '至少 2 个音符 → 选圆形/线段/闪烁。换一组音符再选形状，可再建 G2/G3…'
+                  ? '至少 2 个音符 → 选和弦/圆形/线段/闪烁。换一组音符再选形状，可再建 G2/G3…'
                   : activeFormation && formationFocus
                     && activeFormation.nodeIds.length === groupNodeIds.length
                     && groupNodeIds.every((id) => activeFormation.nodeIds.includes(id))
@@ -1233,10 +1251,10 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
 
           {/* Map Content Container */}
           <nav className="quad-map-view-switch" aria-label="图谱视图">
-            {([['current','当前轨'],['overview','四轨总览'],['phase','相位对比']] as const).map(([id,label]) => <button key={id} type="button" className="quad-pro-mini-btn" aria-pressed={mapView===id} onClick={()=>setMapView(id)}>{label}</button>)}
+            {([['current','当前轨'],['overview','四轨总览'],['phase','相位对比'],['sequence','音序全图'],['structure','结构对照'],['follow','旋律追随']] as const).map(([id,label]) => <button key={id} type="button" className="quad-pro-mini-btn" aria-pressed={mapView===id} onClick={()=>setMapView(id)}>{label}</button>)}
           </nav>
           <div className="quad-tower-map-body">
-            {mapView === 'phase' ? <PhaseComparison pads={comparisonPads} sources={overviewPads} /> : mapView === 'overview' ? <MultiPadOverview pads={overviewPads} progress={comparisonPads} /> : <CycleTrace
+            {mapView === 'follow' ? melodyFollow : mapView === 'structure' ? structureMap : mapView === 'sequence' ? sequenceAtlas : mapView === 'phase' ? <PhaseComparison pads={comparisonPads} sources={overviewPads} /> : mapView === 'overview' ? <MultiPadOverview pads={overviewPads} progress={comparisonPads} /> : <CycleTrace
               padId={selectedPadId}
               current={currentTrace}
               next={nextTrace}
@@ -1247,6 +1265,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               showNodeLabels={showCycleMapLabels}
               onSelectNode={onSelectNode}
             />}
+            {mapView !== 'sequence' && mapView !== 'structure' && mapView !== 'follow' && sequencePanel}
           </div>
         </div>
       )}

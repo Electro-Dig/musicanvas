@@ -1,10 +1,12 @@
 import { getSoundPresetById, type SoundPreset } from './soundPresets';
+import { OpenDx7Engine } from './openDx7';
 
 class QuadSynthEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
   private isMuted: boolean = false;
+  private fm: OpenDx7Engine | null = null;
 
   private initContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -28,6 +30,7 @@ class QuadSynthEngine {
 
       this.masterGain.connect(this.compressor);
       this.compressor.connect(this.ctx.destination);
+      this.fm = new OpenDx7Engine(this.ctx, this.masterGain);
     }
 
     if (this.ctx.state === 'suspended') {
@@ -40,7 +43,10 @@ class QuadSynthEngine {
   public ensureRunning(): void {
     if (typeof window === 'undefined') return;
     this.initContext();
+    void this.fm?.prepare().catch(error=>console.error('FM engine loading failed',error));
   }
+
+  public stopTrack(track:string):void { this.fm?.stop(track); }
 
   public getCurrentTime(): number | null {
     const ctx = this.ctx ?? this.initContext();
@@ -54,12 +60,17 @@ class QuadSynthEngine {
     presetId: string = 'grand-piano',
     /** AudioContext 绝对时间；缺省为立即（currentTime） */
     whenSec?: number,
+    trackId: string = 'preview',
   ): void {
     if (typeof window === 'undefined' || this.isMuted) return;
 
     try {
       const ctx = this.initContext();
       if (!ctx || !this.masterGain) return;
+      if(presetId.startsWith('dx7-')) {
+        void this.fm?.play(trackId,presetId,midiNote,velocity,durationSec,whenSec??ctx.currentTime).catch(error=>console.error('FM playback failed',error));
+        return;
+      }
 
       const preset: SoundPreset = getSoundPresetById(presetId);
       const freq = 440 * Math.pow(2, (midiNote - 69) / 12);
@@ -191,6 +202,7 @@ class QuadSynthEngine {
 
   public setMuted(muted: boolean): void {
     this.isMuted = muted;
+    if(muted)this.fm?.stopAll();
   }
 }
 

@@ -49,7 +49,7 @@ export interface QuadCycleRunnerOptions {
     snapshot: QuadLilyPad,
     timing?: QuadCycleEventTiming,
   ): void;
-  onCycleStart?(padId: QuadPadId, cycle: number, snapshot: QuadLilyPad): void;
+  onCycleStart?(padId: QuadPadId, cycle: number, snapshot: QuadLilyPad, startedAtMs: number): void;
   onCycleCompiled?(
     padId: QuadPadId,
     cycle: number,
@@ -71,6 +71,7 @@ interface PendingTask {
 
 interface ActivePadClock {
   pad: QuadLilyPad;
+  sourcePad?: QuadLilyPad;
   cycle: number;
   cycleIntervalMs: number;
   cycleStartedAtMs: number;
@@ -114,10 +115,11 @@ export class QuadCycleRunner {
 
   startPads(pads: readonly QuadLilyPad[]): void {
     pads.forEach(pad => this.cancelPad(pad.id, false));
+    const startedAt = this.nowMs();
     pads.forEach(pad => {
       const active = this.createActivePad(pad);
       this.active.set(pad.id, active);
-      this.runCycle(active);
+      this.runCycle(active, startedAt);
     });
   }
 
@@ -187,14 +189,25 @@ export class QuadCycleRunner {
     return this.active.get(padId)?.paused ?? false;
   }
 
-  private runCycle(active: ActivePadClock): void {
+  /** Read-only transport position. Reading does not schedule, pause or compile anything. */
+  readPosition(padId: QuadPadId) {
+    const active=this.active.get(padId);
+    if(!active)return null;
+    const elapsedMs=active.paused?active.pausedCursor?.elapsedMs??0:
+      Math.max(0,Math.min(active.cycleIntervalMs,this.nowMs()-active.cycleStartedAtMs));
+    return {cycle:active.cycle,phase:active.cycleIntervalMs>0?elapsedMs/active.cycleIntervalMs:0,
+      playing:!active.paused,paused:active.paused,sourcePad:active.sourcePad};
+  }
+
+  private runCycle(active: ActivePadClock, startedAt = this.nowMs()): void {
     if (this.active.get(active.pad.id) !== active || active.paused) return;
     const cycle = active.cycle;
+    active.sourcePad=active.pad;
     const snapshot = this.resolveCycleSnapshot?.(active.pad, cycle) ?? active.pad;
     const compilation = compileLilyCycle(snapshot);
-    active.cycleStartedAtMs = this.nowMs();
+    active.cycleStartedAtMs = startedAt;
     active.cycleIntervalMs = compilation.intervalMs;
-    this.onCycleStart?.(snapshot.id, cycle, snapshot);
+    this.onCycleStart?.(snapshot.id, cycle, snapshot, startedAt);
     this.onCycleCompiled?.(snapshot.id, cycle, compilation, snapshot);
 
     const continueBeyond = this.continueBeyondCycle();
@@ -204,16 +217,18 @@ export class QuadCycleRunner {
       : compilation.events.filter((event) => event.delayMs < compilation.intervalMs);
 
     playable.forEach((event) => {
-      this.schedule(active, event.delayMs, (timing) => (
+      this.schedule(active, Math.max(0, startedAt + event.delayMs - this.nowMs()), (timing) => (
         this.onEvent(snapshot.id, event, cycle, snapshot, timing)
       ), true);
     });
 
     if (snapshot.loop) {
       // ROOT 严格按乐句周期重启；延续模式下超周期节点的定时器继续跑，不阻塞下一圈
-      this.schedule(active, compilation.intervalMs, () => {
-        active.cycle += 1;
-        this.runCycle(active);
+      this.schedule(active, Math.max(0, startedAt + compilation.intervalMs - this.nowMs()), () => {
+        // Skip fully missed phrases rather than bursting their notes after a stall.
+        const missed = Math.max(1, Math.floor((this.nowMs() - active.cycleStartedAtMs) / compilation.intervalMs));
+        active.cycle += missed;
+        this.runCycle(active, active.cycleStartedAtMs + missed * compilation.intervalMs);
       }, false);
     }
   }

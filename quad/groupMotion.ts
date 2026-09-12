@@ -9,7 +9,7 @@ import type { LilyNode } from './core.ts';
 import type { LilyNodeMotion } from './motion.ts';
 
 export type GroupMotionMode = 'orbit' | 'pendulum' | 'flash';
-export type FormationShape = 'circle' | 'line' | 'flash';
+export type FormationShape = 'circle' | 'line' | 'flash' | 'chord';
 
 export const GROUP_MOTION_MODES: ReadonlyArray<{ key: GroupMotionMode; label: string }> = [
   { key: 'orbit', label: '圆形' },
@@ -18,6 +18,7 @@ export const GROUP_MOTION_MODES: ReadonlyArray<{ key: GroupMotionMode; label: st
 ];
 
 export const FORMATION_SHAPES: ReadonlyArray<{ key: FormationShape; label: string }> = [
+  { key: 'chord', label: '和弦' },
   { key: 'circle', label: '圆形' },
   { key: 'line', label: '线段' },
   { key: 'flash', label: '闪烁' },
@@ -33,6 +34,8 @@ export interface LilyNoteFormation {
   id: string;
   nodeIds: string[];
   shape: FormationShape;
+  /** 和弦发声后，等待多少传播步再传向下一组。 */
+  holdSteps?: number;
   centerX: number;
   centerY: number;
   /** 圆形半径；线段半长；闪烁时作占位半径 */
@@ -248,6 +251,7 @@ export function patchNoteFormation(
 
 /** 编队 ↔ 轨迹面板：把编队参数映射成可编辑的假 motion */
 export function formationToEditorMotion(formation: LilyNoteFormation): LilyNodeMotion {
+  if (formation.shape === 'chord') return {mode:'off'};
   if (formation.shape === 'circle') {
     return {
       mode: 'orbit',
@@ -322,6 +326,35 @@ export function resolveFormationNodePosition(
   const cy = clampUnit(formation.centerY, 0.5);
   const radius = clampUnit(formation.radius, DEFAULT_FORMATION_RADIUS);
 
+  if (formation.shape === 'chord') {
+    // Concentric rings grow with the number of voices; distribute members
+    // across rings so a new outer ring does not contain a lone overflow note.
+    const spacing = Math.max(0.07, radius);
+    let rings = 1;
+    while (3 * rings * (rings + 1) < count) rings++;
+    const offsets: MotionPoint[] = [];
+    let remaining = count;
+    let remainingWeight = rings * (rings + 1) / 2;
+    for (let ring = 1; ring <= rings; ring++) {
+      const members = Math.ceil(remaining * ring / remainingWeight);
+      for (let slot = 0; slot < members; slot++) {
+        const angle = -Math.PI / 2 + slot * Math.PI * 2 / members + (ring - 1) * 0.35;
+        offsets.push({ x: spacing * ring * Math.cos(angle), y: spacing * ring * Math.sin(angle) });
+      }
+      remaining -= members;
+      remainingWeight -= ring;
+    }
+    const minX = Math.min(...offsets.map(p => p.x));
+    const maxX = Math.max(...offsets.map(p => p.x));
+    const minY = Math.min(...offsets.map(p => p.y));
+    const maxY = Math.max(...offsets.map(p => p.y));
+    const fit = Math.min(1, .94 / Math.max(maxX-minX, maxY-minY));
+    const safeX = Math.max(.03-minX*fit, Math.min(1-.03-maxX*fit, cx));
+    const safeY = Math.max(.03-minY*fit, Math.min(1-.03-maxY*fit, cy));
+    const point = offsets[index];
+    return {x:safeX+point.x*fit, y:safeY+point.y*fit};
+  }
+
   if (formation.shape === 'circle') {
     const slot = index / count;
     const angle = (slot + phase) * Math.PI * 2;
@@ -378,6 +411,7 @@ export function buildFormationTrail(
   formation: LilyNoteFormation,
   sampleCount = 48,
 ): MotionPoint[] {
+  if (formation.shape === 'chord') return [];
   if (formation.shape === 'circle') {
     return Array.from({ length: sampleCount }, (_, index) => {
       const angle = (index / sampleCount) * Math.PI * 2;

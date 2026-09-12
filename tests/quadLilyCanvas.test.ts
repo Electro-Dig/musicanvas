@@ -8,6 +8,40 @@ import { createServer } from 'vite';
 
 const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 
+test('quad toolbars are opt-in while single-pad controls remain available', async () => {
+  const vite = await createServer({ root: projectRoot, appType: 'custom', logLevel: 'silent', server: { middlewareMode: true } });
+  try {
+    const { QuadLilyCanvas } = await vite.ssrLoadModule('/quad/QuadLilyCanvas.tsx');
+    const noop = () => undefined;
+    const props = {
+      pads: ['A', 'B', 'C', 'D'].map((id, index) => ({
+        id, intervalMs: 750, playing: false, locked: id === 'D', selected: id === 'A',
+        cyclePhase: 0, midiChannel: index + 1, nodes: [],
+      })),
+      onSelectPad: noop, onAddNode: noop, onNodePointerDown: noop, onDeleteNode: noop,
+      onTogglePlaying: noop, onToggleLocked: noop, onSavePad: noop, onClearPad: noop,
+      onSetSoundPreset: noop, onSetPadMidiChannel: noop, onToggleInfo: noop,
+    };
+    const render = (extra = {}) => renderToStaticMarkup(React.createElement(QuadLilyCanvas, { ...props, ...extra }));
+    const original = render();
+    assert.doesNotMatch(original, /role="toolbar"/);
+    assert.doesNotMatch(original, /aria-label="保存 Pad/);
+    const expanded = render({ showQuadToolbar: true });
+    assert.equal((expanded.match(/role="toolbar"/g) ?? []).length, 4);
+    assert.match(expanded, /data-quad-toolbar="true"/);
+    for (const id of ['A', 'B', 'C', 'D']) {
+      for (const action of ['播放', '保存', '清空']) assert.match(expanded, new RegExp(`aria-label="${action} Pad ${id}"`));
+      assert.match(expanded, new RegExp(`aria-label="Pad ${id} Sound preset"`));
+      assert.match(expanded, new RegExp(`aria-label="Pad ${id} MIDI channel"`));
+    }
+    assert.match(expanded, /aria-label="清空 Pad D"[^>]*disabled/);
+    assert.doesNotMatch(expanded, /class="quad-lily-pad__hud"/);
+    const single = render({ layout: 'single', showQuadToolbar: false });
+    assert.match(single, /role="toolbar"/);
+    assert.doesNotMatch(single, /data-quad-toolbar="true"/);
+  } finally { await vite.close(); }
+});
+
 test('renders four directly editable Lily Pad quadrants with local play and lock controls', async () => {
   const vite = await createServer({
     root: projectRoot,

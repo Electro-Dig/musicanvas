@@ -196,6 +196,25 @@
 
 .quad-lily-pad__cycle-value[data-active="false"] { opacity: .16; }
 
+.quad-canvas-decoration path {
+  fill: none;
+  stroke: #46685a;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.quad-canvas-decoration [data-role="stem"] { stroke-width: 2.1; opacity: .7; }
+.quad-canvas-decoration [data-role="vein"] { stroke-width: .85; opacity: .4; }
+.quad-canvas-decoration [data-role="outline"] {
+  stroke-width: .65;
+  stroke-opacity: .3;
+  fill: #789d86;
+  fill-opacity: .065;
+}
+.library-card__preview .quad-canvas-decoration [data-role="stem"] { stroke-width: .8; }
+.library-card__preview .quad-canvas-decoration [data-role="vein"] { stroke-width: .4; }
+
 .quad-lily-pad__connections line {
   stroke: var(--quad-line-strong);
   stroke-width: .5;

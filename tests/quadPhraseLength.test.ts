@@ -80,8 +80,8 @@ test('phrase length survives persistence, validates bounds, and migrates old pad
   const old = JSON.parse(JSON.stringify(workspace)); delete old.pads.A.phraseSteps;
   assert.equal(parseQuadLilyWorkspace(old).pads.A.phraseSteps, 4);
   assert.equal(getPadCycleDurationMs({ intervalMs: 600 }), 600);
-  workspace = updateLilyPad(workspace, 'A', { phraseSteps: 100 });
-  assert.equal(workspace.pads.A.phraseSteps, 64);
+  workspace = updateLilyPad(workspace, 'A', { phraseSteps: 1000 });
+  assert.equal(workspace.pads.A.phraseSteps, 256);
   workspace = updateLilyPad(workspace, 'A', { phraseSteps: 1 });
   assert.equal(workspace.pads.A.phraseSteps, 4);
   old.pads.A.phraseSteps = '12';

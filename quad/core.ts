@@ -1,4 +1,5 @@
 import type { DrawMotionKeyframe, LilyNodeMotion } from './motion.ts';
+import { parseCanvasDecoration, type CanvasDecoration } from './canvasDecoration.ts';
 import {
   detachNodesFromFormations,
   getPadFormations,
@@ -26,6 +27,8 @@ export interface LilyNode {
   isCenter: boolean;
   motion?: LilyNodeMotion;
   endpointPitch?: LilyNodeEndpointPitch;
+  /** 停留多少传播步后继续传递；显式设置时也作为音符时值。 */
+  holdSteps?: number;
   /** 静音：仍参与传播，但不发声 */
   muted?: boolean;
   /** 隐藏：不参与传播与发声（演奏对比用） */
@@ -35,6 +38,7 @@ export interface LilyNode {
 export interface QuadLilyPad {
   id: QuadPadId;
   nodes: LilyNode[];
+  decoration?: CanvasDecoration;
   intervalMs: number;
   /** 每个乐句包含的传播步数；旧图案默认为四步。 */
   phraseSteps: number;
@@ -44,6 +48,7 @@ export interface QuadLilyPad {
   locked: boolean;
   velocity: number;
   rememberedTone: Fm1ToneSelection;
+  soundPresetId?: string;
   rootMidi: number;
   scaleKey: string;
   octaveTranspose: number;
@@ -83,6 +88,7 @@ export interface LilyNodePatch {
   scaleStep?: number;
   motion?: LilyNodeMotion;
   endpointPitch?: LilyNodeEndpointPitch | null;
+  holdSteps?: number | null;
   muted?: boolean | null;
   hidden?: boolean | null;
 }
@@ -141,7 +147,12 @@ export interface LilyCycleCompilation {
 
 export const DEFAULT_PHRASE_STEPS = 4;
 export const MIN_PHRASE_STEPS = 4;
-export const MAX_PHRASE_STEPS = 64;
+export const MAX_PHRASE_STEPS = 256;
+
+export function normalizeNodeHoldSteps(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.max(1, Math.min(MAX_PHRASE_STEPS, Math.round(value))) : 1;
+}
 
 export function normalizePhraseSteps(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value)
@@ -249,6 +260,8 @@ export function updateLilyNode(
     next.endpointPitch = cloneEndpointPitch(patch.endpointPitch);
   }
   if (patch.muted === null) delete next.muted;
+  if (patch.holdSteps === null) delete next.holdSteps;
+  else if (patch.holdSteps !== undefined) next.holdSteps = normalizeNodeHoldSteps(patch.holdSteps);
   else if (typeof patch.muted === 'boolean') next.muted = patch.muted;
   if (patch.hidden === null) delete next.hidden;
   else if (typeof patch.hidden === 'boolean') next.hidden = patch.hidden;
@@ -323,6 +336,23 @@ export function compileLilyCycle(pad: QuadLilyPad): LilyCycleCompilation {
   const edges: LilyCycleEdge[] = [];
   const visited = new Set([center.id]);
 
+  const chordByNode = new Map<string, LilyNoteFormation>();
+  for (const f of getPadFormations(pad)) if (f.shape === 'chord') for (const id of f.nodeIds) if (!chordByNode.has(id)) chordByNode.set(id, f);
+  const chordFor = (id: string) => chordByNode.get(id);
+  const joinChord = (anchor: ScheduledNode) => {
+    const chord=chordFor(anchor.nodeId);
+    if(!chord)return;
+    for(const id of chord.nodeIds){
+      const node=pad.nodes.find(n=>n.id===id&&!n.hidden);
+      if(!node||visited.has(id))continue;
+      visited.add(id);
+      const event:ScheduledNode={...anchor,node,nodeId:id,scaleStep:node.scaleStep,parentId:anchor.nodeId,sequence:sequence++};
+      pending.push(event);scheduled.push(event);
+      edges.push({fromId:anchor.nodeId,toId:id,distance:distance(anchor.node,node),sourceRange:anchor.node.range,orderWithinParent:0});
+    }
+  };
+  joinChord(first);
+
   while (pending.length > 0) {
     pending.sort(compareScheduledNodes);
     const sourceEvent = pending.shift()!;
@@ -337,13 +367,16 @@ export function compileLilyCycle(pad: QuadLilyPad): LilyCycleCompilation {
         || left.id.localeCompare(right.id)
       ));
 
-    neighbors.forEach((node, index) => {
+    let targetIndex=0;
+    neighbors.forEach((node) => {
+      if(visited.has(node.id))return;
+      const index=targetIndex++;
       visited.add(node.id);
       const event: ScheduledNode = {
         node,
         nodeId: node.id,
         parentId: sourceEvent.nodeId,
-        delayMs: sourceEvent.delayMs + (index + 1) * propagationStepMs,
+        delayMs: sourceEvent.delayMs + (index + normalizeNodeHoldSteps(chordFor(sourceEvent.nodeId)?.holdSteps ?? sourceEvent.node.holdSteps)) * propagationStepMs,
         depth: sourceEvent.depth + 1,
         scaleStep: node.scaleStep,
         sequence: sequence++,
@@ -357,13 +390,14 @@ export function compileLilyCycle(pad: QuadLilyPad): LilyCycleCompilation {
       });
       pending.push(event);
       scheduled.push(event);
+      joinChord(event);
     });
   }
 
   const ordered = scheduled.sort(compareScheduledNodes);
   if (pad.phraseMode === 'auto') {
     const sounding = ordered.filter(event => !event.node.muted && !event.node.hidden);
-    cycleDurationMs = Math.max(1, ...sounding.map(event => Math.round(event.delayMs / propagationStepMs) + 1)) * propagationStepMs;
+    cycleDurationMs = Math.max(1, ...sounding.map(event => Math.round(event.delayMs / propagationStepMs) + normalizeNodeHoldSteps(event.node.holdSteps))) * propagationStepMs;
   }
   const waveByOffset = new Map<number, number>();
   ordered.forEach(({ delayMs }) => {
@@ -441,7 +475,7 @@ export function clearLilyPad(
 ): QuadLilyWorkspace {
   const pad = workspace.pads[padId];
   const center = pad.nodes.find(({ isCenter }) => isCenter) ?? createDefaultPad(padId).nodes[0];
-  return replacePad(workspace, padId, { ...pad, nodes: [center], formations: [] });
+  return replacePad(workspace, padId, { ...pad, nodes: [center], formations: [], decoration: undefined });
 }
 
 export function resetLilyPad(
@@ -547,9 +581,11 @@ function compareScheduledNodes(
 
 function parseStoredPad(value: unknown, defaults: QuadLilyPad): QuadLilyPad {
   if (!isRecord(value)) return defaults;
+  const decoration = parseCanvasDecoration(value.decoration);
   return {
     id: defaults.id,
     nodes: parseStoredNodes(value.nodes, defaults.nodes[0]),
+    ...(decoration ? { decoration } : {}),
     intervalMs: readClampedInteger(value.intervalMs, defaults.intervalMs, 100, 1_500),
     phraseSteps: normalizePhraseSteps(value.phraseSteps),
     phraseMode: value.phraseMode === 'auto' ? 'auto' : 'fixed',
@@ -558,6 +594,7 @@ function parseStoredPad(value: unknown, defaults: QuadLilyPad): QuadLilyPad {
     locked: readBoolean(value.locked, defaults.locked),
     velocity: readClampedNumber(value.velocity, defaults.velocity, 0, 200 / 127),
     rememberedTone: readTone(value.rememberedTone, defaults.rememberedTone),
+    ...(typeof value.soundPresetId === 'string' && value.soundPresetId.trim() ? {soundPresetId:value.soundPresetId} : {}),
     rootMidi: readClampedInteger(value.rootMidi, defaults.rootMidi, 0, 127),
     scaleKey: readNonEmptyString(value.scaleKey, defaults.scaleKey),
     octaveTranspose: readClampedInteger(value.octaveTranspose, defaults.octaveTranspose, -3, 3),
@@ -597,6 +634,7 @@ function parseStoredNodes(value: unknown, defaultCenter: LilyNode): LilyNode[] {
       isCenter: candidate.isCenter,
       ...(motion ? { motion } : {}),
       ...(endpointPitch ? { endpointPitch } : {}),
+      ...(isFiniteNumber(candidate.holdSteps) ? { holdSteps: normalizeNodeHoldSteps(candidate.holdSteps) } : {}),
       ...(candidate.muted === true ? { muted: true } : {}),
       ...(candidate.hidden === true ? { hidden: true } : {}),
     };
@@ -704,7 +742,7 @@ function parseStoredFormation(value: unknown): LilyNoteFormation | null {
   if (!Array.isArray(value.nodeIds) || value.nodeIds.length < 2) return null;
   const nodeIds = value.nodeIds.filter((id): id is string => typeof id === 'string' && id.trim().length > 0);
   if (nodeIds.length < 2) return null;
-  const shape = value.shape === 'circle' || value.shape === 'line' || value.shape === 'flash'
+  const shape = value.shape === 'circle' || value.shape === 'line' || value.shape === 'flash' || value.shape === 'chord'
     ? value.shape
     : null;
   if (!shape) return null;
@@ -714,6 +752,7 @@ function parseStoredFormation(value: unknown): LilyNoteFormation | null {
   return {
     nodeIds,
     shape,
+    ...(isFiniteNumber(value.holdSteps) ? { holdSteps: Math.max(1, Math.min(64, Math.round(value.holdSteps))) } : {}),
     id: typeof value.id === 'string' && value.id.trim() ? value.id.trim() : 'G1',
     centerX: clampUnit(value.centerX, 0.5),
     centerY: clampUnit(value.centerY, 0.5),

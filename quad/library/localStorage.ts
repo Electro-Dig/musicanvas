@@ -94,9 +94,14 @@ export class LocalStorageLibraryRepository {
     }
   }
 
+  private notifyChanged(): void {
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("quad-library-changed"));
+  }
+
   private writeAssets(assets: LibraryAsset[]): void {
     if (assets.length === 0) {
       this.storage.removeItem(this.storageKey);
+      this.notifyChanged();
       return;
     }
     const index: StoredLibraryIndex = {
@@ -105,6 +110,7 @@ export class LocalStorageLibraryRepository {
       assets: assets.map(asset => JSON.parse(serializeLibraryAsset(asset)) as unknown),
     };
     this.storage.setItem(this.storageKey, JSON.stringify(index));
+    this.notifyChanged();
   }
 }
 

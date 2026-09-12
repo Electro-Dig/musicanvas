@@ -1,3 +1,4 @@
+import { FM_PRESETS } from './openDx7.ts';
 export type InstrumentKind = 'piano' | 'marimba' | 'synth';
 
 export interface SoundPreset {
@@ -20,6 +21,25 @@ export interface SoundPreset {
 }
 
 export const SOUND_PRESETS: SoundPreset[] = [
+  ...FM_PRESETS.map(p=>({id:p.id,name:p.name,kind:'synth' as const,synthWave:'sine' as const,filterType:'lowpass' as const,filterBase:18000,filterQ:0,attack:.01,decay:.1,sustain:.5,release:.2,gain:.3})),
+  {id:'soft-pluck-bass',name:'Soft Pluck Bass',kind:'synth',synthWave:'triangle',
+    filterType:'lowpass',filterBase:900,filterQ:.7,attack:.008,decay:.18,sustain:.08,release:.15,gain:.38},
+  {
+    id: 'air-pad',
+    name: 'Air Pad',
+    kind: 'synth',
+    synthWave: 'triangle',
+    filterType: 'lowpass',
+    filterBase: 1800,
+    filterQ: 0.7,
+    attack: 0.65,
+    decay: 0.9,
+    sustain: 0.65,
+    release: 2.8,
+    gain: 0.2,
+    dualOsc: true,
+    detune: 6,
+  },
   // --- Acoustic Instruments ---
   {
     id: 'grand-piano',
@@ -150,5 +170,5 @@ export const DEFAULT_SOUND_PRESET_ID = 'crystal-pluck';
 export const EXTERNAL_SOUND_PRESET_ID = 'external-midi';
 
 export function getSoundPresetById(id: string): SoundPreset {
-  return SOUND_PRESETS.find((p) => p.id === id) ?? SOUND_PRESETS[0];
+  return SOUND_PRESETS.find((p) => p.id === id) ?? SOUND_PRESETS.find(p=>p.id===DEFAULT_SOUND_PRESET_ID)!;
 }

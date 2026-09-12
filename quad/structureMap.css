@@ -1,0 +1,51 @@
+.structure-map {
+  flex:1; min-height:0; overflow:auto; padding:10px; box-sizing:border-box;
+  color:var(--quad-text); background:var(--quad-map-surface); font:11px/1.5 var(--studio-font-ui,system-ui); scrollbar-width:thin;
+}
+.structure-map header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.structure-map header strong { font-size:13px; }
+.structure-map header label { display:flex; align-items:center; gap:5px; color:var(--quad-muted); }
+.structure-map select { font:inherit; color:var(--quad-text); background:var(--quad-surface); border:1px solid var(--quad-line); border-radius:5px; padding:4px; }
+.structure-map p { margin:7px 0; }
+.structure-summary { font-variant-numeric:tabular-nums; }
+.structure-guide,.structure-notice,.structure-map footer { color:var(--quad-muted); font-size:10px; }
+.structure-scroll { overflow:auto; scrollbar-width:thin; margin-top:10px; }
+.structure-grid { width:100%; table-layout:fixed; border-collapse:separate!important; border-spacing:3px!important; }
+.structure-grid caption { text-align:left; color:var(--quad-muted); font-size:10px; padding-bottom:4px; }
+.structure-grid th { font-weight:500; padding:2px 0; text-align:center; }
+.structure-grid thead span { display:block; font-size:9px; font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--quad-muted); }
+.structure-grid th:first-child { width:26px; position:sticky; left:0; background:var(--quad-map-surface); z-index:2; }
+.structure-grid tbody th b { font-size:12px; }
+.structure-grid tbody th small { display:block; color:var(--quad-muted); font-size:8px; }
+.structure-grid td { padding:0; border:0; }
+.structure-cell {
+  position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;
+  width:100%; height:64px; padding:4px 2px; border:1px solid transparent; border-radius:4px;
+  background:var(--motif-bg); color:var(--motif-ink); font:inherit; cursor:pointer; overflow:hidden;
+}
+.structure-cell[data-motif="0"] { --motif-bg:#d6e6da; --motif-ink:#315743; }
+.structure-cell[data-motif="1"] { --motif-bg:#dce8f0; --motif-ink:#345c78; }
+.structure-cell[data-motif="2"] { --motif-bg:#eadff0; --motif-ink:#735387; }
+.structure-cell[data-motif="3"] { --motif-bg:#f1e6cf; --motif-ink:#745625; }
+.structure-cell[data-motif="4"] { --motif-bg:#f0dfdf; --motif-ink:#885155; }
+.structure-cell[data-motif="5"] { --motif-bg:#d7eaea; --motif-ink:#326b70; }
+.structure-cell[data-motif="rest"] { --motif-bg:var(--quad-surface); --motif-ink:var(--quad-muted); border:1px dashed var(--quad-line); }
+.structure-cell strong { font-size:11px; line-height:15px; }
+.structure-cell small { font-size:9px; line-height:13px; }
+.structure-cell svg { width:100%; height:24px; fill:currentColor; }
+.structure-rest { height:24px; }
+.structure-cell[data-match="true"] { border-color:currentColor; }
+.structure-cell[aria-pressed="true"] { box-shadow:inset 0 0 0 1px currentColor; }
+.structure-cell:hover { filter:brightness(.96); }
+.structure-cell:focus-visible,.structure-map select:focus-visible { outline:2px solid var(--quad-text); outline-offset:1px; }
+.structure-cell[aria-current="step"] { border-bottom:3px solid #327453; }
+.structure-playhead { position:absolute; top:0; bottom:0; width:2px; background:#327453; pointer-events:none; }
+.structure-playhead[data-paused="true"] { background:#73837a; }
+.structure-detail { margin-top:14px; padding-top:10px; border-top:1px solid var(--quad-line); }
+.structure-detail p { color:var(--quad-muted); font-size:10px; overflow-wrap:anywhere; }
+.structure-detail p>b { color:var(--quad-text); margin-right:5px; }
+.structure-notes { display:flex; flex-wrap:wrap; gap:4px; }
+.structure-notes>span { display:flex; flex-direction:column; align-items:center; background:var(--quad-surface); border:1px solid var(--quad-line); border-radius:3px; padding:3px 6px; }
+.structure-notes small { color:var(--quad-muted); font-size:9px; }
+.structure-map footer { margin-top:14px; padding-top:8px; border-top:1px solid var(--quad-line); }
+.quad-tower-map-body:has(>.structure-map) { min-height:0; }

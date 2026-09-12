@@ -18,6 +18,7 @@ import {
   Square,
   LayoutGrid,
   Waves,
+  Wind,
   CornerDownRight,
 } from 'lucide-react';
 import { QUAD_PAD_IDS, getPadCycleDurationMs } from '../core';
@@ -43,6 +44,7 @@ const PAD_COLORS: Record<string, string> = {
 
 const ICON_SM = 14;
 const ICON_MD = 15;
+const QUAD_TOOLBAR_STORAGE_KEY = 'gemidi.studio.quad-toolbar.v1';
 
 export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
   const {
@@ -134,6 +136,17 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
   } = props;
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [featherSway, setFeatherSway] = useState(false);
+  const [showQuadToolbar, setShowQuadToolbar] = useState(() => {
+    try { return typeof window !== 'undefined' && window.localStorage.getItem(QUAD_TOOLBAR_STORAGE_KEY) === '1'; }
+    catch { return false; }
+  });
+  const toggleQuadToolbar = () => {
+    const next = !showQuadToolbar;
+    setShowQuadToolbar(next);
+    try { window.localStorage.setItem(QUAD_TOOLBAR_STORAGE_KEY, next ? '1' : '0'); }
+    catch { /* The display preference still works when storage is unavailable. */ }
+  };
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -416,6 +429,30 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                     {showNodeLabels ? 'ON' : 'OFF'}
                   </span>
                 </button>
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={showQuadToolbar}
+                  className="quad-studio-settings__item"
+                  onClick={toggleQuadToolbar}
+                  title={locale === 'zh' ? '在四个画布顶部显示音色、MIDI 通道和常用操作' : 'Show sound, MIDI channel and actions above each pad'}
+                >
+                  <LayoutGrid size={ICON_SM} strokeWidth={2.1} aria-hidden />
+                  <span>{locale === 'zh' ? '四宫格工具栏' : 'Quad toolbar'}</span>
+                  <span className="quad-studio-settings__value">{showQuadToolbar ? 'ON' : 'OFF'}</span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={featherSway}
+                  className="quad-studio-settings__item"
+                  onClick={() => setFeatherSway(on => !on)}
+                  title={locale === 'zh' ? '装饰羽叶随微风柔和弯曲；仅改变显示，保留原音序' : 'Gently sway decorated feathers without changing the musical sequence'}
+                >
+                  <Wind size={ICON_SM} strokeWidth={2.1} aria-hidden />
+                  <span>{locale === 'zh' ? '羽叶摇曳（实验）' : 'Feather sway (experimental)'}</span>
+                  <span className="quad-studio-settings__value">{featherSway ? 'ON' : 'OFF'}</span>
+                </button>
                 {onCycleCanvasBackground && (
                   <button
                     type="button"
@@ -590,7 +627,7 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
         className="quad-studio-body"
         data-sidebar-collapsed={sidebarCollapsed ? 'true' : undefined}
       >
-        <StudioSidebar
+        <StudioSidebar sequencePanel={props.sequencePanel} sequenceAtlas={props.sequenceAtlas} structureMap={props.structureMap} melodyFollow={props.melodyFollow}
           comparisonPads={padViews.map(p => ({ id: p.id, phase: p.cyclePhase, steps: Math.round(getPadCycleDurationMs(p.timingPad) / (p.timingPad.intervalMs / 4)), bpm: Math.round(60000 / p.timingPad.intervalMs), playing: p.playing }))}
           overviewPads={padViews.map(p => ({ ...p.timingPad, playing: p.playing }))}
           selectedPadId={selectedPadId}
@@ -659,7 +696,9 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
           <QuadLilyCanvas
             pads={padViews}
             layout={viewMode}
-            onFocusPad={id => { onChoosePad(id); onSetViewMode('single'); }}
+            showQuadToolbar={showQuadToolbar}
+            featherSway={featherSway}
+            onFocusPad={id => { onChoosePad(id); onSetViewMode(viewMode === 'single' ? 'quad' : 'single'); }}
             showNodeLabels={nodeLabelVisibility.canvas}
             mobilePadId={selectedPadId}
             onSelectPad={onChoosePad}

@@ -30,6 +30,13 @@ class FakeClock implements QuadCycleClock {
     return this.now;
   }
 
+  stall(delayMs: number): void {
+    this.now += delayMs;
+    for (const [id, task] of [...this.tasks]) {
+      if (task.due <= this.now && this.tasks.delete(id)) task.run();
+    }
+  }
+
   advance(delayMs: number): void {
     const target = this.now + delayMs;
     while (true) {
@@ -44,6 +51,42 @@ class FakeClock implements QuadCycleClock {
     this.now = target;
   }
 }
+
+test('readPosition follows the transport without rescheduling, and freezes on pause',()=>{
+  const clock=new FakeClock();
+  const fired:string[]=[];
+  const runner=new QuadCycleRunner({clock,onEvent:(_,e)=>fired.push(e.nodeId)});
+  const pad=createQuadLilyWorkspace().pads.A;pad.intervalMs=500;pad.phraseSteps=8;
+  assert.equal(runner.readPosition('A'),null);
+  runner.startPad(pad);clock.advance(325);
+  const before=[...fired];
+  for(let i=0;i<50;i++)assert.equal(runner.readPosition('A')?.phase,.325);
+  assert.deepEqual(fired,before);
+  const edited={...pad,rootMidi:pad.rootMidi+1};runner.updatePad(edited);
+  assert.equal(runner.readPosition('A')?.sourcePad,pad,'the playing score remains the cycle-start composition');
+  runner.pausePad('A');clock.advance(2500);
+  assert.equal(runner.readPosition('A')?.phase,.325);assert.equal(runner.readPosition('A')?.paused,true);
+  runner.resumePad(edited);clock.advance(675);
+  assert.equal(runner.readPosition('A')?.cycle,1);assert.equal(runner.readPosition('A')?.sourcePad,edited);
+  runner.stopPad('A');assert.equal(runner.readPosition('A'),null);
+});
+
+test('late boundaries retain the original grid and skip fully missed phrases', () => {
+  const clock = new FakeClock();
+  const starts: Array<[number, number]> = [];
+  const pad = createQuadLilyWorkspace().pads.A;
+  pad.intervalMs = 500; pad.phraseSteps = 8; pad.loop = true;
+  const runner = new QuadCycleRunner({clock, onEvent:()=>{}, onCycleStart:(_id,cycle,_pad,at)=>starts.push([cycle,at])});
+  runner.startPad(pad);
+  clock.advance(900); clock.stall(250);
+  assert.deepEqual(starts, [[0,0],[1,1000]]);
+  clock.advance(850);
+  assert.deepEqual(starts.at(-1), [2,2000]);
+  clock.stall(3500);
+  assert.deepEqual(starts.at(-1), [5,5000]);
+  clock.advance(500);
+  assert.deepEqual(starts.at(-1), [6,6000]);
+});
 
 test('pauses inside a cycle and resumes only the pending events from the frozen cursor', () => {
   const clock = new FakeClock();
