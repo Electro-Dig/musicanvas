@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import React, { useState } from 'react';
 import { UI_VARIANTS, type UiVariant } from './types';
 
@@ -10,6 +11,7 @@ export const UiVariantSwitcher: React.FC<UiVariantSwitcherProps> = ({
   currentVariant,
   onChangeVariant,
 }) => {
+  const tr = useUiText();
   const [collapsed, setCollapsed] = useState(false);
 
   const activeSpec = UI_VARIANTS.find(spec => spec.id === currentVariant) ?? UI_VARIANTS[0];
@@ -28,23 +30,23 @@ export const UiVariantSwitcher: React.FC<UiVariantSwitcherProps> = ({
   return (
     <aside
       className={`quad-ui-switcher ${collapsed ? 'is-collapsed' : ''}`}
-      aria-label="UI 方案对比切换器"
+      aria-label={tr("UI 方案对比切换器")}
     >
       <div className="quad-ui-switcher__header">
-        <span className="quad-ui-switcher__tag">🎨 UI 方案测试</span>
+        <span className="quad-ui-switcher__tag">{tr("🎨 UI 方案测试")}</span>
         <button
           type="button"
           className="quad-ui-switcher__collapse-btn"
-          aria-label={collapsed ? '展开 UI 方案切换器' : '折叠 UI 方案切换器'}
+          aria-label={collapsed ? tr("展开 UI 方案切换器") : tr("折叠 UI 方案切换器")}
           onClick={() => setCollapsed(prev => !prev)}
         >
-          {collapsed ? '展开 ▾' : '收起 ▴'}
+          {collapsed ? tr("展开 ▾") : tr("收起 ▴")}
         </button>
       </div>
 
       {!collapsed && (
         <>
-          <div className="quad-ui-switcher__buttons" role="group" aria-label="选择 UI 布局方案">
+          <div className="quad-ui-switcher__buttons" role="group" aria-label={tr("选择 UI 布局方案")}>
             {UI_VARIANTS.map(spec => {
               const isActive = spec.id === currentVariant;
               return (

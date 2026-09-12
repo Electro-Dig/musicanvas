@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
@@ -38,6 +39,7 @@ export function SoftSelect({
   className = '',
   variant = 'default',
 }: SoftSelectProps) {
+  const tr = useUiText();
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -157,7 +159,7 @@ export function SoftSelect({
         onClick={() => setOpen((prev) => !prev)}
       >
         {prefix ? <span className="quad-soft-select__prefix">{prefix}</span> : null}
-        <span className="quad-soft-select__value">{displayLabel}</span>
+        <span className="quad-soft-select__value">{tr(displayLabel)}</span>
         <ChevronDown className="quad-soft-select__chevron" size={12} strokeWidth={2.4} aria-hidden />
       </button>
 
@@ -173,8 +175,8 @@ export function SoftSelect({
                 maxHeight: pos.maxHeight,
               }}
             >
-              {categories && <div className="quad-soft-select__categories" role="group" aria-label="音色分类">
-                {[{value:'all',label:'全部'},...categories].map(c=><button key={c.value} type="button" aria-pressed={category===c.value} onClick={()=>{setCategory(c.value);setActiveIndex(0);}}>{c.label}</button>)}
+              {categories && <div className="quad-soft-select__categories" role="group" aria-label={tr("音色分类")}>
+                {[{value:'all',label:tr("全部")},...categories].map(c=><button key={c.value} type="button" aria-pressed={category===c.value} onClick={()=>{setCategory(c.value);setActiveIndex(0);}}>{tr(c.label)}</button>)}
               </div>}
               <ul id={listId} role="listbox" aria-label={ariaLabel} className="quad-soft-select__items">
               {visibleOptions.map((option, index) => {
@@ -194,7 +196,7 @@ export function SoftSelect({
                       triggerRef.current?.focus();
                     }}
                   >
-                    {option.label}
+                    {tr(option.label)}
                   </li>
                 );
               })}

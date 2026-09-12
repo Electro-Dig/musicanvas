@@ -2,9 +2,26 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createQuadLilyWorkspace} from '../quad/core.ts';
 import type {SequenceRound} from '../quad/sequenceModel.ts';
-import {alignStructureTracks,calculateStructure,structurePositionMs,structureSignature,repeatingRoundDurationMs} from '../quad/structureModel.ts';
+import {alignStructureTracks,calculateStructure,structurePositionMs,structureSignature,repeatingRoundDurationMs,groupStructureByContour} from '../quad/structureModel.ts';
 
 const round=(steps:number,hits:[number,number,boolean?][]):SequenceRound=>({cycle:0,steps,played:[],hits:hits.map(([step,midi,muted],i)=>({step,midi,muted:!!muted,name:String(midi),nodeId:`n${i}`}))});
+
+test('display families align transposed Canon entries without merging different rhythms or melodic intervals',()=>{
+  const raw=alignStructureTracks([
+    {id:'A',loop:true,stepMs:250,rounds:[round(4,[[0,48],[2,43]])]},
+    {id:'B',loop:true,stepMs:250,rounds:[round(16,[[4,72],[6,71],[8,72],[10,69]])]},
+    {id:'C',loop:true,stepMs:250,rounds:[round(16,[[8,60],[10,59],[12,60],[14,57]])]},
+    {id:'D',loop:true,stepMs:250,rounds:[round(16,[[12,84],[14,83]])]},
+  ]);
+  const grouped=groupStructureByContour(raw);
+  assert.deepEqual(grouped.tracks.map(t=>t.cells.map(c=>c.motif)),[
+    [0,0,0,0],[null,1,2,null],[null,null,1,2],[null,null,null,1],
+  ]);
+  assert.notEqual(raw.tracks[1].cells[1].motif,raw.tracks[2].cells[2].motif,'absolute score remains independent');
+  const changed=structuredClone(raw);changed.tracks[2].cells[2].notes[1].atMs+=100;
+  const regrouped=groupStructureByContour(changed);
+  assert.notEqual(regrouped.tracks[1].cells[1].motif,regrouped.tracks[2].cells[2].motif);
+});
 
 test('a 48-second transport retains six-second repeated bass blocks',()=>{
   const bass=[50,45,47,42,43,38,43,45];

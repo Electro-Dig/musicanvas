@@ -1,3 +1,4 @@
+import { useUiText } from './uiLocale';
 import React, { useMemo, useState } from 'react';
 
 import type { LilyCycleCompilation, QuadPadId } from './core.ts';
@@ -38,6 +39,7 @@ export const CycleTrace: React.FC<CycleTraceProps> = ({
   showNodeLabels = true,
   onSelectNode,
 }) => {
+  const tr = useUiText();
   const [traceView, setTraceView] = useState<CycleTraceViewMode>('flow');
   const graph = useMemo(() => buildCycleMapModel(current, next), [current, next]);
   const flow = useMemo(() => buildCycleFlowModel(graph), [graph]);
@@ -53,33 +55,31 @@ export const CycleTrace: React.FC<CycleTraceProps> = ({
   const hasQuietShelf = flow.nodes.some(node => node.flowDepth < 0);
 
   return (
-    <figure className="cycle-trace" aria-label={`Pad ${padId} 周期关系图`}>
+    <figure className="cycle-trace" aria-label={tr("Pad {0} 周期关系图", padId)}>
       <figcaption className="cycle-trace__header">
         <span className="cycle-trace__title">
           <strong>CYCLE MAP</strong>
-          <span>周期关系</span>
+          <span>{tr("周期关系")}</span>
         </span>
         <span className="cycle-trace__count">
           PAD {padId} <b>{graph.currentActive}</b><i aria-hidden="true">→</i><b>{graph.nextActive}</b>
         </span>
-        <nav className="cycle-trace__mode-switch" aria-label="周期图显示模式">
+        <nav className="cycle-trace__mode-switch" aria-label={tr("周期图显示模式")}>
           <button
             type="button"
-            aria-label="一图流"
+            aria-label={tr("一图流")}
             aria-pressed={traceView === 'flow'}
             onClick={() => setTraceView('flow')}
-          >一图流</button>
+          >{tr("一图流")}</button>
           <button
             type="button"
-            aria-label="时间结构"
+            aria-label={tr("时间结构")}
             aria-pressed={traceView === 'time'}
             onClick={() => setTraceView('time')}
-          >时间</button>
+          >{tr("时间")}</button>
         </nav>
-        <span className="cycle-trace__legend" aria-label="实线表示当前，虚线表示下一周期变化">
-          <i data-layer="current" aria-hidden="true" />当前
-          <i data-layer="next" aria-hidden="true" />变化
-        </span>
+        <span className="cycle-trace__legend" aria-label={tr("实线表示当前，虚线表示下一周期变化")}>
+          <i data-layer="current" aria-hidden="true" />{tr("当前")}<i data-layer="next" aria-hidden="true" />{tr("变化")}</span>
       </figcaption>
 
       {traceView === 'flow' ? (
@@ -88,7 +88,7 @@ export const CycleTrace: React.FC<CycleTraceProps> = ({
           data-trace-view="flow"
           data-compact={flow.compact ? 'true' : 'false'}
           role="group"
-          aria-label={`Pad ${padId} 一图流关系结构`}
+          aria-label={tr("Pad {0} 一图流关系结构", padId)}
           style={{
             '--cycle-flow-node-width': `${flow.nodeWidthPct}%`,
             '--cycle-flow-node-height': `${flow.nodeHeightPct}%`,
@@ -96,7 +96,7 @@ export const CycleTrace: React.FC<CycleTraceProps> = ({
         >
           <span className="cycle-flow__origin-label" aria-hidden="true">ROOT / SOURCE</span>
           {hasQuietShelf && (
-            <span className="cycle-flow__quiet-label" aria-hidden="true">未触达</span>
+            <span className="cycle-flow__quiet-label" aria-hidden="true">{tr("未触达")}</span>
           )}
           <svg className="cycle-flow__edges" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
             <defs>
@@ -139,7 +139,7 @@ export const CycleTrace: React.FC<CycleTraceProps> = ({
                 key={node.nodeId}
                 type="button"
                 aria-pressed={selectedNodeId === node.nodeId}
-                aria-label={describeNode(node, nodePresentations, nextNodePresentations)}
+                aria-label={describeNode(tr, node, nodePresentations, nextNodePresentations)}
                 className="cycle-flow__node"
                 data-change={node.change}
                 data-selected={selectedNodeId === node.nodeId ? 'true' : 'false'}
@@ -147,12 +147,12 @@ export const CycleTrace: React.FC<CycleTraceProps> = ({
                 data-flow-depth={node.flowDepth}
                 data-flow-status={flowNodeStatus(node)}
                 style={{ left: `${node.flowX}%`, top: `${node.flowY}%` }}
-                title={describeNode(node, nodePresentations, nextNodePresentations)}
+                title={describeNode(tr, node, nodePresentations, nextNodePresentations)}
                 onClick={() => onSelectNode(node.nodeId)}
               >
                 <span className="cycle-flow__glyph" aria-hidden="true">{flowChangeGlyph(node)}</span>
                 <strong>{formatNodeIdentity(node, nodePresentations, nextNodePresentations, showNodeLabels)}</strong>
-                <small>{formatNodeStep(node)} · {formatFlowMeta(node)}</small>
+                <small>{formatNodeStep(node)} · {formatFlowMeta(tr, node)}</small>
                 <span className="cycle-flow__node-id" aria-hidden="true">{node.nodeId}</span>
               </button>
             );
@@ -163,7 +163,7 @@ export const CycleTrace: React.FC<CycleTraceProps> = ({
           className="cycle-map"
           data-trace-view="time"
           role="group"
-          aria-label={`Pad ${padId} 单周期传播结构`}
+          aria-label={tr("Pad {0} 单周期传播结构", padId)}
         >
           <div className="cycle-map__time" aria-hidden="true">
             {TIME_MARKS.map(phase => (
@@ -224,7 +224,7 @@ export const CycleTrace: React.FC<CycleTraceProps> = ({
                 key={node.nodeId}
                 type="button"
                 aria-pressed={selectedNodeId === node.nodeId}
-                aria-label={describeNode(node, nodePresentations, nextNodePresentations)}
+                aria-label={describeNode(tr, node, nodePresentations, nextNodePresentations)}
                 className="cycle-map__node"
                 data-change={node.change}
                 data-selected={selectedNodeId === node.nodeId ? 'true' : 'false'}
@@ -246,9 +246,9 @@ export const CycleTrace: React.FC<CycleTraceProps> = ({
 
       <footer className="cycle-trace__footer">
         <span>{current.intervalMs} ms / cycle</span>
-        {graph.changed > 0 && <span data-kind="changed">{graph.changed} 处变化</span>}
-        {graph.unreachable > 0 && <span>{graph.unreachable} 未触达</span>}
-        {graph.outsideCycle > 0 && <span>{graph.outsideCycle} 跨周期</span>}
+        {graph.changed > 0 && <span data-kind="changed">{graph.changed} {tr("处变化")}</span>}
+        {graph.unreachable > 0 && <span>{graph.unreachable} {tr("未触达")}</span>}
+        {graph.outsideCycle > 0 && <span>{graph.outsideCycle} {tr("跨周期")}</span>}
       </footer>
     </figure>
   );
@@ -286,7 +286,7 @@ function hasPredictedGhost(node: CycleMapNode): boolean {
   return Math.abs(node.nextX - node.x) > 0.5 || Math.abs(node.nextY - node.y) > 0.5;
 }
 
-function describeNode(
+function describeNode(tr: (message: string, ...values: unknown[]) => string,
   node: CycleMapNode,
   presentations?: ReadonlyMap<string, NodePresentation>,
   nextPresentations?: ReadonlyMap<string, NodePresentation>,
@@ -295,20 +295,20 @@ function describeNode(
   const currentPresentation = presentations?.get(node.nodeId);
   const nextPresentation = nextPresentations?.get(node.nodeId);
   const presentation = currentPresentation ?? nextPresentation;
-  const currentText = describeAppearance(node.current, '本周期不发声');
-  const nextText = describeAppearance(node.next, '下一周期不发声');
-  const currentStep = node.current?.status === 'active' ? formatStep(node.current.scaleStep) : '无';
-  const nextStep = node.next?.status === 'active' ? formatStep(node.next.scaleStep) : '无';
+  const currentText = describeAppearance(tr, node.current, tr("本周期不发声"));
+  const nextText = describeAppearance(tr, node.next, tr("下一周期不发声"));
+  const currentStep = node.current?.status === 'active' ? formatStep(node.current.scaleStep) : tr("无");
+  const nextStep = node.next?.status === 'active' ? formatStep(node.next.scaleStep) : tr("无");
   const currentParent = node.current?.status === 'active' ? node.current.parentId : null;
   const nextParent = node.next?.status === 'active' ? node.next.parentId : null;
   const parent = node.change === 'rewired'
-    ? `，父节点从 ${currentParent ?? '起点'} 变为 ${nextParent ?? '起点'}`
-    : source?.parentId ? `，来自 ${source.parentId}` : '，传播起点';
-  const state = flowNodeStatus(node) === 'outside' ? '已调度但跨越周期边界' : changeLabel(node.change);
+    ? tr("，父节点从 {0} 变为 {1}", currentParent ?? tr("起点"), nextParent ?? tr("起点"))
+    : source?.parentId ? tr("，来自 {0}", source.parentId) : tr("，传播起点");
+  const state = flowNodeStatus(node) === 'outside' ? tr("已调度但跨越周期边界") : changeLabel(tr, node.change);
   const identity = presentation
-    ? `${presentation.shortId}，音符 ${presentation.noteName}${currentPresentation && nextPresentation && nextPresentation.noteName !== currentPresentation.noteName ? ` 到 ${nextPresentation.noteName}` : ''}`
-    : source?.isCenter ? '根节点' : `节点 ${node.nodeId}`;
-  return `${identity}，STEP ${currentStep} 到 ${nextStep}，当前 ${currentText}，下一周期 ${nextText}${parent}，${state}`;
+    ? tr("{0}，音符 {1}{2}", presentation.shortId, presentation.noteName, currentPresentation && nextPresentation && nextPresentation.noteName !== currentPresentation.noteName ? tr(" 到 {0}", nextPresentation.noteName) : '')
+    : source?.isCenter ? tr("根节点") : tr("节点 {0}", node.nodeId);
+  return tr("{0}，STEP {1} 到 {2}，当前 {3}，下一周期 {4}{5}，{6}", identity, currentStep, nextStep, currentText, nextText, parent, state);
 }
 
 function formatNodeIdentity(
@@ -331,13 +331,13 @@ function formatNodeIdentity(
   return node.isCenter ? 'ROOT' : formatNodeStep(node);
 }
 
-function describeAppearance(
+function describeAppearance(tr: (message: string, ...values: unknown[]) => string,
   node: CycleMapNode['current'],
   silentLabel: string,
 ): string {
   if (!node || node.status === 'unreachable') return silentLabel;
-  const time = `${Math.round(node.offsetMs ?? 0)} 毫秒`;
-  return node.status === 'outside-cycle' ? `${time}，跨周期` : time;
+  const time = tr("{0} 毫秒", Math.round(node.offsetMs ?? 0));
+  return node.status === 'outside-cycle' ? tr("{0}，跨周期", time) : time;
 }
 
 function formatNodeStep(node: CycleMapNode): string {
@@ -358,15 +358,15 @@ function formatNodeTime(node: CycleMapNode): string {
   return '—';
 }
 
-function formatFlowMeta(node: CycleMapNode): string {
+function formatFlowMeta(tr: (message: string, ...values: unknown[]) => string, node: CycleMapNode): string {
   const current = node.current?.status === 'active' ? Math.round(node.current.offsetMs ?? 0) : null;
   const next = node.next?.status === 'active' ? Math.round(node.next.offsetMs ?? 0) : null;
   if (current !== null && next !== null && current !== next) {
     const delta = next - current;
     return `${current}→${next} · Δ${delta > 0 ? '+' : ''}${delta}`;
   }
-  if (node.current?.status === 'outside-cycle' || node.next?.status === 'outside-cycle') return '>T / 跨周期';
-  if (current === null && next === null) return '未触达';
+  if (node.current?.status === 'outside-cycle' || node.next?.status === 'outside-cycle') return tr(">T / 跨周期");
+  if (current === null && next === null) return tr("未触达");
   if (current === null && next !== null) return `NEXT ${next} ms`;
   if (current !== null && next === null) return `${current} ms / OUT`;
   return `${current ?? next ?? 0} ms`;
@@ -396,15 +396,15 @@ function formatStep(step: number): string {
   return step > 0 ? `+${step}` : String(step);
 }
 
-function changeLabel(change: CycleMapNode['change']): string {
+function changeLabel(tr: (message: string, ...values: unknown[]) => string, change: CycleMapNode['change']): string {
   const labels: Record<CycleMapNode['change'], string> = {
-    stable: '结构稳定',
-    retimed: '触发时间改变',
-    rewired: '传播分支改变',
-    repitched: '音高改变',
-    entering: '下一周期新增',
-    leaving: '下一周期退出',
-    silent: '未触达',
+    stable: tr("结构稳定"),
+    retimed: tr("触发时间改变"),
+    rewired: tr("传播分支改变"),
+    repitched: tr("音高改变"),
+    entering: tr("下一周期新增"),
+    leaving: tr("下一周期退出"),
+    silent: tr("未触达"),
   };
   return labels[change];
 }

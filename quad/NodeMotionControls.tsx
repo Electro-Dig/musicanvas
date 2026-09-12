@@ -1,3 +1,4 @@
+import { useUiText } from './uiLocale';
 import {
   type LilyNodeMotion,
   type MotionDirection,
@@ -27,10 +28,11 @@ export function NodeMotionControls({
   onArmDraw,
   onCancelDraw,
 }: NodeMotionControlsProps) {
+  const tr = useUiText();
   return (
-    <section className="node-motion" aria-label="节点移动自动化">
+    <section className="node-motion" aria-label={tr("节点移动自动化")}>
       <div className="node-motion__heading">MOTION</div>
-      <div className="node-motion__modes" role="group" aria-label="移动自动化模式">
+      <div className="node-motion__modes" role="group" aria-label={tr("移动自动化模式")}>
         {MOTION_MODES.map((mode) => (
           <button
             key={mode}
@@ -85,7 +87,7 @@ export function NodeMotionControls({
           <label className="node-motion__field">
             <span>ANGLE</span>
             <input
-              aria-label="PENDULUM 角度"
+              aria-label={tr("PENDULUM 角度")}
               type="range"
               min="0"
               max="360"
@@ -115,7 +117,7 @@ export function NodeMotionControls({
           </div>
           <button
             type="button"
-            aria-label={drawStatus === 'ready' ? '开始 DRAW 轨迹录制' : '取消 DRAW 轨迹录制'}
+            aria-label={drawStatus === 'ready' ? tr("开始 DRAW 轨迹录制") : tr("取消 DRAW 轨迹录制")}
             disabled={locked}
             onClick={drawStatus === 'ready' ? onArmDraw : onCancelDraw}
           >
@@ -143,7 +145,7 @@ export function NodeMotionControls({
           </div>
           <button
             type="button"
-            aria-label={drawStatus === 'armed' ? '取消闪烁目标选取' : '开始选取闪烁目标'}
+            aria-label={drawStatus === 'armed' ? tr("取消闪烁目标选取") : tr("开始选取闪烁目标")}
             disabled={locked}
             onClick={drawStatus === 'armed' ? onCancelDraw : onArmDraw}
           >
@@ -172,11 +174,12 @@ function AmountControl({
   locked: boolean;
   onChange: (amount: number) => void;
 }) {
+  const tr = useUiText();
   return (
     <label className="node-motion__field">
       <span>AMOUNT</span>
       <input
-        aria-label={`${mode} 移动幅度`}
+        aria-label={tr("{0} 移动幅度", mode)}
         type="range"
         min="0"
         max="0.35"
@@ -201,11 +204,12 @@ function RateControl({
   locked: boolean;
   onChange: (rateCycles: number) => void;
 }) {
+  const tr = useUiText();
   return (
     <label className="node-motion__field">
       <span>CYCLES</span>
       <select
-        aria-label={`${mode} 周期`}
+        aria-label={tr("{0} 周期", mode)}
         value={rateCycles}
         disabled={locked}
         onChange={(event) => onChange(Number(event.currentTarget.value))}
@@ -229,10 +233,11 @@ function DirectionControl({
   locked: boolean;
   onChange: (direction: MotionDirection) => void;
 }) {
+  const tr = useUiText();
   return (
     <button
       type="button"
-      aria-label={`${mode} 方向`}
+      aria-label={tr("{0} 方向", mode)}
       disabled={locked}
       onClick={() => onChange(direction === 1 ? -1 : 1)}
     >

@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   BookMarked,
@@ -34,6 +35,7 @@ import { QUAD_THEME_LABELS } from '../theme';
 import { CANVAS_BACKGROUND_LABELS, DEFAULT_CANVAS_BACKGROUND } from '../canvasBackground';
 import { SoftSelect } from '../ui/SoftSelect';
 import { t, type AppLocale } from '../i18n';
+import {PLAYBACK_VISUAL_STORAGE_KEY,parsePlaybackVisualMode} from '../playbackVisual';
 
 const PAD_COLORS: Record<string, string> = {
   A: 'var(--quad-pad-a)',
@@ -47,6 +49,7 @@ const ICON_MD = 15;
 const QUAD_TOOLBAR_STORAGE_KEY = 'gemidi.studio.quad-toolbar.v1';
 
 export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
+  const tr = useUiText();
   const {
     workspace,
     selectedPadId,
@@ -137,6 +140,13 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [featherSway, setFeatherSway] = useState(false);
+  const [playbackVisualMode,setPlaybackVisualMode]=useState(()=>{
+    try{return parsePlaybackVisualMode(window.localStorage.getItem(PLAYBACK_VISUAL_STORAGE_KEY));}catch{return 'original' as const;}
+  });
+  const changePlaybackVisual=(value:string)=>{
+    const mode=parsePlaybackVisualMode(value);setPlaybackVisualMode(mode);
+    try{window.localStorage.setItem(PLAYBACK_VISUAL_STORAGE_KEY,mode);}catch{/* Session preference remains usable. */}
+  };
   const [showQuadToolbar, setShowQuadToolbar] = useState(() => {
     try { return typeof window !== 'undefined' && window.localStorage.getItem(QUAD_TOOLBAR_STORAGE_KEY) === '1'; }
     catch { return false; }
@@ -281,8 +291,8 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
 
           {/* 全局 transport：single / quad 都作用于四个 Pad */}
           <div className="quad-studio-left-group" role="presentation">
-            <div className="quad-studio-transport-pair" role="group" aria-label="全局操作">
-              <span className="quad-global-label">全局</span>
+            <div className="quad-studio-transport-pair" role="group" aria-label={tr("全局操作")}>
+              <span className="quad-global-label">{tr("全局")}</span>
               <button
                 type="button"
                 className="quad-studio-play-btn"
@@ -297,9 +307,9 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                   <Play size={ICON_MD} strokeWidth={2.25} aria-hidden />
                 )}
               </button>
-              <button className="quad-studio-icon-btn" type="button" onClick={onRestartAll} title="全局重新起拍" aria-label="全局重新起拍"><RotateCcw size={ICON_SM} /></button>
-              <button className="quad-studio-icon-btn" type="button" onClick={onQuickSave} title="全局保存" aria-label="全局保存"><Save size={ICON_MD} /></button>
-              <button className="quad-studio-icon-btn quad-global-clear" type="button" onClick={onClearAll} title="清空全部画布" aria-label="清空全部画布"><Trash2 size={ICON_SM} /></button>
+              <button className="quad-studio-icon-btn" type="button" onClick={onRestartAll} title={tr("全局重新起拍")} aria-label={tr("全局重新起拍")}><RotateCcw size={ICON_SM} /></button>
+              <button className="quad-studio-icon-btn" type="button" onClick={onQuickSave} title={tr("全局保存")} aria-label={tr("全局保存")}><Save size={ICON_MD} /></button>
+              <button className="quad-studio-icon-btn quad-global-clear" type="button" onClick={onClearAll} title={tr("清空全部画布")} aria-label={tr("清空全部画布")}><Trash2 size={ICON_SM} /></button>
             </div>
           </div>
 
@@ -327,7 +337,7 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
             alt=""
           />
           <div className="quad-studio-brand-copy">
-            <h1>音乐画布</h1>
+            <h1>{tr("音乐画布")}</h1>
             <p>musicanvas</p>
           </div>
         </div>
@@ -372,6 +382,17 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
           </div>
 
           <span className="quad-studio-right-sep" aria-hidden />
+
+          <button
+            type="button"
+            className="quad-studio-locale-toggle"
+            data-locale={locale}
+            onClick={() => onToggleLocale?.()}
+            aria-label={locale === 'zh' ? tr("切换为英文") : 'Switch to Chinese'}
+          >
+            <span aria-hidden="true" data-on={locale === 'zh'}>中</span>
+            <span aria-hidden="true" data-on={locale === 'en'}>EN</span>
+          </button>
 
           <div className="quad-studio-settings" ref={settingsRef}>
             <button
@@ -435,10 +456,10 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                   aria-checked={showQuadToolbar}
                   className="quad-studio-settings__item"
                   onClick={toggleQuadToolbar}
-                  title={locale === 'zh' ? '在四个画布顶部显示音色、MIDI 通道和常用操作' : 'Show sound, MIDI channel and actions above each pad'}
+                  title={locale === 'zh' ? tr("在四个画布顶部显示音色、MIDI 通道和常用操作") : 'Show sound, MIDI channel and actions above each pad'}
                 >
                   <LayoutGrid size={ICON_SM} strokeWidth={2.1} aria-hidden />
-                  <span>{locale === 'zh' ? '四宫格工具栏' : 'Quad toolbar'}</span>
+                  <span>{locale === 'zh' ? tr("四宫格工具栏") : 'Quad toolbar'}</span>
                   <span className="quad-studio-settings__value">{showQuadToolbar ? 'ON' : 'OFF'}</span>
                 </button>
                 <button
@@ -447,12 +468,19 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                   aria-checked={featherSway}
                   className="quad-studio-settings__item"
                   onClick={() => setFeatherSway(on => !on)}
-                  title={locale === 'zh' ? '装饰羽叶随微风柔和弯曲；仅改变显示，保留原音序' : 'Gently sway decorated feathers without changing the musical sequence'}
+                  title={locale === 'zh' ? tr("装饰羽叶随微风柔和弯曲；仅改变显示，保留原音序") : 'Gently sway decorated feathers without changing the musical sequence'}
                 >
                   <Wind size={ICON_SM} strokeWidth={2.1} aria-hidden />
-                  <span>{locale === 'zh' ? '羽叶摇曳（实验）' : 'Feather sway (experimental)'}</span>
+                  <span>{locale === 'zh' ? tr("羽叶摇曳（实验）") : 'Feather sway (experimental)'}</span>
                   <span className="quad-studio-settings__value">{featherSway ? 'ON' : 'OFF'}</span>
                 </button>
+                <div className="quad-studio-playback-setting" role="group" aria-label={locale==='zh'?tr("播放视觉"):'Playback visuals'}>
+                  <span>{locale==='zh'?tr("播放视觉"):'Playback visuals'}</span>
+                  <div className="quad-studio-playback-options">
+                    {(['original','follow','echo'] as const).map((mode,i)=><button key={mode} type="button" role="menuitemradio" aria-checked={playbackVisualMode===mode} onClick={()=>changePlaybackVisual(mode)}>{(locale==='zh'?[tr("原有"),tr("跟随"),tr("接力回声")]:['Original','Follow','Relay echo'])[i]}</button>)}
+                  </div>
+                  {playbackVisualMode==='echo'&&<small>{locale==='zh'?tr("虚线圈标出同旋律声部的位置；无匹配时显示跟随。"):'Dashed rings locate matching voices; otherwise shows Follow.'}</small>}
+                </div>
                 {onCycleCanvasBackground && (
                   <button
                     type="button"
@@ -482,33 +510,18 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                     </span>
                   </button>
                 )}
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="quad-studio-settings__item"
-                  onClick={() => onToggleLocale?.()}
-                >
-                  <span className="quad-locale-chip" aria-hidden="true">
-                    <em data-on={locale === 'zh' ? 'true' : 'false'}>中</em>
-                    <em data-on={locale === 'en' ? 'true' : 'false'}>EN</em>
-                  </span>
-                  <span>{t(locale, 'language')}</span>
-                  <span className="quad-studio-settings__value">
-                    {locale === 'zh' ? '中文 / EN' : 'EN / 中文'}
-                  </span>
-                </button>
-                <section className="quad-studio-release-notes" aria-label={locale === 'zh' ? '更新说明' : 'What’s new'}>
-                  <h3>{locale === 'zh' ? '更新说明' : 'What’s new'} <span>v0.33.0</span></h3>
-                  <time dateTime="2026-09-12">2026-09-12</time>
+                <section className="quad-studio-release-notes" aria-label={locale === 'zh' ? tr("更新说明") : 'What’s new'}>
+                  <h3>{locale === 'zh' ? tr("更新说明") : 'What’s new'} <span>v0.33.1</span></h3>
+                  <time dateTime="2026-09-13">2026-09-13</time>
                   <ul>
                     {(locale === 'zh' ? [
-                      '新增完整音序、结构对照与旋律追随；支持和弦、长乐句与独立音色。',
-                      '新增 FM 音色分类、三个卡农示例与羽叶装饰。',
-                      '设置中可开启四宫格工具栏和羽叶摇曳实验，默认关闭。',
+                      tr("补齐英文界面，重绘中英文入门引导；中文采用得意黑。"),
+                      tr("新增跟随与接力回声，结构对照按旋律走向与节奏分组。"),
+                      tr("修复全局重新起拍后的残留着色、轨迹与回声，暂停时也可回到起点。"),
                     ] : [
-                      'Sequence atlas, structure comparison and melody following; chords, longer phrases and per-pad sounds.',
-                      'FM sound categories, three Canon studies and feather decorations.',
-                      'Optional grid toolbars and experimental feather sway in Settings; both off by default.',
+                      'Expanded English UI and redesigned bilingual onboarding with Smiley Sans for Chinese.',
+                      'Follow and Relay Echo visuals; structure colors group matching contours and rhythms.',
+                      'Restart clears old highlights, trails and echoes, including when paused.',
                     ]).map(note => <li key={note}>{note}</li>)}
                   </ul>
                 </section>
@@ -702,6 +715,7 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
             layout={viewMode}
             showQuadToolbar={showQuadToolbar}
             featherSway={featherSway}
+            playbackVisualMode={playbackVisualMode}
             onFocusPad={id => { onChoosePad(id); onSetViewMode(viewMode === 'single' ? 'quad' : 'single'); }}
             showNodeLabels={nodeLabelVisibility.canvas}
             mobilePadId={selectedPadId}
@@ -729,7 +743,7 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
           {/* 快捷键卡：画布 LOCK 下方，默认折叠 */}
           <section
             className={`quad-shortcuts-card ${shortcutsOpen ? 'is-open' : ''}`}
-            aria-label="键盘快捷键指引"
+            aria-label={tr("键盘快捷键指引")}
           >
             <button
               type="button"
@@ -737,9 +751,9 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
               aria-expanded={shortcutsOpen}
               onClick={() => setShortcutsOpen((open) => !open)}
             >
-              <span>快捷键</span>
+              <span>{tr("快捷键")}</span>
               <span className="quad-shortcuts-card__toggle-hint">
-                {shortcutsOpen ? '收起 ▴' : '展开 ▾'}
+                {shortcutsOpen ? tr("收起 ▴") : tr("展开 ▾")}
               </span>
             </button>
             <div className="quad-shortcuts-card__body">
@@ -748,37 +762,36 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                   <div className="quad-shortcut-badges">
                     <kbd>Space</kbd>
                   </div>
-                  <span>当前 Pad 播放 / 暂停</span>
+                  <span>{tr("当前 Pad 播放 / 暂停")}</span>
                 </div>
                 <div className="quad-shortcut-row">
                   <div className="quad-shortcut-badges">
                     <kbd>1</kbd> / <kbd>4</kbd>
                   </div>
-                  <span>单 Pad / 四 Pad</span>
+                  <span>{tr("单 Pad / 四 Pad")}</span>
                 </div>
                 <div className="quad-shortcut-row">
                   <div className="quad-shortcut-badges">
                     <kbd>D</kbd>
                   </div>
-                  <span>DRAW 待命 / 取消</span>
+                  <span>{tr("DRAW 待命 / 取消")}</span>
                 </div>
                 <div className="quad-shortcut-row">
                   <div className="quad-shortcut-badges">
-                    <kbd>Ctrl</kbd> + 点击
-                  </div>
-                  <span>组合多选音符</span>
+                    <kbd>Ctrl</kbd> {tr("+ 点击")}</div>
+                  <span>{tr("组合多选音符")}</span>
                 </div>
                 <div className="quad-shortcut-row">
                   <div className="quad-shortcut-badges">
                     <kbd>F</kbd>
                   </div>
-                  <span>闪烁待命 / 取消</span>
+                  <span>{tr("闪烁待命 / 取消")}</span>
                 </div>
                 <div className="quad-shortcut-row">
                   <div className="quad-shortcut-badges">
                     <kbd>Esc</kbd>
                   </div>
-                  <span>取消轨迹待命 / 退出</span>
+                  <span>{tr("取消轨迹待命 / 退出")}</span>
                 </div>
               </div>
             </div>

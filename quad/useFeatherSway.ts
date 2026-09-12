@@ -50,9 +50,13 @@ export function useFeatherSway(svgRef: RefObject<SVGSVGElement | null>, enabled:
         const q = displaceFeatherPoint(p, wind, strength);
         return `${i ? 'L' : 'M'}${strength ? (q.x * 100).toFixed(4) : q.x * 100},${strength ? (q.y * 100).toFixed(4) : q.y * 100}`;
       }).join(' ') + (path.closed ? ' Z' : ''));
-      for (const edge of svg.querySelectorAll<SVGLineElement>('.quad-lily-pad__connections line')) {
+      for (const edge of svg.querySelectorAll<SVGLineElement>('.quad-lily-pad__connections line, [data-playback-edge]')) {
         const a = points.get(edge.dataset.fromNodeId!), b = points.get(edge.dataset.toNodeId!);
         if (a && b) { edge.setAttribute('x1', String(a.x * 100)); edge.setAttribute('y1', String(a.y * 100)); edge.setAttribute('x2', String(b.x * 100)); edge.setAttribute('y2', String(b.y * 100)); }
+      }
+      for(const el of svg.querySelectorAll<SVGGElement>('[data-visual-node-id]')) {
+        const p=points.get(el.dataset.visualNodeId!);
+        if(p)el.setAttribute('transform',`translate(${p.x*100} ${p.y*100})`);
       }
     };
     const stop = () => {

@@ -1,7 +1,10 @@
+import { useUiText } from './uiLocale';
 import React from 'react';
 import { Info, Lock, LockOpen, Pause, Play, Save, Trash2 } from 'lucide-react';
 
-import type { LilyCycleEdge, LilyNode, LilyNodePatch, QuadPadId } from './core.ts';
+import type { LilyCycleCompilation, LilyCycleEdge, LilyNode, LilyNodePatch, QuadLilyPad, QuadPadId } from './core.ts';
+import {playbackVisualFrames, playbackVisualScore, type PlaybackVisualMode, type PlaybackVisualFrame} from './playbackVisual.ts';
+import {PlaybackVisualLayer} from './PlaybackVisualLayer.tsx';
 import type { CanvasBackgroundPattern } from './canvasBackground.ts';
 import { DEFAULT_CANVAS_BACKGROUND } from './canvasBackground.ts';
 import type { CanvasDecoration } from './canvasDecoration.ts';
@@ -75,6 +78,8 @@ export interface QuadLilyPadViewModel {
   selected: boolean;
   cyclePhase: number;
   activeNodeIds?: readonly string[];
+  playedNodeIds?: readonly string[];
+  timingPad?: QuadLilyPad;
   selectedNodeId?: string | null;
   /** Ctrl 多选高亮：包含选中的全部节点 id */
   selectedNodeIds?: readonly string[];
@@ -97,7 +102,7 @@ export interface QuadLilyPadViewModel {
   motionRenderStates?: readonly LilyMotionRenderState[];
   cycleCompilation?: {
     edges: readonly Pick<LilyCycleEdge, 'fromId' | 'toId'>[];
-  };
+  } & Partial<LilyCycleCompilation>;
   nodePresentations?: ReadonlyMap<string, NodePresentation>;
   /** 抬头 HUD：音量（内部 velocity，0–1 可超出） */
   velocity?: number;
@@ -129,6 +134,7 @@ export interface QuadLilyCanvasProps {
   /** Opt-in: reuse the single-pad controls in every quadrant. */
   showQuadToolbar?: boolean;
   featherSway?: boolean;
+  playbackVisualMode?: PlaybackVisualMode;
   mobilePadId?: QuadPadId;
   className?: string;
   showNodeLabels?: boolean;
@@ -188,6 +194,7 @@ export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
   layout = 'quad',
   showQuadToolbar = false,
   featherSway = false,
+  playbackVisualMode = 'original' as PlaybackVisualMode,
   mobilePadId = 'A',
   className,
   showNodeLabels = true,
@@ -210,16 +217,23 @@ export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
   onSavePad,
   onToggleInfo,
 }) => {
+  const tr = useUiText();
   const classes = ['quad-lily-canvas', className].filter(Boolean).join(' ');
+  const visualFrames = playbackVisualFrames(playbackVisualMode === 'original' ? [] : pads.map(pad=>({
+    ...pad,
+    score:pad.timingPad&&pad.cycleCompilation?.events&&pad.cycleCompilation.intervalMs
+      ?playbackVisualScore(pad.cycleCompilation as LilyCycleCompilation,pad.timingPad):null,
+  })),playbackVisualMode);
 
   return (
     <section
       className={classes}
       data-layout={layout}
+      data-playback-visual={playbackVisualMode}
       data-quad-toolbar={layout === 'quad' && showQuadToolbar ? 'true' : undefined}
       data-active-pad={mobilePadId}
       data-canvas-bg={canvasBackgroundPattern}
-      aria-label="四组 Lily Pad 舞台"
+      aria-label={tr("四组 Lily Pad 舞台")}
     >
       {pads.map((pad) => (
         <LilyQuadrant
@@ -228,6 +242,7 @@ export const QuadLilyCanvas: React.FC<QuadLilyCanvasProps> = ({
           layout={layout}
           showQuadToolbar={showQuadToolbar}
           featherSway={featherSway}
+          visualFrame={visualFrames.get(pad.id)}
           mobileActive={pad.id === mobilePadId}
           showNodeLabels={showNodeLabels}
           onSelectPad={onSelectPad}
@@ -259,6 +274,7 @@ const LilyQuadrant: React.FC<{
   layout: QuadLilyCanvasLayout;
   showQuadToolbar: boolean;
   featherSway: boolean;
+  visualFrame?: PlaybackVisualFrame;
   mobileActive: boolean;
   showNodeLabels: boolean;
   onSelectPad: QuadLilyCanvasProps['onSelectPad'];
@@ -285,6 +301,7 @@ const LilyQuadrant: React.FC<{
   layout,
   showQuadToolbar,
   featherSway,
+  visualFrame,
   mobileActive,
   showNodeLabels,
   onSelectPad,
@@ -305,6 +322,7 @@ const LilyQuadrant: React.FC<{
   onSavePad,
   onToggleInfo,
 }) => {
+  const tr = useUiText();
   const activeNodes = new Set(pad.activeNodeIds ?? []);
   const nodeById = new Map<string, LilyNode>(pad.nodes.map(node => [node.id, node] as const));
   const connections = (pad.cycleCompilation?.edges ?? []).flatMap((edge): LilyConnection[] => {
@@ -428,8 +446,8 @@ const LilyQuadrant: React.FC<{
         <button
           type="button"
           className="quad-lily-pad__identity"
-          aria-label={onFocusPad ? (layout === 'single' ? `Pad ${pad.id} · 返回四宫格` : `单独查看 Pad ${pad.id}`) : `选择 Pad ${pad.id}`}
-          title={onFocusPad ? (layout === 'single' ? '点击返回四宫格' : `点击单独查看 ${pad.id}`) : undefined}
+          aria-label={onFocusPad ? (layout === 'single' ? tr("Pad {0} · 返回四宫格", pad.id) : tr("单独查看 Pad {0}", pad.id)) : tr("选择 Pad {0}", pad.id)}
+          title={onFocusPad ? (layout === 'single' ? tr("点击返回四宫格") : tr("点击单独查看 {0}", pad.id)) : undefined}
           aria-pressed={pad.selected}
           onClick={() => (onFocusPad ?? onSelectPad)(pad.id)}
         >
@@ -445,7 +463,7 @@ const LilyQuadrant: React.FC<{
               <button
                 type="button"
                 className="quad-action--primary quad-lily-pad__icon-btn"
-                aria-label={`${pad.playing ? '暂停' : pad.paused ? '继续' : '播放'} Pad ${pad.id}`}
+                aria-label={`${pad.playing ? tr("暂停") : pad.paused ? tr("继续") : tr("播放")} Pad ${pad.id}`}
                 title={playLabel}
                 aria-pressed={pad.playing}
                 onClick={() => {
@@ -461,7 +479,7 @@ const LilyQuadrant: React.FC<{
                 <button
                   type="button"
                   className="quad-action--secondary quad-lily-pad__icon-btn"
-                  aria-label={`保存 Pad ${pad.id}`}
+                  aria-label={tr("保存 Pad {0}", pad.id)}
                   title={t(locale, 'savePad')}
                   onClick={() => {
                     onSelectPad(pad.id);
@@ -474,8 +492,8 @@ const LilyQuadrant: React.FC<{
               <button
                 type="button"
                 className="quad-action--secondary quad-lily-pad__icon-btn"
-                aria-label={`${pad.locked ? '解锁' : '锁定'} Pad ${pad.id}`}
-                title={pad.locked ? '解锁编辑' : '锁定图案'}
+                aria-label={`${pad.locked ? tr("解锁") : tr("锁定")} Pad ${pad.id}`}
+                title={pad.locked ? tr("解锁编辑") : tr("锁定图案")}
                 aria-pressed={pad.locked}
                 onClick={() => {
                   onSelectPad(pad.id);
@@ -490,7 +508,7 @@ const LilyQuadrant: React.FC<{
                 <button
                   type="button"
                   className="quad-action--secondary quad-lily-pad__icon-btn"
-                  aria-label={`清空 Pad ${pad.id}`}
+                  aria-label={tr("清空 Pad {0}", pad.id)}
                   title={t(locale, 'clear')}
                   disabled={pad.locked}
                   onClick={() => {
@@ -505,7 +523,7 @@ const LilyQuadrant: React.FC<{
                 <button
                   type="button"
                   className="quad-action--secondary quad-lily-pad__icon-btn"
-                  aria-label={showNodeLabels ? '隐藏节点信息' : '显示节点信息'}
+                  aria-label={showNodeLabels ? tr("隐藏节点信息") : tr("显示节点信息")}
                   title={`${t(locale, 'info')} ${showNodeLabels ? 'ON' : 'OFF'}`}
                   aria-pressed={showNodeLabels}
                   onClick={onToggleInfo}
@@ -554,7 +572,7 @@ const LilyQuadrant: React.FC<{
             <button
               type="button"
               className="quad-action--primary"
-              aria-label={`${pad.playing ? '暂停' : pad.paused ? '继续' : '播放'} Pad ${pad.id}`}
+              aria-label={`${pad.playing ? tr("暂停") : pad.paused ? tr("继续") : tr("播放")} Pad ${pad.id}`}
               aria-pressed={pad.playing}
               onClick={() => {
                 onSelectPad(pad.id);
@@ -566,7 +584,7 @@ const LilyQuadrant: React.FC<{
             <button
               type="button"
               className="quad-action--secondary"
-              aria-label={`${pad.locked ? '解锁' : '锁定'} Pad ${pad.id}`}
+              aria-label={`${pad.locked ? tr("解锁") : tr("锁定")} Pad ${pad.id}`}
               aria-pressed={pad.locked}
               onClick={() => {
                 onSelectPad(pad.id);
@@ -581,7 +599,7 @@ const LilyQuadrant: React.FC<{
 
       {/* 次要运行参数：贴画布左下角，避免抢抬头注意力 */}
       {compactHeader && layout === 'single' && (
-        <div className="quad-lily-pad__hud" aria-label={`Pad ${pad.id} 运行参数`}>
+        <div className="quad-lily-pad__hud" aria-label={tr("Pad {0} 运行参数", pad.id)}>
           <span className="quad-lily-pad__hud-item" title="BPM">
             <b>{bpm}</b>
           </span>
@@ -625,7 +643,7 @@ const LilyQuadrant: React.FC<{
         viewBox={viewBox}
         preserveAspectRatio="none"
         role="application"
-        aria-label={`编辑 Pad ${pad.id} 的 Lily Pad`}
+        aria-label={tr("编辑 Pad {0} 的 Lily Pad", pad.id)}
         onContextMenu={(event) => event.preventDefault()}
         onPointerDown={(event) => {
           if (event.button !== 0) return;
@@ -634,8 +652,6 @@ const LilyQuadrant: React.FC<{
           onAddNode(pad.id, unprojectSway(pointerToViewBox(event)));
         }}
       >
-        <title>{`Pad ${pad.id}，${pad.playing ? '播放中' : '已暂停'}，间隔 ${Math.round(pad.intervalMs)} 毫秒`}</title>
-
         <defs>
           <marker id={arrowId} viewBox="0 0 4 4" refX="3.6" refY="2" markerWidth="3.2" markerHeight="3.2" orient="auto">
             <path className="quad-lily-pad__arrow" d="M 0 0 L 4 2 L 0 4 Z" />
@@ -746,7 +762,7 @@ const LilyQuadrant: React.FC<{
               data-shape={hub.shape}
               role="button"
               tabIndex={pad.locked ? -1 : 0}
-              aria-label={`编队 ${hub.id}`}
+              aria-label={tr("编队 {0}", hub.id)}
               onPointerDown={(event) => {
                 event.stopPropagation();
                 if (event.button !== 0 || pad.locked) return;
@@ -789,12 +805,15 @@ const LilyQuadrant: React.FC<{
               playing={pad.playing}
               presentation={pad.nodePresentations?.get(node.id)}
               showLabel={showNodeLabels}
+              visualFocus={visualFrame?.focusIds.includes(node.id)}
+              visualPlayed={visualFrame?.playedIds.includes(node.id)}
               onSelectPad={onSelectPad}
               onNodePointerDown={onNodePointerDown}
               onDeleteNode={onDeleteNode}
             />
           ))}
         </g>
+        <PlaybackVisualLayer frame={visualFrame} nodes={pad.nodes}/>
       </svg>
       </div>
     </article>
@@ -811,6 +830,8 @@ type GlyphProps = {
   playing: boolean;
   presentation?: NodePresentation;
   showLabel: boolean;
+  visualFocus?: boolean;
+  visualPlayed?: boolean;
   onSelectPad: QuadLilyCanvasProps['onSelectPad'];
   onNodePointerDown: QuadLilyCanvasProps['onNodePointerDown'];
   onDeleteNode: QuadLilyCanvasProps['onDeleteNode'];
@@ -837,10 +858,13 @@ const MemoGlyph = React.memo(function Glyph({
   playing,
   presentation,
   showLabel,
+  visualFocus,
+  visualPlayed,
   onSelectPad,
   onNodePointerDown,
   onDeleteNode,
 }: GlyphProps) {
+  const tr = useUiText();
   const x = toViewBox(node.x);
   const y = toViewBox(node.y);
   /* 主画布黑节点约缩到 2/3，badge / hit / pulse / selection 同步 */
@@ -863,6 +887,8 @@ const MemoGlyph = React.memo(function Glyph({
       className="quad-lily-node"
       transform={`translate(${x} ${y})`}
       data-node-id={node.id}
+      data-visual-focus={visualFocus ? 'true' : undefined}
+      data-visual-played={visualPlayed ? 'true' : undefined}
       data-center={node.isCenter ? 'true' : 'false'}
       data-active={active && playing ? 'true' : 'false'}
       data-selected={selected ? 'true' : 'false'}
@@ -872,9 +898,9 @@ const MemoGlyph = React.memo(function Glyph({
       role="button"
       tabIndex={locked ? -1 : 0}
       aria-label={(presentation
-        ? `${padId} ${presentation.shortId}，音符 ${presentation.noteName}，音阶步进 ${formatStep(node.scaleStep)}`
-        : `${padId} ${node.isCenter ? '中心节点' : `节点 ${node.id}`}，音阶步进 ${formatStep(node.scaleStep)}`)
-        + formatNodeStateSuffix(node)}
+        ? tr("{0} {1}，音符 {2}，音阶步进 {3}", padId, presentation.shortId, presentation.noteName, formatStep(node.scaleStep))
+        : tr("{0} {1}，音阶步进 {2}", padId, node.isCenter ? tr("中心节点") : tr("节点 {0}", node.id), formatStep(node.scaleStep)))
+        + formatNodeStateSuffix(tr, node)}
       onPointerDown={(event) => {
         event.stopPropagation();
         if (event.button !== 0) return;
@@ -893,7 +919,7 @@ const MemoGlyph = React.memo(function Glyph({
         deleteNode();
       }}
     >
-      <title>{`${node.isCenter ? '中心' : '节点'} ${node.id} · STEP ${formatStep(node.scaleStep)}${formatNodeStateSuffix(node)}`}</title>
+      <title>{`${node.isCenter ? tr("中心") : tr("节点")} ${node.id} · STEP ${formatStep(node.scaleStep)}${formatNodeStateSuffix(tr, node)}`}</title>
       <circle className="quad-lily-node__hit" r="3.4" />
       <circle className="quad-lily-node__pulse" r="3.6" />
       {showLabel && presentation && (
@@ -930,7 +956,7 @@ const MemoGlyph = React.memo(function Glyph({
     </g>
   );
 }, (a, b) => {
-  const fields = ['padId','layout','active','selected','locked','playing','showLabel','onSelectPad','onNodePointerDown','onDeleteNode'] as const;
+  const fields = ['padId','layout','active','selected','locked','playing','showLabel','visualFocus','visualPlayed','onSelectPad','onNodePointerDown','onDeleteNode'] as const;
   const nodeFields = ['id','x','y','isCenter','scaleStep','muted','hidden'] as const;
   return fields.every(k => a[k] === b[k]) && nodeFields.every(k => a.node[k] === b.node[k])
     && Boolean(a.presentation) === Boolean(b.presentation)
@@ -986,9 +1012,9 @@ function formatStep(step: number): string {
 }
 
 /** 静音 / 隐藏后缀：屏幕阅读器与 tooltip 都需要知道节点是否发声 */
-function formatNodeStateSuffix(node: LilyNode): string {
-  if (node.hidden) return '，已隐藏（不参与传播）';
-  if (node.muted) return '，已静音';
+function formatNodeStateSuffix(tr: (message: string, ...values: unknown[]) => string, node: LilyNode): string {
+  if (node.hidden) return tr("，已隐藏（不参与传播）");
+  if (node.muted) return tr("，已静音");
   return '';
 }
 

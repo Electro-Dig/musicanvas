@@ -94,9 +94,16 @@ test('DRAW reports ready, armed and recording states and routes its action', asy
         : 'aria-label="取消 DRAW 轨迹录制"'));
     }
 
+    // Render with a React dispatcher now that controls consume the locale context.
+    const renderControlsTree = (props: Parameters<typeof NodeMotionControls>[0]) => {
+      let tree: React.ReactNode;
+      function Capture() { tree = NodeMotionControls(props); return tree; }
+      renderToStaticMarkup(React.createElement(Capture));
+      return tree;
+    };
     let armed = 0;
     let cancelled = 0;
-    const readyTree = NodeMotionControls({
+    const readyTree = renderControlsTree({
       motion: { mode: 'draw', path: [], rateCycles: 3, direction: 1 },
       locked: false,
       drawStatus: 'ready',
@@ -106,7 +113,7 @@ test('DRAW reports ready, armed and recording states and routes its action', asy
     });
     findElementByAriaLabel(readyTree, '开始 DRAW 轨迹录制').props.onClick();
 
-    const armedTree = NodeMotionControls({
+    const armedTree = renderControlsTree({
       motion: { mode: 'draw', path: [], rateCycles: 3, direction: 1 },
       locked: false,
       drawStatus: 'armed',

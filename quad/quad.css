@@ -2526,3 +2526,22 @@
     border-top: 1px solid var(--quad-rule);
   }
 }
+.quad-studio-playback-setting { padding:10px 12px; border-top:1px solid var(--quad-line); display:grid; gap:8px; color:var(--quad-ink); font-size:12px; }
+.quad-studio-playback-options { display:flex; gap:4px; }
+.quad-studio-playback-options button { flex:1; min-width:0; padding:7px 6px; border:1px solid var(--quad-line); border-radius:6px; background:var(--quad-surface); color:var(--quad-ink); font:inherit; cursor:pointer; white-space:nowrap; }
+.quad-studio-playback-options button[aria-checked="true"] { background:var(--quad-ink); color:var(--quad-surface); }
+.quad-studio-playback-setting small { font-size:11px; color:var(--quad-muted); line-height:1.5; }
+.quad-lily-canvas:not([data-playback-visual="original"]) .quad-lily-pad:is([data-playing="true"],[data-paused="true"]) .quad-lily-node:not([data-visual-focus="true"]):not([data-visual-played="true"]):not([data-selected="true"]):not(:focus-visible):not(:hover) { opacity:.48; }
+.quad-lily-node[data-visual-played="true"] .quad-lily-node__core,
+.quad-lily-node[data-visual-played="true"] .quad-lily-node__badge { fill:var(--quad-pad-color); }
+.quad-lily-node[data-visual-played="true"] .quad-lily-node__badge-label { fill:var(--quad-on-accent); }
+.quad-lily-node[data-visual-focus="true"] .quad-lily-node__core,
+.quad-lily-node[data-visual-focus="true"] .quad-lily-node__badge { fill:var(--quad-pad-color); stroke:var(--quad-surface); stroke-width:1.4; }
+.quad-lily-node[data-visual-focus="true"] .quad-lily-node__badge-label { fill:var(--quad-on-accent); }
+.quad-playback-visual { pointer-events:none; }
+.quad-playback-visual line { stroke:var(--quad-pad-color); stroke-width:2.5; vector-effect:non-scaling-stroke; stroke-linecap:round; }
+.quad-playback-past { fill:var(--quad-pad-color); }
+.quad-playback-halo { fill:var(--quad-pad-color); opacity:.12; }
+.quad-playback-ring { fill:none; stroke:var(--quad-pad-color); stroke-width:1.5; vector-effect:non-scaling-stroke; }
+.quad-playback-echo-ring { fill:none; stroke:currentColor; stroke-width:1.5; stroke-dasharray:3 3; vector-effect:non-scaling-stroke; }
+.quad-playback-echo-label { fill:var(--quad-ink); font:600 2.4px var(--studio-font-ui,system-ui); paint-order:stroke; stroke:var(--quad-surface); stroke-width:.8; stroke-linejoin:round; }

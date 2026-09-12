@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import React, { useState } from 'react';
 import { ROOT_NOTES, SCALES } from '../musicTheory';
 import { QUAD_PAD_IDS } from '../core';
@@ -15,6 +16,7 @@ const PAD_COLORS: Record<string, string> = {
 };
 
 export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
+  const tr = useUiText();
   const {
     workspace,
     selectedPadId,
@@ -73,7 +75,7 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
   return (
     <div className="quad-floating-wrapper">
       {/* --- FLOATING TOP ISLAND HUD (Centered over canvas) --- */}
-      <nav className="quad-floating-island" aria-label="全景浮动控制岛">
+      <nav className="quad-floating-island" aria-label={tr("全景浮动控制岛")}>
         {/* Pad Switcher Pills */}
         <div className="quad-floating-island__tabs" role="tablist">
           {QUAD_PAD_IDS.map((padId) => {
@@ -87,7 +89,7 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                 className="quad-floating-island__tab-btn"
                 data-active={isCurrent ? 'true' : 'false'}
                 onClick={() => onChoosePad(padId)}
-                title={`Pad ${padId} (${isPlaying ? '播放中' : '暂停'})`}
+                title={`Pad ${padId} (${isPlaying ? tr("播放中") : tr("暂停")})`}
               >
                 {padId}
               </button>
@@ -141,7 +143,7 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
             data-playing={selectedPad.playing ? 'true' : 'false'}
             onClick={() => onTogglePadPlaying(selectedPadId)}
           >
-            {selectedPad.playing ? '❚❚ 暂停' : selectedIsPaused ? '▶ 继续' : '▶ 播放'} {selectedPadId}
+            {selectedPad.playing ? tr("❚❚ 暂停") : selectedIsPaused ? tr("▶ 继续") : tr("▶ 播放")} {selectedPadId}
           </button>
         ) : (
           <button
@@ -150,7 +152,7 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
             data-playing={workspace.masterPlaying ? 'true' : 'false'}
             onClick={workspace.masterPlaying ? onPauseAll : onPlayAll}
           >
-            {workspace.masterPlaying ? '❚❚ 全部暂停' : '▶ 全部播放'}
+            {workspace.masterPlaying ? tr("❚❚ 全部暂停") : tr("▶ 全部播放")}
           </button>
         )}
 
@@ -167,7 +169,7 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
             value={selectedPad.intervalMs}
             onChange={(e) => onPatchSelectedPad({ intervalMs: Number(e.target.value) })}
             style={{ width: '60px' }}
-            title="滑动调整循环周期速度"
+            title={tr("滑动调整循环周期速度")}
           />
         </div>
 
@@ -187,9 +189,9 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
             value={String(workspace.fm1Tone)}
             onChange={(e) => onSetFm1Tone(e.target.value === 'follow' ? 'follow' : Number(e.target.value))}
             style={{ background: 'transparent', color: '#fff', border: 'none', fontSize: '10px', cursor: 'pointer' }}
-            title="FM-1 Voice 预设音色"
+            title={tr("FM-1 Voice 预设音色")}
           >
-            <option value="follow">跟随机身</option>
+            <option value="follow">{tr("跟随机身")}</option>
             {Array.from({ length: 128 }, (_, i) => i + 1).map((t) => (
               <option key={t} value={t} style={{ background: '#222' }}>
                 V{String(t).padStart(3, '0')}
@@ -205,7 +207,7 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
           type="button"
           onClick={onOpenLibrary}
           style={{ background: 'transparent', border: 'none', color: '#8ce6cc', cursor: 'pointer', fontSize: '12px' }}
-          title="打开素材库 (LIBRARY)"
+          title={tr("打开素材库 (LIBRARY)")}
         >
           📚
         </button>
@@ -213,7 +215,7 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
           type="button"
           onClick={onToggleTheme}
           style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '10px' }}
-          title="切换明暗主题"
+          title={tr("切换明暗主题")}
         >
           {theme === 'lotus' ? '☼' : '☾'}
         </button>
@@ -224,10 +226,9 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
         type="button"
         className="quad-floating-map-edge"
         onClick={() => onSetCycleDrawerOpen(!cycleDrawerOpen)}
-        title="展开/收起周期因果图谱 (CYCLE MAP)"
+        title={tr("展开/收起周期因果图谱 (CYCLE MAP)")}
       >
-        ▤ 周期图谱
-      </button>
+        {tr("▤ 周期图谱")}</button>
 
       {/* --- FULLSCREEN CANVAS --- */}
       <main className="quad-main-stage" data-view-mode={viewMode}>
@@ -298,7 +299,7 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
         {/* Selected Node Pitch & Motion Trigger */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
           <span>
-            {selectedNode.isCenter ? '中心音' : `音符 ${selectedNode.id}`}:
+            {selectedNode.isCenter ? tr("中心音") : tr("音符 {0}", selectedNode.id)}:
           </span>
           <NodePitchControls
             aStep={selectedNode.scaleStep}
@@ -329,7 +330,7 @@ export const FloatingLayout: React.FC<QuadLilyLayoutProps> = (props) => {
             cursor: 'pointer',
           }}
         >
-          {selectedMotion.mode.toUpperCase()} 运动 {expandedDock ? '▲' : '▼'}
+          {selectedMotion.mode.toUpperCase()} {tr("运动")}{expandedDock ? '▲' : '▼'}
         </button>
 
         {expandedDock && (

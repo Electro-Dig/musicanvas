@@ -1,3 +1,4 @@
+import { useUiText } from './uiLocale';
 import React,{memo,useEffect,useMemo,useRef,useState} from 'react';
 import {Maximize2,Minimize2} from 'lucide-react';
 import {QUAD_PAD_IDS,type QuadLilyPad,type QuadLilyWorkspace,type QuadPadId} from './core';
@@ -53,6 +54,7 @@ function geometry(path:FollowPath,width:number,expanded:boolean) {
 type Geometry=ReturnType<typeof geometry>;
 
 const FollowScore=memo(function FollowScore({path,model,g}:{path:FollowPath;model:FollowModel;g:Geometry}){
+  const tr = useUiText();
   const {x,y,left,right,width,top,height,events}=g;
   const parts=Math.ceil(path.durationMs/model.plan.blockMs);
   const stride=Math.max(1,Math.ceil(parts/(width<450?3:8)));
@@ -65,7 +67,7 @@ const FollowScore=memo(function FollowScore({path,model,g}:{path:FollowPath;mode
       const motif=path.reference.track.cells[column]?.motif;
       return <g key={i}>
         {i%2===0&&<rect x={x(begin)} y={25} width={x(end)-x(begin)} height={height+top-20} className="follow-phrase-shade"/>}
-        {!path.ground&&motif!=null&&x(end)-x(begin)>32&&<text x={x(begin)+4} y={top+9} className="follow-phrase-label">句{motif+1}</text>}
+        {!path.ground&&motif!=null&&x(end)-x(begin)>32&&<text x={x(begin)+4} y={top+9} className="follow-phrase-label">{tr("句")} {motif+1}</text>}
       </g>;
     })}
     {pitches.map(m=><g key={m}><line x1={left} x2={width-right} y1={y(m)} y2={y(m)} className="follow-grid"/><text x={0} y={y(m)+4}>{pitchName(m)}</text></g>)}
@@ -73,12 +75,13 @@ const FollowScore=memo(function FollowScore({path,model,g}:{path:FollowPath;mode
     <text x={x(path.durationMs)} y={16} textAnchor="end">{sec(path.durationMs)}s</text>
     <path d={g.d} className="follow-melody-line"/>
     {events.length<2048&&events.flatMap((e,i)=>e.notes.map((n,j)=><circle key={`${i}-${j}`} cx={x(e.atMs)} cy={y(n.midi)} r={1.5} className="follow-onset"/>))}
-    {!events.length&&<text x={left} y={top+height/2}>这个声部尚无起音</text>}
-    <text x={left} y={top+height+25} className="follow-axis-label">{path.ground?'低音周期内时间 →':'旋律内部时间 →'}</text>
+    {!events.length&&<text x={left} y={top+height/2}>{tr("这个声部尚无起音")}</text>}
+    <text x={left} y={top+height+25} className="follow-axis-label">{path.ground?tr("低音周期内时间 →"):tr("旋律内部时间 →")}</text>
   </g>;
 });
 
 const FollowPathView=memo(function FollowPathView({model,path,clocks,stale,expanded}:{model:FollowModel;path:FollowPath;clocks:Record<QuadPadId,FollowPlayback>;stale:Set<QuadPadId>;expanded:boolean}) {
+  const tr = useUiText();
   const host=useRef<HTMLDivElement>(null);
   const [width,setWidth]=useState(280);
   useEffect(()=>{
@@ -89,10 +92,10 @@ const FollowPathView=memo(function FollowPathView({model,path,clocks,stale,expan
   const g=useMemo(()=>geometry(path,width,expanded),[path,width,expanded]);
   const positions=path.voices.map(voice=>({voice,clock:clocks[voice.track.id],...followPosition(model.plan,path,voice,clocks[voice.track.id])}));
   const shared=path.voices.length>1;
-  const title=path.ground?`${path.reference.track.id} · 固定低音`:shared?`${path.voices.map(v=>v.track.id).join(' / ')} · 共用旋律`:`${path.reference.track.id} · 独立声部`;
+  const title=path.ground?tr("{0} · 固定低音", path.reference.track.id):shared?tr("{0} · 共用旋律", path.voices.map(v=>v.track.id).join(' / ')):tr("{0} · 独立声部", path.reference.track.id);
   return <div className="follow-path" ref={host} data-follow-path={path.voices.map(v=>v.track.id).join('')}>
-    <div className="follow-path-heading"><strong>{title}</strong><span>{path.ground?`重复 ${model.plan.columns} 次`:shared?'同音高 · 同节奏':'按本轨音序显示'}</span></div>
-    <svg className="follow-svg" viewBox={`0 0 ${width} ${g.svgHeight}`} height={g.svgHeight} role="img" aria-label={`${title}，纵向是音高，横向是进入后的时间`}>
+    <div className="follow-path-heading"><strong>{title}</strong><span>{path.ground?tr("重复 {0} 次", model.plan.columns):shared?tr("同音高 · 同节奏"):tr("按本轨音序显示")}</span></div>
+    <svg className="follow-svg" viewBox={`0 0 ${width} ${g.svgHeight}`} height={g.svgHeight} role="img" aria-label={tr("{0}，纵向是音高，横向是进入后的时间", title)}>
       <FollowScore path={path} model={model} g={g}/>
       {positions.map(({voice,clock,waiting,outside,positionMs,event})=>{
         const id=voice.track.id;
@@ -111,22 +114,12 @@ const FollowPathView=memo(function FollowPathView({model,path,clocks,stale,expan
         </g>;
       })}
     </svg>
-    <div className="follow-voice-list" aria-label={`${title}实时位置`}>
-      {positions.map(({voice,clock,waiting,outside,positionMs,globalMs,event,repeat})=>{
-        const id=voice.track.id,pending=stale.has(id);
-        const state=pending?'编辑待下轮生效':outside?'超出预览范围':!clock.playing&&!clock.paused?'待播':waiting?'等待进入':clock.paused?'暂停':'播放';
-        return <div className="follow-voice" key={id} data-follow-voice={id} data-state={state} data-global-ms={globalMs.toFixed(2)}>
-          <b className="follow-pad" style={{color:padColor(id)}}>{id}</b>
-          <span className="follow-note">{pending||waiting||outside?'—':event?.notes.map(n=>n.name).join(' + ')||'—'}</span>
-          <span className="follow-voice-time">{state}{!pending&&!waiting&&!outside?` · ${path.ground?`第 ${repeat}/${model.plan.columns} 次`:`${sec(positionMs)}s`}`:''}</span>
-        </div>;
-      })}
-    </div>
-    {shared&&<p className="follow-entries">{path.voices.map(voice=>`${voice.track.id}：${sec(voice.entryMs)}s 进入`).join(' · ')}</p>}
+    {shared&&<p className="follow-entries">{path.voices.map(voice=>tr("{0}：{1}s 进入", voice.track.id, sec(voice.entryMs))).join(' · ')}</p>}
   </div>;
 });
 
 export function MelodyFollow({pads,readClocks,transportKey}:Props) {
+  const tr = useUiText();
   const plan=useStructurePlan(pads);
   const model=useMemo(()=>plan&&!plan.error?buildFollowModel(plan):null,[plan]);
   const clocks=useFollowClocks(readClocks,transportKey);
@@ -145,17 +138,17 @@ export function MelodyFollow({pads,readClocks,transportKey}:Props) {
     return ()=>document.removeEventListener('keydown',key,true);
   },[expanded]);
   const shared=model?.paths.some(p=>p.voices.length>1);
-  return <section className="melody-follow" ref={panel} popover={expanded?'manual':undefined} data-expanded={expanded||undefined} aria-label="旋律追随">
-    <header className="follow-header"><div><strong>旋律追随</strong><span>同一句旋律，先后走过</span></div>
-      <button className="quad-pro-mini-btn" type="button" aria-label={expanded?'收起旋律追随':'展开旋律追随'} aria-expanded={expanded} onClick={()=>setExpanded(v=>!v)} ref={toggle}>
-        {expanded?<Minimize2 size={13}/>:<Maximize2 size={13}/>} {expanded?'收起':'展开'}
+  return <section className="melody-follow" ref={panel} popover={expanded?'manual':undefined} data-expanded={expanded||undefined} aria-label={tr("旋律追随")}>
+    <header className="follow-header"><div><strong>{tr("旋律追随")}</strong><span>{tr("同一句旋律，先后走过")}</span></div>
+      <button className="quad-pro-mini-btn" type="button" aria-label={expanded?tr("收起旋律追随"):tr("展开旋律追随")} aria-expanded={expanded} onClick={()=>setExpanded(v=>!v)} ref={toggle}>
+        {expanded?<Minimize2 size={13}/>:<Maximize2 size={13}/>} {expanded?tr("收起"):tr("展开")}
       </button>
     </header>
-    {!plan?<p role="status">正在对齐旋律…</p>:plan.error?<p role="status">{plan.error}</p>:model&&<>
-      <p className="follow-summary">{plan.complete&&plan.commonPeriodMs!==null?'共同循环':'预览范围'} {sec(plan.durationMs)} 秒 · {shared?'相同音序共用一条路径':'各声部独立呈现'}</p>
-      {!plan.complete&&<p className="follow-notice">尚未覆盖完整周期，仅展示已计算范围。</p>}
+    {!plan?<p role="status">{tr("正在对齐旋律…")}</p>:plan.error?<p role="status">{tr(plan.error)}</p>:model&&<>
+      <p className="follow-summary">{plan.complete&&plan.commonPeriodMs!==null?tr("共同循环"):tr("预览范围")} {sec(plan.durationMs)} {tr("秒 ·")} {shared?tr("相同音序共用一条路径"):tr("各声部独立呈现")}</p>
+      {!plan.complete&&<p className="follow-notice">{tr("尚未覆盖完整周期，仅展示已计算范围。")}</p>}
       <div className="follow-paths">{model.paths.map(path=><FollowPathView key={path.reference.track.id} model={model} path={path} clocks={clocks} stale={stale} expanded={expanded}/>)}</div>
-      <footer>标记跟随各轨实际播放时钟；高度表示最近触发音，线段不代表尾音长度。只有已覆盖音高与节奏完全一致的声部才共用路径。</footer>
+      <footer>{tr("标记跟随各轨实际播放时钟；高度表示最近触发音，线段不代表尾音长度。只有已覆盖音高与节奏完全一致的声部才共用路径。")}</footer>
     </>}
   </section>;
 }

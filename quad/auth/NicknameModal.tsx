@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 /**
  * 首次登录强制登记昵称；也可复用为「补全昵称」弹窗。
  */
@@ -21,6 +22,7 @@ export function NicknameModal({
   onClose,
   onSaved,
 }: NicknameModalProps) {
+  const tr = useUiText();
   const [nickname, setNickname] = useState(identity.user?.name ?? '');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -53,29 +55,29 @@ export function NicknameModal({
       />
       <div className="auth-card">
         <header className="auth-card__header">
-          <span className="auth-card__eyebrow">账户</span>
-          <h2 id="nickname-modal-title" className="auth-card__title">设置昵称</h2>
+          <span className="auth-card__eyebrow">{tr("账户")}</span>
+          <h2 id="nickname-modal-title" className="auth-card__title">{tr("设置昵称")}</h2>
           {dismissible && (
             <button
               type="button"
               className="auth-card__close"
-              aria-label="关闭"
+              aria-label={tr("关闭")}
               onClick={onClose}
             >×</button>
           )}
         </header>
         <form className="auth-form" onSubmit={(e) => void handleSubmit(e)}>
             <p className={`auth-notice ${identity.error ? 'auth-notice--error' : 'auth-notice--info'}`} role="alert">
-              {identity.error || '图谱广场署名需要昵称。'}
+              {identity.error ? tr(identity.error) : tr("图谱广场署名需要昵称。")}
             </p>
             <label className="auth-field">
-              <span>昵称</span>
+              <span>{tr("昵称")}</span>
               <input
                 ref={inputRef}
                 value={nickname}
                 maxLength={40}
                 autoComplete="nickname"
-                placeholder="怎么称呼你"
+                placeholder={tr("怎么称呼你")}
                 required
                 onChange={(event) => setNickname(event.currentTarget.value)}
               />
@@ -85,7 +87,7 @@ export function NicknameModal({
               className="auth-btn auth-btn--primary"
               disabled={identity.loading || !nickname.trim()}
             >
-              {identity.loading ? '保存中…' : '保存昵称'}
+              {identity.loading ? tr("保存中…") : tr("保存昵称")}
             </button>
           </form>
       </div>

@@ -1,7 +1,18 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createQuadLilyWorkspace,compileLilyCycle} from '../quad/core.ts';
-import {sequenceRound,sequenceChanges} from '../quad/sequenceModel.ts';
+import {sequenceRound,sequenceChanges,archiveSequenceRound} from '../quad/sequenceModel.ts';
+
+test('restart within cycle zero clears delivery history, while recompilation preserves it',()=>{
+ const pad=createQuadLilyWorkspace().pads.A;
+ const round=sequenceRound(0,compileLilyCycle(pad),pad);
+ const played={...round,played:['center']};
+ const archive={current:played,previous:played,history:[played]};
+ assert.deepEqual(archiveSequenceRound(archive,round).current?.played,['center']);
+ const restarted=archiveSequenceRound(archive,round,true);
+ assert.deepEqual(restarted,{current:round,previous:null,history:[]});
+ assert.deepEqual(archive.current.played,['center'],'the old immutable snapshot is untouched');
+});
 test('sequence records snapshot pitches, concurrent events, mute and hidden independently',()=>{
  const pad=createQuadLilyWorkspace().pads.A; pad.nodes.push({id:'node-1',x:.51,y:.5,range:.2,scaleStep:1,isCenter:false,muted:true},{id:'node-2',x:.51,y:.5,range:.2,scaleStep:2,isCenter:false,hidden:true});
  const plan=compileLilyCycle(pad); const round=sequenceRound(0,plan,pad);

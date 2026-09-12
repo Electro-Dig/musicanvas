@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import React from 'react';
 import { ROOT_NOTES, SCALES } from '../musicTheory';
 import { QUAD_PAD_IDS } from '../core';
@@ -15,6 +16,7 @@ const PAD_COLORS: Record<string, string> = {
 };
 
 export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
+  const tr = useUiText();
   const {
     workspace,
     selectedPadId,
@@ -163,15 +165,14 @@ export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                 data-playing={workspace.masterPlaying ? 'true' : 'false'}
                 onClick={workspace.masterPlaying ? onPauseAll : onPlayAll}
               >
-                <span>{workspace.masterPlaying ? '❚❚ 全部暂停' : '▶ 全部播放'}</span>
+                <span>{workspace.masterPlaying ? tr("❚❚ 全部暂停") : tr("▶ 全部播放")}</span>
               </button>
               <button
                 type="button"
                 className="quad-performer-pad-trigger"
                 onClick={onRestartAll}
               >
-                ↻ 同步
-              </button>
+                {tr("↻ 同步")}</button>
             </div>
           )}
 
@@ -182,9 +183,9 @@ export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
               value={String(workspace.fm1Tone)}
               onChange={(e) => onSetFm1Tone(e.target.value === 'follow' ? 'follow' : Number(e.target.value))}
               style={{ background: 'transparent', color: '#fff', border: 'none', fontSize: '11px', cursor: 'pointer' }}
-              title="FM-1 音色编号"
+              title={tr("FM-1 音色编号")}
             >
-              <option value="follow">跟随机身</option>
+              <option value="follow">{tr("跟随机身")}</option>
               {Array.from({ length: 128 }, (_, i) => i + 1).map((t) => (
                 <option key={t} value={t} style={{ background: '#111' }}>
                   FM {String(t).padStart(3, '0')}
@@ -209,11 +210,10 @@ export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
             <span style={{ display: 'inline-block', animation: selectedPad.playing ? 'pulse 1s infinite' : 'none' }}>
               ∿
             </span>
-            <span>周期图谱 {cycleDrawerOpen ? '✕' : '▸'}</span>
+            <span>{tr("周期图谱")}{cycleDrawerOpen ? '✕' : '▸'}</span>
           </button>
           <button type="button" className="quad-drawer-trigger-btn" onClick={onOpenLibrary}>
-            📚 库
-          </button>
+            {tr("📚 库")}</button>
           <button type="button" className="quad-drawer-trigger-btn" onClick={onToggleTheme}>
             {theme === 'lotus' ? 'LOTUS' : 'DARK'}
           </button>
@@ -259,7 +259,7 @@ export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
       <footer className="quad-performer-bottom-grid">
         {/* Card 1: 节奏与时钟 */}
         <div className="quad-performer-card">
-          <div className="quad-performer-card__title">⏱ 节奏与时钟 (TEMPO)</div>
+          <div className="quad-performer-card__title">{tr("⏱ 节奏与时钟 (TEMPO)")}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
             <span style={{ fontWeight: 800, color: '#00e5ff' }}>{selectedPad.intervalMs}ms</span>
             <input
@@ -276,11 +276,10 @@ export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
               onClick={onRestartSelectedPad}
               style={{ padding: '2px 6px', fontSize: '10px', cursor: 'pointer', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '3px' }}
             >
-              起拍
-            </button>
+              {tr("起拍")}</button>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', marginTop: '4px' }}>
-            <span>力度 VEL: {Math.round(selectedPad.velocity * 127)}</span>
+            <span>{tr("力度 VEL:")}{Math.round(selectedPad.velocity * 127)}</span>
             <input
               type="range"
               min="0.08"
@@ -295,7 +294,7 @@ export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
 
         {/* Card 2: 调式与音高 */}
         <div className="quad-performer-card">
-          <div className="quad-performer-card__title">🎵 调式与音高 (SCALE)</div>
+          <div className="quad-performer-card__title">{tr("🎵 调式与音高 (SCALE)")}</div>
           <div style={{ display: 'flex', gap: '6px', fontSize: '11px' }}>
             <select
               value={selectedPad.rootMidi}
@@ -328,7 +327,7 @@ export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', marginTop: '4px' }}>
             <span style={{ fontWeight: 700, color: 'var(--selected-pad-color, #ff4081)' }}>
-              {selectedNode.isCenter ? '中心音' : `节点 ${selectedNode.id}`}:
+              {selectedNode.isCenter ? tr("中心音") : tr("节点 {0}", selectedNode.id)}:
             </span>
             <NodePitchControls
               aStep={selectedNode.scaleStep}
@@ -347,14 +346,14 @@ export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
         {/* Card 3: 动力学运动与操作 */}
         <div className="quad-performer-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div className="quad-performer-card__title">⚡ 动力学运动 (MOTION)</div>
+            <div className="quad-performer-card__title">{tr("⚡ 动力学运动 (MOTION)")}</div>
             <div style={{ display: 'flex', gap: '4px' }}>
               <button
                 type="button"
                 onClick={() => onTogglePadLocked(selectedPadId)}
                 style={{ fontSize: '9px', padding: '1px 5px', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '3px', cursor: 'pointer' }}
               >
-                {selectedPad.locked ? '解锁' : '锁定'}
+                {selectedPad.locked ? tr("解锁") : tr("锁定")}
               </button>
               <button
                 type="button"
@@ -362,8 +361,7 @@ export const PerformerLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                 disabled={selectedPad.locked}
                 style={{ fontSize: '9px', padding: '1px 5px', background: '#4a1515', color: '#ff8a80', border: '1px solid #ff5252', borderRadius: '3px', cursor: 'pointer' }}
               >
-                清空
-              </button>
+                {tr("清空")}</button>
             </div>
           </div>
           <NodeMotionControls

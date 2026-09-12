@@ -22,16 +22,9 @@
 .follow-position-line { stroke-width:1; opacity:.6; }
 .follow-marker-halo { opacity:.15; }
 [data-follow-marker][data-paused] .follow-marker-halo { opacity:.07; }
-.follow-voice-list { display:grid; gap:4px; }
-.follow-voice { display:grid; grid-template-columns:22px minmax(44px,1fr) auto; align-items:center; gap:6px; font-variant-numeric:tabular-nums; }
-.follow-pad { font-size:13px; }
-.follow-note { color:var(--quad-text); overflow-wrap:anywhere; }
-.follow-voice-time { color:var(--quad-muted); font-size:10px; }
 .melody-follow footer { font-size:10px; color:var(--quad-muted); border-top:1px solid var(--quad-line); padding-top:10px; margin-top:8px; }
 .melody-follow[data-expanded] { position:fixed; z-index:80; inset:76px 24px 24px; margin:0; width:auto; height:auto; max-width:none; max-height:none; border:1px solid var(--quad-line); border-radius:12px; box-shadow:0 16px 70px color-mix(in srgb,var(--quad-ink) 20%,transparent); padding:22px 28px; }
 .melody-follow[data-expanded] .follow-header { position:sticky; top:-22px; background:var(--quad-map-surface); z-index:2; padding-bottom:10px; }
 .melody-follow[data-expanded] .follow-paths { max-width:1240px; margin:0 auto; }
-.melody-follow[data-expanded] .follow-voice-list { display:flex; flex-wrap:wrap; gap:8px 30px; }
-.melody-follow[data-expanded] .follow-voice { min-width:160px; }
 .melody-follow[data-expanded] .follow-header strong { font-size:18px; }
 @media(max-width:600px){ .melody-follow[data-expanded] { inset:65px 8px 8px; padding:12px; }.melody-follow[data-expanded] .follow-header { top:-12px; } }

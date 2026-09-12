@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 /**
  * AuthModal — 登录 / 注册 / 找回密码 弹窗
  *
@@ -25,6 +26,7 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ open, mode: initialMode = 'login', identity, onClose }: AuthModalProps) {
+  const tr = useUiText();
   const [mode, setMode] = useState<AuthModalMode>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,7 +69,7 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
     // 注册：昵称必填 + 前端强制密码策略
     if (mode === 'signup') {
       if (!name.trim()) {
-        setLocalMsg('请填写昵称。');
+        setLocalMsg(tr("请填写昵称。"));
         return;
       }
       const passwordError = validateSignupPassword(password);
@@ -87,13 +89,13 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
           // 已自动确认（Autoconfirm ON）
           onClose();
         } else {
-          setLocalMsg('请查收邮箱完成确认，再回来登录。');
+          setLocalMsg(tr("请查收邮箱完成确认，再回来登录。"));
           setMode('login');
         }
       } else {
         // recovery
         await identity.requestPasswordRecovery(email);
-        setLocalMsg('重置密码邮件已发送，请查收收件箱。');
+        setLocalMsg(tr("重置密码邮件已发送，请查收收件箱。"));
         setMode('login');
       }
     } catch {
@@ -101,8 +103,8 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
     }
   };
 
-  const displayError = identity.oauthPending ? null : identity.error;
-  const displayMsg = localMsg;
+  const displayError = identity.oauthPending || !identity.error ? null : tr(identity.error);
+  const displayMsg = localMsg ? tr(localMsg) : null;
   const oauthLabel = identity.oauthPending === 'github' ? 'GitHub' : 'Google';
 
   return (
@@ -110,7 +112,7 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
       className="auth-layer"
       role="dialog"
       aria-modal="true"
-      aria-label={mode === 'login' ? '登录' : mode === 'signup' ? '创建账户' : '重置密码'}
+      aria-label={mode === 'login' ? tr("登录") : mode === 'signup' ? tr("创建账户") : tr("重置密码")}
     >
       {/* 半透明遮罩 */}
       <div
@@ -125,14 +127,14 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
         <div className="auth-card__header">
           <span className="auth-card__eyebrow">MUSICANVAS</span>
           <h2 className="auth-card__title">
-            {mode === 'login' && '登录'}
-            {mode === 'signup' && '创建账户'}
-            {mode === 'recovery' && '重置密码'}
+            {mode === 'login' && tr("登录")}
+            {mode === 'signup' && tr("创建账户")}
+            {mode === 'recovery' && tr("重置密码")}
           </h2>
           <button
             type="button"
             className="auth-card__close"
-            aria-label="关闭"
+            aria-label={tr("关闭")}
             onClick={onClose}
           >
             ✕
@@ -143,7 +145,7 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
         {identity.oauthPending && (
           <div className="auth-notice auth-notice--progress" role="status" aria-live="polite">
             <span className="auth-spinner" aria-hidden="true" />
-            <span>正在跳转到 {oauthLabel}…</span>
+            <span>{tr("正在跳转到")} {oauthLabel}…</span>
           </div>
         )}
 
@@ -161,7 +163,7 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           {mode === 'signup' && (
             <label className="auth-field">
-              <span>昵称</span>
+              <span>{tr("昵称")}</span>
               <input
                 type="text"
                 autoComplete="nickname"
@@ -172,13 +174,13 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
                   setName(e.target.value);
                   if (localMsg) setLocalMsg(null);
                 }}
-                placeholder="怎么称呼你"
+                placeholder={tr("怎么称呼你")}
               />
             </label>
           )}
 
           <label className="auth-field">
-            <span>邮箱</span>
+            <span>{tr("邮箱")}</span>
             <input
               ref={emailRef}
               type="email"
@@ -192,7 +194,7 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
 
           {mode !== 'recovery' && (
             <label className="auth-field">
-              <span>密码</span>
+              <span>{tr("密码")}</span>
               <input
                 type="password"
                 autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
@@ -203,12 +205,12 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
                   setPassword(e.target.value);
                   if (mode === 'signup' && localMsg) setLocalMsg(null);
                 }}
-                placeholder={mode === 'signup' ? PASSWORD_REQUIREMENT_HINT : '••••••••'}
+                placeholder={mode === 'signup' ? tr(PASSWORD_REQUIREMENT_HINT) : '••••••••'}
                 aria-describedby={mode === 'signup' ? 'auth-password-hint' : undefined}
               />
               {mode === 'signup' && (
                 <span id="auth-password-hint" className="auth-field__hint">
-                  {PASSWORD_REQUIREMENT_HINT}
+                  {tr(PASSWORD_REQUIREMENT_HINT)}
                 </span>
               )}
             </label>
@@ -219,10 +221,10 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
             className="auth-btn auth-btn--primary"
             disabled={identity.loading}
           >
-            {identity.loading ? '请稍候…' : (
-              mode === 'login' ? '登录'
-              : mode === 'signup' ? '创建账户'
-              : '发送重置链接'
+            {identity.loading ? tr("请稍候…") : (
+              mode === 'login' ? tr("登录")
+              : mode === 'signup' ? tr("创建账户")
+              : tr("发送重置链接")
             )}
           </button>
         </form>
@@ -230,7 +232,7 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
         {/* Google OAuth（Netlify Identity 默认配置，免费可用） */}
         {mode !== 'recovery' && (
           <>
-            <div className="auth-divider"><span>或</span></div>
+            <div className="auth-divider"><span>{tr("或")}</span></div>
             <div className="auth-oauth">
               <button
                 type="button"
@@ -251,7 +253,7 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
                     <path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.64 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/>
                   </svg>
                 )}
-                {identity.oauthPending === 'google' ? '正在跳转…' : '使用 Google 继续'}
+                {identity.oauthPending === 'google' ? tr("正在跳转…") : tr("使用 Google 继续")}
               </button>
             </div>
           </>
@@ -262,22 +264,18 @@ export function AuthModal({ open, mode: initialMode = 'login', identity, onClose
           {mode === 'login' && (
             <>
               <button type="button" className="auth-link" onClick={() => { setMode('signup'); identity.clearError(); }}>
-                没有账号？去注册
-              </button>
+                {tr("没有账号？去注册")}</button>
               <button type="button" className="auth-link" onClick={() => { setMode('recovery'); identity.clearError(); }}>
-                忘记密码？
-              </button>
+                {tr("忘记密码？")}</button>
             </>
           )}
           {mode === 'signup' && (
             <button type="button" className="auth-link" onClick={() => { setMode('login'); identity.clearError(); }}>
-              已有账号？去登录
-            </button>
+              {tr("已有账号？去登录")}</button>
           )}
           {mode === 'recovery' && (
             <button type="button" className="auth-link" onClick={() => { setMode('login'); identity.clearError(); }}>
-              返回登录
-            </button>
+              {tr("返回登录")}</button>
           )}
         </div>
 

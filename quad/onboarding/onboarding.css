@@ -38,6 +38,17 @@
 }
 
 .onboarding-kicker { margin: 0; color: var(--quad-ink, #17251f); }
+.onboarding-meta > span { margin-left:auto; margin-right:14px; }
+.onboarding-meta .quad-studio-locale-toggle span { display:grid; }
+.onboarding-english-guide { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0; }
+.onboarding-english-guide > section { overflow:hidden; border:1px solid var(--quad-line); border-radius:14px; background:var(--quad-surface-raised); }
+.onboarding-english-art { background:#e8f0e9; padding:12px 5px; border-bottom:1px solid var(--quad-line); }
+.onboarding-english-art svg { display:block; width:100%; font-family:var(--studio-font-ui,sans-serif); }
+.onboarding-english-copy { padding:15px; }
+.onboarding-english-copy > span { color:var(--quad-pad-a); font:700 11px/1 var(--studio-font-ui,sans-serif); }
+.onboarding-english-copy h3 { margin:8px 0; font-size:15px; line-height:1.3; color:var(--quad-ink); }
+.onboarding-english-copy p { font-size:12px; line-height:1.6; }
+@media(max-width:560px) { .onboarding-english-guide { grid-template-columns:1fr; } .onboarding-english-guide > section { display:grid; grid-template-columns:100px 1fr; } .onboarding-english-art { display:grid; place-items:center; border-bottom:0; } }
 
 .onboarding-copy {
   justify-content: space-between;
@@ -219,7 +230,7 @@
 
 .onboarding-actions { justify-content: space-between; gap: 10px; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--quad-line, #c5d5cb); }
 .onboarding-actions__primary { gap: 7px; }
-.onboarding-skip, .onboarding-back, .onboarding-next { min-height: 37px; padding: 9px 16px; border-radius: 12px 4px 12px 4px !important; font: 750 .75rem/1 var(--studio-font-ui, "Plus Jakarta Sans", "DengXian", sans-serif) !important; cursor: pointer; }
+.onboarding-skip, .onboarding-back, .onboarding-next { min-height: 37px; padding: 9px 16px; border-radius: 12px 4px 12px 4px !important; font: 750 16px/1 var(--studio-font-ui, "Plus Jakarta Sans", "DengXian", sans-serif) !important; cursor: pointer; }
 .onboarding-skip { border: 0 !important; background: transparent !important; color: var(--quad-muted, #5f7268) !important; }
 .onboarding-back { border: 1px solid var(--quad-line-strong, #9eb5a8) !important; background: var(--quad-surface-raised, #f7faf7) !important; color: var(--quad-ink, #17251f) !important; }
 .onboarding-next { border: 1px solid var(--quad-ink, #17251f) !important; background: var(--quad-ink, #17251f) !important; color: var(--quad-surface-raised, #f7faf7) !important; }
@@ -256,4 +267,36 @@
 
 @media (prefers-reduced-motion: reduce) {
   .onboarding-dots button { transition: none; }
+}
+
+@font-face {
+  font-family: 'Smiley Sans';
+  src: url('/fonts/smiley-sans.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.onboarding-layer[lang="zh-CN"] {
+  --studio-font-ui: 'Smiley Sans', sans-serif;
+  font-family: var(--studio-font-ui);
+  font-synthesis: none;
+}
+.onboarding-layer[lang="zh-CN"] .onboarding-card h2 {
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: .015em;
+}
+.onboarding-layer[lang="zh-CN"] .onboarding-card p {
+  font-weight: 400;
+  line-height: 1.7;
+}
+.onboarding-layer[lang="zh-CN"] .onboarding-english-copy h3 {
+  font-size: 19px;
+  font-family: var(--studio-font-ui);
+  font-weight: 400;
+  line-height: 1.45;
+}
+.onboarding-layer[lang="zh-CN"] .onboarding-english-copy p {
+  font-size: 15px;
 }

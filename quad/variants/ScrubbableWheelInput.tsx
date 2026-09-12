@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import React, { useState, useRef, useEffect } from 'react';
 
 export interface ScrubbableWheelInputProps {
@@ -33,6 +34,7 @@ export const ScrubbableWheelInput: React.FC<ScrubbableWheelInputProps> = ({
   className = '',
   ariaLabel,
 }) => {
+  const tr = useUiText();
   const [isEditing, setIsEditing] = useState(false);
   const [draftText, setDraftText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -183,7 +185,7 @@ export const ScrubbableWheelInput: React.FC<ScrubbableWheelInputProps> = ({
       onPointerDown={handlePointerDown}
       onClick={handleClick}
       onWheel={handleWheel}
-      title={title || '点击直接输入数字，或按住左右拖拽 / 滚轮滚动调整'}
+      title={title || tr("点击直接输入数字，或按住左右拖拽 / 滚轮滚动调整")}
       aria-label={ariaLabel || title}
       role="spinbutton"
       aria-valuenow={displayedNumeric}

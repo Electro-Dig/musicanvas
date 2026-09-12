@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, LayoutPanelLeft, Map } from 'lucide-react';
 import { ROOT_NOTES, SCALES, type ScaleDefinition } from '../musicTheory';
@@ -129,11 +130,11 @@ const MOTION_MODES = [
 ] as const;
 
 /** 节点卡片标题：中心为 ROOT，其余按非 center 序号 N01… */
-function formatNodeInfoTitle(pad: QuadLilyPad, node: LilyNode): string {
-  if (node.isCenter) return '节点信息：ROOT';
+function formatNodeInfoTitle(tr: (message: string, ...values: unknown[]) => string, pad: QuadLilyPad, node: LilyNode): string {
+  if (node.isCenter) return tr("节点信息：ROOT");
   const index = pad.nodes.filter((n) => !n.isCenter).findIndex((n) => n.id === node.id);
   const serial = index >= 0 ? index + 1 : 0;
-  return `节点信息：N${String(serial).padStart(2, '0')}`;
+  return tr("节点信息：N{0}", String(serial).padStart(2, '0'));
 }
 
 export const StudioSidebar: React.FC<StudioSidebarProps> = ({
@@ -188,6 +189,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
   onChangeGroupRadius,
   onToggleCycleMap,
 }) => {
+  const tr = useUiText();
   const [timingScope, setTimingScope] = useState<'current' | 'all'>('current');
   const mixed = (key: 'intervalMs' | 'velocity' | 'phraseSteps' | 'phraseMode') => timingScope === 'all' && allPads.some(p => p[key] !== allPads[0]?.[key]);
   const onPatchSelectedPad = (patch: QuadLilyPadPatch) => {
@@ -258,7 +260,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
     <aside
       className={`quad-studio-tower${collapsed ? ' is-collapsed' : ''}${isResizing ? ' is-resizing' : ''}`}
       data-collapsed={collapsed ? 'true' : undefined}
-      aria-label={`Pad ${selectedPadId} 控制与图谱面板`}
+      aria-label={tr("Pad {0} 控制与图谱面板", selectedPadId)}
       style={
         collapsed
           ? undefined
@@ -267,7 +269,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
     >
       {/* --- TOP TOWER NAVIGATION: Mode Segment Controller --- */}
       {!collapsed && (
-      <nav className="quad-tower-nav" role="tablist" aria-label="左侧控制塔视图切换">
+      <nav className="quad-tower-nav" role="tablist" aria-label={tr("左侧控制塔视图切换")}>
         <button
           type="button"
           role="tab"
@@ -279,8 +281,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           }}
         >
           <LayoutPanelLeft size={13} strokeWidth={2.1} aria-hidden />
-          控制
-        </button>
+          {tr("控制")}</button>
         <button
           type="button"
           role="tab"
@@ -292,8 +293,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           }}
         >
           <Map size={13} strokeWidth={2.1} aria-hidden />
-          图谱
-        </button>
+          {tr("图谱")}</button>
       </nav>
       )}
 
@@ -304,7 +304,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             type="button"
             className="quad-studio-tower__resize-handle quad-studio-tower__resize-handle--top"
             aria-label="Resize sidebar"
-            title="拖动调整侧栏宽度"
+            title={tr("拖动调整侧栏宽度")}
             onPointerDown={(event) => {
               if (event.button !== 0) return;
               event.preventDefault();
@@ -322,7 +322,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             type="button"
             className="quad-studio-tower__resize-handle quad-studio-tower__resize-handle--bottom"
             aria-label="Resize sidebar"
-            title="拖动调整侧栏宽度"
+            title={tr("拖动调整侧栏宽度")}
             onPointerDown={(event) => {
               if (event.button !== 0) return;
               event.preventDefault();
@@ -344,7 +344,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         type="button"
         className="quad-studio-tower__collapse-handle"
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        title={collapsed ? '展开侧栏' : '折叠侧栏'}
+        title={collapsed ? tr("展开侧栏") : tr("折叠侧栏")}
         onPointerDown={(event) => {
           if (event.button !== 0) return;
           event.preventDefault();
@@ -357,7 +357,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         {collapsed
           ? <ChevronRight size={16} strokeWidth={2.5} aria-hidden />
           : <ChevronLeft size={16} strokeWidth={2.5} aria-hidden />}
-        <span className="quad-studio-tower__collapse-label">{collapsed ? '展开参数' : '收起参数'}</span>
+        <span className="quad-studio-tower__collapse-label">{collapsed ? tr("展开参数") : tr("收起参数")}</span>
       </button>
 
       {/* --- SECTION 1: PRO PARAMETER CARDS (With Direct Typing & Scrubbing Wheels) --- */}
@@ -365,31 +365,30 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         <div className="quad-studio-tower__params is-full">
           {/* Card 1: BPM 速度 */}
           <section className="quad-pro-card quad-pro-card--tempo" data-cat="tempo">
-            <div className="quad-timing-scope" role="group" aria-label="参数作用范围">
-              <button type="button" aria-pressed={timingScope === 'current'} onClick={() => setTimingScope('current')}>当前画布</button>
-              <button type="button" aria-pressed={timingScope === 'all'} onClick={() => setTimingScope('all')}>全部画布</button>
+            <div className="quad-timing-scope" role="group" aria-label={tr("参数作用范围")}>
+              <button type="button" aria-pressed={timingScope === 'current'} onClick={() => setTimingScope('current')}>{tr("当前画布")}</button>
+              <button type="button" aria-pressed={timingScope === 'all'} onClick={() => setTimingScope('all')}>{tr("全部画布")}</button>
             </div>
             <header className="quad-pro-card__header">
-              <span className="quad-pro-card__title">BPM速度</span>
+              <span className="quad-pro-card__title">{tr("BPM速度")}</span>
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <ScrubbableWheelInput
                   value={bpm}
-                  formatValue={mixed('intervalMs') ? () => '不同' : undefined}
+                  formatValue={mixed('intervalMs') ? () => tr("不同") : undefined}
                   min={MIN_BPM}
                   max={MAX_BPM}
                   step={1}
                   unit="BPM"
-                  title="点击直接输入 BPM (40–240)；左右拖拽或滚轮增减"
+                  title={tr("点击直接输入 BPM (40–240)；左右拖拽或滚轮增减")}
                   onChange={(nextBpm) => onPatchSelectedPad({ intervalMs: intervalMsFromBpm(nextBpm) })}
                 />
                 <button
                   type="button"
                   className="quad-pro-mini-btn"
                   onClick={timingScope === 'all' ? onRestartAll : onRestartSelectedPad}
-                  title="立即对齐重置起拍"
+                  title={tr("立即对齐重置起拍")}
                 >
-                  起拍 ↺
-                </button>
+                  {tr("起拍 ↺")}</button>
               </div>
             </header>
 
@@ -411,25 +410,25 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
 
             <div className="quad-pro-field" style={{ marginTop: 6 }}>
               <div className="quad-pro-field__meta">
-                <span className="quad-pro-field__sublabel">乐句长度</span>
+                <span className="quad-pro-field__sublabel">{tr("乐句长度")}</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <ScrubbableWheelInput formatValue={mixed('phraseSteps') ? () => '不同' : undefined} value={selectedPad.phraseSteps ?? 4} min={4} max={MAX_PHRASE_STEPS} step={1} unit="步" title={`乐句长度：4–${MAX_PHRASE_STEPS} 步`} onChange={value => onPatchSelectedPad({ phraseMode: 'fixed', phraseSteps: normalizePhraseSteps(value) })} />
-                  <button className="quad-pro-mini-btn" type="button" aria-pressed={mixed('phraseMode') ? 'mixed' : selectedPad.phraseMode === 'auto'} onClick={() => onPatchSelectedPad({ phraseMode: mixed('phraseMode') || selectedPad.phraseMode !== 'auto' ? 'auto' : 'fixed' })}>自动{mixed('phraseMode') ? ' · 不同' : ''}</button>
+                  <ScrubbableWheelInput formatValue={mixed('phraseSteps') ? () => tr("不同") : undefined} value={selectedPad.phraseSteps ?? 4} min={4} max={MAX_PHRASE_STEPS} step={1} unit={tr("步")} title={tr("乐句长度：4–{0} 步", MAX_PHRASE_STEPS)} onChange={value => onPatchSelectedPad({ phraseMode: 'fixed', phraseSteps: normalizePhraseSteps(value) })} />
+                  <button className="quad-pro-mini-btn" type="button" aria-pressed={mixed('phraseMode') ? 'mixed' : selectedPad.phraseMode === 'auto'} onClick={() => onPatchSelectedPad({ phraseMode: mixed('phraseMode') || selectedPad.phraseMode !== 'auto' ? 'auto' : 'fixed' })}>{tr("自动")}{mixed('phraseMode') ? tr(" · 不同") : ''}</button>
                 </div>
               </div>
-              <div className="quad-pro-slider-wrap"><input className="quad-pro-slider" aria-label="乐句长度" type="range" min={4} max={MAX_PHRASE_STEPS} step={1} value={selectedPad.phraseSteps ?? 4} onChange={e => onPatchSelectedPad({phraseMode:'fixed', phraseSteps:Number(e.target.value)})} /></div>
+              <div className="quad-pro-slider-wrap"><input className="quad-pro-slider" aria-label={tr("乐句长度")} type="range" min={4} max={MAX_PHRASE_STEPS} step={1} value={selectedPad.phraseSteps ?? 4} onChange={e => onPatchSelectedPad({phraseMode:'fixed', phraseSteps:Number(e.target.value)})} /></div>
             </div>
             {/* Slider 2: 音量（UI 10–200 ↔ 内部 velocity） */}
             <div className="quad-pro-field" style={{ marginTop: '6px' }}>
               <div className="quad-pro-field__meta">
-                <span className="quad-pro-field__sublabel">音量</span>
+                <span className="quad-pro-field__sublabel">{tr("音量")}</span>
                 <ScrubbableWheelInput
                   value={volume}
-                  formatValue={mixed('velocity') ? () => '不同' : undefined}
+                  formatValue={mixed('velocity') ? () => tr("不同") : undefined}
                   min={MIN_VOLUME}
                   max={MAX_VOLUME}
                   step={1}
-                  title="点击直接输入音量 (10–200)；左右拖拽或滚轮增减"
+                  title={tr("点击直接输入音量 (10–200)；左右拖拽或滚轮增减")}
                   onChange={(nextVolume) => onPatchSelectedPad({ velocity: velocityFromVolume(nextVolume) })}
                 />
               </div>
@@ -442,7 +441,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                   value={volume}
                   onChange={(e) => onPatchSelectedPad({ velocity: velocityFromVolume(Number(e.target.value)) })}
                   className="quad-pro-slider"
-                  title={`音量: ${volume}`}
+                  title={tr("音量: {0}", volume)}
                 />
               </div>
             </div>
@@ -451,13 +450,13 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           {/* Card 2: 调式与音阶预设 (SCALE & HARMONY) */}
           <section className="quad-pro-card quad-pro-card--scale" data-cat="scale">
             <header className="quad-pro-card__header">
-              <span className="quad-pro-card__title">调式与音阶</span>
+              <span className="quad-pro-card__title">{tr("调式与音阶")}</span>
               <span className="quad-pro-card__tag">PAD {selectedPadId}</span>
             </header>
 
             <div className="quad-pro-grid-3">
               <label className="quad-pro-select-label">
-                <span>根音</span>
+                <span>{tr("根音")}</span>
                 <SoftSelect
                   variant="pro"
                   aria-label="Root note"
@@ -468,7 +467,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               </label>
 
               <label className="quad-pro-select-label">
-                <span>八度</span>
+                <span>{tr("八度")}</span>
                 <SoftSelect
                   variant="pro"
                   aria-label="Octave transpose"
@@ -479,7 +478,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               </label>
 
               <label className="quad-pro-select-label quad-pro-grid-3__scale">
-                <span>音阶体系</span>
+                <span>{tr("音阶体系")}</span>
                 <SoftSelect
                   variant="pro"
                   aria-label="Scale system"
@@ -496,8 +495,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
             <header className="quad-pro-card__header">
               <span className="quad-pro-card__title">
                 {formationFocus && activeFormation
-                  ? `编队 ${activeFormation.id}`
-                  : formatNodeInfoTitle(selectedPad, selectedNode)}
+                  ? tr("编队 {0}", activeFormation.id)
+                  : formatNodeInfoTitle(tr, selectedPad, selectedNode)}
               </span>
               <div className="quad-pro-card__header-actions">
                 {!editingFormation ? (
@@ -506,10 +505,9 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                     className={`quad-pro-mini-btn ${endpointEnabled ? 'quad-pro-mini-btn--accent' : ''}`}
                     disabled={selectedPad.locked}
                     onClick={onToggleEndpointPitch}
-                    title="双音符开关"
+                    title={tr("双音符开关")}
                   >
-                    双音符
-                  </button>
+                    {tr("双音符")}</button>
                 ) : null}
                 <button
                   type="button"
@@ -525,8 +523,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       : (nodeMuted ? 'Unmute node' : 'Mute node')
                   }
                 >
-                  静音
-                </button>
+                  {tr("静音")}</button>
                 <button
                   type="button"
                   className={`quad-pro-mini-btn ${nodeHidden ? 'quad-pro-mini-btn--accent' : ''}`}
@@ -541,15 +538,14 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       : (nodeHidden ? 'Show node' : 'Hide node')
                   }
                 >
-                  隐藏
-                </button>
+                  {tr("隐藏")}</button>
               </div>
             </header>
 
             {/* Pitch Direct Input & Stepper Bar */}
             <div className="quad-pro-pitch-bar">
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span className="quad-pro-field__sublabel">A 音</span>
+                <span className="quad-pro-field__sublabel">{tr("A 音")}</span>
                 <PitchDirectInput
                   scaleStep={selectedNode.scaleStep}
                   noteName={currentNoteName}
@@ -564,7 +560,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                   className="quad-pro-btn-step"
                   disabled={selectedPad.locked}
                   onClick={() => onPatchSelectedNode({ scaleStep: selectedNode.scaleStep - 1 })}
-                  title="降低半音阶"
+                  title={tr("降低半音阶")}
                 >
                   -
                 </button>
@@ -573,7 +569,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                   className="quad-pro-btn-step"
                   disabled={selectedPad.locked}
                   onClick={() => onPatchSelectedNode({ scaleStep: selectedNode.scaleStep + 1 })}
-                  title="升高半音阶"
+                  title={tr("升高半音阶")}
                 >
                   +
                 </button>
@@ -581,7 +577,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
 
               {endpointEnabled && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', borderLeft: '1px dashed var(--quad-line)', paddingLeft: '8px' }}>
-                  <span className="quad-pro-field__sublabel">B 音</span>
+                  <span className="quad-pro-field__sublabel">{tr("B 音")}</span>
                   <PitchDirectInput
                     scaleStep={selectedNode.endpointPitch?.bStep ?? 0}
                     noteName={bNoteName ?? '—'}
@@ -613,14 +609,14 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
 
             <div className="quad-pro-field" style={{ marginTop: 6 }}>
               <div className="quad-pro-field__meta">
-                <span className="quad-pro-field__sublabel">停留步数</span>
-                <ScrubbableWheelInput value={selectedNode.holdSteps ?? 1} min={1} max={MAX_PHRASE_STEPS} step={1} unit="步" disabled={selectedPad.locked} title="节点停留步数：延长时值与传递间隔；和弦成员以整组保持步数为准" onChange={holdSteps => onPatchSelectedNode({ holdSteps })} />
+                <span className="quad-pro-field__sublabel">{tr("停留步数")}</span>
+                <ScrubbableWheelInput value={selectedNode.holdSteps ?? 1} min={1} max={MAX_PHRASE_STEPS} step={1} unit={tr("步")} disabled={selectedPad.locked} title={tr("节点停留步数：延长时值与传递间隔；和弦成员以整组保持步数为准")} onChange={holdSteps => onPatchSelectedNode({ holdSteps })} />
               </div>
             </div>
             {/* 范围半径比例 */}
             <div className="quad-pro-field" style={{ marginTop: '6px' }}>
               <div className="quad-pro-field__meta">
-                <span className="quad-pro-field__sublabel">范围半径比例</span>
+                <span className="quad-pro-field__sublabel">{tr("范围半径比例")}</span>
                 <ScrubbableWheelInput
                   value={Math.round(selectedNode.range * 100)}
                   min={4}
@@ -628,7 +624,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                   step={1}
                   unit="%"
                   disabled={selectedPad.locked}
-                  title="点击直接输入范围半径比例 (4-48%)；左右拖拽或滚轮增减"
+                  title={tr("点击直接输入范围半径比例 (4-48%)；左右拖拽或滚轮增减")}
                   onChange={(pct) => onPatchSelectedNode({ range: pct / 100 })}
                 />
               </div>
@@ -642,7 +638,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                   disabled={selectedPad.locked}
                   onChange={(e) => onPatchSelectedNode({ range: Number(e.target.value) })}
                   className="quad-pro-slider"
-                  title={`范围半径比例: ${Math.round(selectedNode.range * 100)}%`}
+                  title={tr("范围半径比例: {0}%", Math.round(selectedNode.range * 100))}
                 />
               </div>
             </div>
@@ -651,18 +647,18 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           {/* Card 4: 轨迹模式 */}
           <section className="quad-pro-card quad-pro-card--motion" data-cat="motion">
             <header className="quad-pro-card__header">
-              <span className="quad-pro-card__title">轨迹模式</span>
+              <span className="quad-pro-card__title">{tr("轨迹模式")}</span>
               <span className="quad-pro-card__tag">
                 {formationFocus && activeFormation
-                  ? `编辑 ${activeFormation.id}`
+                  ? tr("编辑 {0}", activeFormation.id)
                   : groupNodeIds.length >= 2
-                    ? `多选 ${groupNodeIds.length}`
-                    : (MOTION_MODES.find((m) => m.key === selectedMotion.mode)?.label ?? '无')}
+                    ? tr("多选 {0}", groupNodeIds.length)
+                    : tr(MOTION_MODES.find((m) => m.key === selectedMotion.mode)?.label ?? '无')}
               </span>
             </header>
 
             {/* Mode Switcher Pills */}
-            <div className="quad-pro-modes" role="group" aria-label="轨迹模式选择">
+            <div className="quad-pro-modes" role="group" aria-label={tr("轨迹模式选择")}>
               {MOTION_MODES.map((m) => {
                 const isActive = selectedMotion.mode === m.key;
                 const formationLocked = Boolean(formationFocus && activeFormation);
@@ -717,16 +713,15 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       }
                     }}
                   >
-                    {m.label}
+                    {tr(m.label)}
                   </button>
                 );
               })}
             </div>
             {formationFocus && activeFormation ? (
               <div className="quad-pro-help">
-                正在编辑编队 {activeFormation.id}：{activeFormation.shape==='chord'?'任一成员被触达，整组同时触发；隐藏成员不参与。':'调半径/周期即改整组形状。'}
-                {activeFormation.shape === 'chord' && <label>和弦保持
-                  <ScrubbableWheelInput value={activeFormation.holdSteps ?? 1} min={1} max={64} step={1} unit="步" title="和弦保持步数" onChange={holdSteps => onPatchSelectedPad({ formations: (selectedPad.formations ?? []).map(f => f.id === activeFormation.id ? {...f, holdSteps} : f) })} />
+                {tr("正在编辑编队")}{activeFormation.id}：{activeFormation.shape==='chord'?tr("任一成员被触达，整组同时触发；隐藏成员不参与。"):tr("调半径/周期即改整组形状。")}
+                {activeFormation.shape === 'chord' && <label>{tr("和弦保持")}<ScrubbableWheelInput value={activeFormation.holdSteps ?? 1} min={1} max={64} step={1} unit={tr("步")} title={tr("和弦保持步数")} onChange={holdSteps => onPatchSelectedPad({ formations: (selectedPad.formations ?? []).map(f => f.id === activeFormation.id ? {...f, holdSteps} : f) })} />
                 </label>}
               </div>
             ) : null}
@@ -738,7 +733,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 <div className="quad-pro-field">
                   <div className="quad-pro-field__meta">
                     <span className="quad-pro-field__sublabel">
-                      {formationFocus ? '编队半径' : '轨道半径'}
+                      {formationFocus ? tr("编队半径") : tr("轨道半径")}
                     </span>
                     <ScrubbableWheelInput
                       value={Math.round((selectedMotion.amount ?? 0.08) * 100)}
@@ -747,7 +742,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       step={1}
                       unit="%"
                       disabled={selectedPad.locked}
-                      title={formationFocus ? '编队圆半径' : '点击直接输入轨道半径百分比 (2-25%)；左右拖拽滚轮调节'}
+                      title={formationFocus ? tr("编队圆半径") : tr("点击直接输入轨道半径百分比 (2-25%)；左右拖拽滚轮调节")}
                       onChange={(pct) => onChangeSelectedMotion({ ...selectedMotion, amount: pct / 100 })}
                     />
                   </div>
@@ -767,15 +762,15 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px' }}>
                   <div className="quad-pro-field" style={{ flex: 1 }}>
                     <div className="quad-pro-field__meta">
-                      <span className="quad-pro-field__sublabel">运动周期</span>
+                      <span className="quad-pro-field__sublabel">{tr("运动周期")}</span>
                       <ScrubbableWheelInput
                         value={selectedMotion.rateCycles ?? 3}
                         min={1}
                         max={32}
                         step={1}
-                        unit="周期"
+                        unit={tr("周期")}
                         disabled={selectedPad.locked}
-                        title="点击直接输入数字周期 (如 2, 3, 4, 6, 8)；左右拖拽滚轮调节"
+                        title={tr("点击直接输入数字周期 (如 2, 3, 4, 6, 8)；左右拖拽滚轮调节")}
                         onChange={(rateCycles) => onChangeSelectedMotion({ ...selectedMotion, rateCycles })}
                       />
                     </div>
@@ -801,10 +796,10 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                         direction: selectedMotion.direction === 'ccw' ? 'cw' : 'ccw',
                       })
                     }
-                    title="切换运动方向"
+                    title={tr("切换运动方向")}
                     style={{ marginTop: '12px' }}
                   >
-                    {selectedMotion.direction === 'ccw' ? '↺ 逆时针' : '↻ 顺时针'}
+                    {selectedMotion.direction === 'ccw' ? tr("↺ 逆时针") : tr("↻ 顺时针")}
                   </button>
                 </div>
               </div>
@@ -815,7 +810,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 {/* 摆动幅度 */}
                 <div className="quad-pro-field">
                   <div className="quad-pro-field__meta">
-                    <span className="quad-pro-field__sublabel">摆动幅度</span>
+                    <span className="quad-pro-field__sublabel">{tr("摆动幅度")}</span>
                     <ScrubbableWheelInput
                       value={Math.round((selectedMotion.amount ?? 0.08) * 100)}
                       min={2}
@@ -823,7 +818,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       step={1}
                       unit="%"
                       disabled={selectedPad.locked}
-                      title="点击直接输入摆动幅度百分比 (2-25%)；左右拖拽滚轮调节"
+                      title={tr("点击直接输入摆动幅度百分比 (2-25%)；左右拖拽滚轮调节")}
                       onChange={(pct) => onChangeSelectedMotion({ ...selectedMotion, amount: pct / 100 })}
                     />
                   </div>
@@ -843,7 +838,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '6px' }}>
                   <div className="quad-pro-field">
                     <div className="quad-pro-field__meta">
-                      <span className="quad-pro-field__sublabel">摆动角度</span>
+                      <span className="quad-pro-field__sublabel">{tr("摆动角度")}</span>
                       <ScrubbableWheelInput
                         value={(selectedMotion as any).angleDegrees ?? (selectedMotion as any).angleDeg ?? 90}
                         min={0}
@@ -851,7 +846,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                         step={5}
                         unit="°"
                         disabled={selectedPad.locked}
-                        title="点击直接输入摆动角度 (0-360°)；左右拖拽滚轮调节"
+                        title={tr("点击直接输入摆动角度 (0-360°)；左右拖拽滚轮调节")}
                         onChange={(angle) =>
                           onChangeSelectedMotion({
                             ...selectedMotion,
@@ -881,15 +876,15 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
 
                   <div className="quad-pro-field">
                     <div className="quad-pro-field__meta">
-                      <span className="quad-pro-field__sublabel">运动周期</span>
+                      <span className="quad-pro-field__sublabel">{tr("运动周期")}</span>
                       <ScrubbableWheelInput
                         value={selectedMotion.rateCycles ?? 2}
                         min={1}
                         max={32}
                         step={1}
-                        unit="周期"
+                        unit={tr("周期")}
                         disabled={selectedPad.locked}
-                        title="点击直接输入运动周期 (如 2, 3, 4, 6, 8)；左右拖拽滚轮调节"
+                        title={tr("点击直接输入运动周期 (如 2, 3, 4, 6, 8)；左右拖拽滚轮调节")}
                         onChange={(rateCycles) => onChangeSelectedMotion({ ...selectedMotion, rateCycles })}
                       />
                     </div>
@@ -912,25 +907,25 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               <div className="quad-pro-motion-params">
                 <div className="quad-pro-help">
                   {drawStatus === 'recording'
-                    ? '录制中：按住节点拖动，松手结束'
+                    ? tr("录制中：按住节点拖动，松手结束")
                     : drawStatus === 'armed'
-                      ? '待命中：请在画布上按住节点拖动开始录制（点 D / 绘制不会立刻开录）'
+                      ? tr("待命中：请在画布上按住节点拖动开始录制（点 D / 绘制不会立刻开录）")
                       : selectedMotion.path?.length
-                        ? `已录制 ${selectedMotion.path.length} 关键帧 · 播放周期 ${selectedMotion.rateCycles ?? 4}`
-                        : '选手绘后，在画布按住节点拖动才开始录制'}
+                        ? tr("已录制 {0} 关键帧 · 播放周期 {1}", selectedMotion.path.length, selectedMotion.rateCycles ?? 4)
+                        : tr("选手绘后，在画布按住节点拖动才开始录制")}
                 </div>
 
                 <div className="quad-pro-field" style={{ marginTop: '6px' }}>
                   <div className="quad-pro-field__meta">
-                    <span className="quad-pro-field__sublabel">运动周期</span>
+                    <span className="quad-pro-field__sublabel">{tr("运动周期")}</span>
                     <ScrubbableWheelInput
                       value={selectedMotion.rateCycles ?? 4}
                       min={1}
                       max={32}
                       step={1}
-                      unit="周期"
+                      unit={tr("周期")}
                       disabled={selectedPad.locked}
-                      title="手绘轨迹走完一遍需要多少个 Pad 周期；常用 2 / 4 / 6 / 8"
+                      title={tr("手绘轨迹走完一遍需要多少个 Pad 周期；常用 2 / 4 / 6 / 8")}
                       onChange={(rateCycles) => onChangeSelectedMotion({ ...selectedMotion, rateCycles })}
                     />
                   </div>
@@ -954,7 +949,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       className={`quad-pro-mini-btn ${(selectedMotion.rateCycles ?? 4) === cycles ? 'quad-pro-mini-btn--accent' : ''}`}
                       disabled={selectedPad.locked}
                       onClick={() => onChangeSelectedMotion({ ...selectedMotion, rateCycles: cycles })}
-                      title={`设为 ${cycles} 周期`}
+                      title={tr("设为 {0} 周期", cycles)}
                     >
                       {cycles}
                     </button>
@@ -967,8 +962,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       disabled={selectedPad.locked}
                       onClick={() => onChangeSelectedMotion({ ...selectedMotion, path: [] })}
                     >
-                      清除重录
-                    </button>
+                      {tr("清除重录")}</button>
                   ) : null}
                 </div>
               </div>
@@ -978,24 +972,24 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               <div className="quad-pro-motion-params">
                 <div className="quad-pro-help">
                   {drawStatus === 'armed'
-                    ? '待命中：再点击画布上的目标位置（F / 闪烁 可取消）'
+                    ? tr("待命中：再点击画布上的目标位置（F / 闪烁 可取消）")
                     : Math.abs(selectedMotion.targetDx ?? 0) > 1e-6
                       || Math.abs(selectedMotion.targetDy ?? 0) > 1e-6
-                      ? `目标已设定 · 周期前半原位 / 后半跳转 · 播放周期 ${selectedMotion.rateCycles ?? 2}`
-                      : '选闪烁后，再点击画布位置设定跳转目标'}
+                      ? tr("目标已设定 · 周期前半原位 / 后半跳转 · 播放周期 {0}", selectedMotion.rateCycles ?? 2)
+                      : tr("选闪烁后，再点击画布位置设定跳转目标")}
                 </div>
 
                 <div className="quad-pro-field" style={{ marginTop: '6px' }}>
                   <div className="quad-pro-field__meta">
-                    <span className="quad-pro-field__sublabel">运动周期</span>
+                    <span className="quad-pro-field__sublabel">{tr("运动周期")}</span>
                     <ScrubbableWheelInput
                       value={selectedMotion.rateCycles ?? 2}
                       min={1}
                       max={32}
                       step={1}
-                      unit="周期"
+                      unit={tr("周期")}
                       disabled={selectedPad.locked}
-                      title="完成一次原位↔目标跳转需要多少个 Pad 周期；常用 2 / 4 / 6 / 8"
+                      title={tr("完成一次原位↔目标跳转需要多少个 Pad 周期；常用 2 / 4 / 6 / 8")}
                       onChange={(rateCycles) => onChangeSelectedMotion({ ...selectedMotion, rateCycles })}
                     />
                   </div>
@@ -1019,7 +1013,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       className={`quad-pro-mini-btn ${(selectedMotion.rateCycles ?? 2) === cycles ? 'quad-pro-mini-btn--accent' : ''}`}
                       disabled={selectedPad.locked}
                       onClick={() => onChangeSelectedMotion({ ...selectedMotion, rateCycles: cycles })}
-                      title={`设为 ${cycles} 周期`}
+                      title={tr("设为 {0} 周期", cycles)}
                     >
                       {cycles}
                     </button>
@@ -1036,8 +1030,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                         rateCycles: selectedMotion.rateCycles ?? 2,
                       })}
                     >
-                      清除目标
-                    </button>
+                      {tr("清除目标")}</button>
                   ) : null}
                 </div>
               </div>
@@ -1047,13 +1040,13 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
           {/* Card 5: 组合音符 — 共形编队；周期/半径在选中枢纽后用上方「轨迹模式」调 */}
           <section className="quad-pro-card quad-pro-card--group" data-cat="group">
             <header className="quad-pro-card__header">
-              <span className="quad-pro-card__title">组合音符</span>
+              <span className="quad-pro-card__title">{tr("组合音符")}</span>
               <span className="quad-pro-card__tag">
                 {padFormations.length > 0
-                  ? `${padFormations.length} 编队`
+                  ? tr("{0} 编队", padFormations.length)
                   : groupNodeIds.length >= 2
-                    ? `${groupNodeIds.length} 选中`
-                    : 'Ctrl 点选'}
+                    ? tr("{0} 选中", groupNodeIds.length)
+                    : tr("Ctrl 点选")}
               </span>
             </header>
 
@@ -1061,9 +1054,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               {padFormations.length > 0 ? (
                 <>
                   <div className="quad-pro-field__sublabel" style={{ marginBottom: 4 }}>
-                    已有编队
-                  </div>
-                  <div className="quad-pro-group-chips" role="list" aria-label="编队列表">
+                    {tr("已有编队")}</div>
+                  <div className="quad-pro-group-chips" role="list" aria-label={tr("编队列表")}>
                     {padFormations.map((formation) => {
                       const isActive = activeFormation?.id === formation.id && formationFocus;
                       return (
@@ -1077,7 +1069,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                             className="quad-pro-group-chip__main"
                             disabled={selectedPad.locked || !onSelectFormation}
                             onClick={() => onSelectFormation?.(formation.id)}
-                            title={`${formation.id} · ${formation.nodeIds.length} 音 · ${formation.shape}`}
+                            title={tr("{0} · {1} 音 · {2}", formation.id, formation.nodeIds.length, formation.shape)}
                           >
                             <span className="quad-pro-group-chip__text">{formation.id}</span>
                             <span className="quad-pro-group-chip__index">{formation.nodeIds.length}</span>
@@ -1089,7 +1081,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                   {activeFormation && formationFocus ? (
                     <div style={{ display: 'flex', gap: 6, marginTop: 6, alignItems: 'center' }}>
                       <span className="quad-pro-field__sublabel">
-                        焦点 {activeFormation.id}
+                        {tr("焦点")}{activeFormation.id}
                       </span>
                       <button
                         type="button"
@@ -1097,10 +1089,9 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                         style={{ marginLeft: 'auto' }}
                         disabled={selectedPad.locked || !onDissolveFormation}
                         onClick={() => onDissolveFormation?.()}
-                        title="解散当前编队（音符保留）"
+                        title={tr("解散当前编队（音符保留）")}
                       >
-                        解散
-                      </button>
+                        {tr("解散")}</button>
                     </div>
                   ) : null}
                 </>
@@ -1110,19 +1101,17 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 className="quad-pro-field__sublabel"
                 style={{ marginBottom: 4, marginTop: padFormations.length > 0 ? 10 : 0 }}
               >
-                音符顺序
-              </div>
+                {tr("音符顺序")}</div>
               <div style={{ display: 'flex', gap: 8, margin: '8px 0' }}>
-                <button className="quad-pro-mini-btn" type="button" disabled={!groupNodeIds.length || !onCopyNotes} onClick={onCopyNotes} title="复制所选音符与完整编队（Ctrl+C）">复制选中</button>
-                <button className="quad-pro-mini-btn" type="button" disabled={!canPasteNotes || selectedPad.locked} onClick={onPasteNotes} title="粘贴到当前 Pad（Ctrl+V）">粘贴</button>
+                <button className="quad-pro-mini-btn" type="button" disabled={!groupNodeIds.length || !onCopyNotes} onClick={onCopyNotes} title={tr("复制所选音符与完整编队（Ctrl+C）")}>{tr("复制选中")}</button>
+                <button className="quad-pro-mini-btn" type="button" disabled={!canPasteNotes || selectedPad.locked} onClick={onPasteNotes} title={tr("粘贴到当前 Pad（Ctrl+V）")}>{tr("粘贴")}</button>
               </div>
-              <p className="quad-experiment-hint">Ctrl 多选后复制；完整编队保留关系，部分成员单独粘贴。</p>
+              <p className="quad-experiment-hint">{tr("Ctrl 多选后复制；完整编队保留关系，部分成员单独粘贴。")}</p>
               {groupNodeIds.length === 0 ? (
                 <div className="quad-pro-help">
-                  按住 Ctrl（Mac：⌘）点选音符；选形状可新建编队（G1/G2…可并存）。点枢纽切换编辑对象。
-                </div>
+                  {tr("按住 Ctrl（Mac：⌘）点选音符；选形状可新建编队（G1/G2…可并存）。点枢纽切换编辑对象。")}</div>
               ) : (
-                <div className="quad-pro-group-chips" role="list" aria-label="组合音符顺序">
+                <div className="quad-pro-group-chips" role="list" aria-label={tr("组合音符顺序")}>
                   {groupNodeIds.map((nodeId, index) => {
                     const node = selectedPad.nodes.find((candidate) => candidate.id === nodeId);
                     if (!node) return null;
@@ -1151,8 +1140,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                             type="button"
                             disabled={selectedPad.locked || index === 0 || !onReorderGroupNode}
                             onClick={() => onReorderGroupNode?.(nodeId, -1)}
-                            title="前移"
-                            aria-label="前移顺序"
+                            title={tr("前移")}
+                            aria-label={tr("前移顺序")}
                           >
                             ‹
                           </button>
@@ -1164,8 +1153,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                               || !onReorderGroupNode
                             }
                             onClick={() => onReorderGroupNode?.(nodeId, 1)}
-                            title="后移"
-                            aria-label="后移顺序"
+                            title={tr("后移")}
+                            aria-label={tr("后移顺序")}
                           >
                             ›
                           </button>
@@ -1177,9 +1166,8 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
               )}
 
               <div className="quad-pro-field__sublabel" style={{ marginTop: 10, marginBottom: 4 }}>
-                编队形状
-              </div>
-              <div className="quad-pro-modes quad-pro-modes--group" role="group" aria-label="编队形状">
+                {tr("编队形状")}</div>
+              <div className="quad-pro-modes quad-pro-modes--group" role="group" aria-label={tr("编队形状")}>
                 {FORMATION_SHAPES.map((m) => {
                   const isActive = groupMotionMode === m.key && groupNodeIds.length >= 2;
                   return (
@@ -1189,21 +1177,21 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                       className={`quad-pro-mode-pill ${isActive ? 'is-active' : ''}`}
                       disabled={selectedPad.locked || groupNodeIds.length < 2 || !onChangeGroupMotionMode}
                       onClick={() => onChangeGroupMotionMode?.(m.key)}
-                      title={groupNodeIds.length < 2 ? '请先 Ctrl 选中至少 2 个音符' : undefined}
+                      title={groupNodeIds.length < 2 ? tr("请先 Ctrl 选中至少 2 个音符") : undefined}
                     >
-                      {m.label}
+                      {tr(m.label)}
                     </button>
                   );
                 })}
               </div>
               <div className="quad-pro-help">
                 {groupNodeIds.length < 2
-                  ? '至少 2 个音符 → 选和弦/圆形/线段/闪烁。换一组音符再选形状，可再建 G2/G3…'
+                  ? tr("至少 2 个音符 → 选和弦/圆形/线段/闪烁。换一组音符再选形状，可再建 G2/G3…")
                   : activeFormation && formationFocus
                     && activeFormation.nodeIds.length === groupNodeIds.length
                     && groupNodeIds.every((id) => activeFormation.nodeIds.includes(id))
-                    ? `更新 ${activeFormation.id}：再点其他音符组 + 形状可新建下一编队。`
-                    : `将生成新编队（现有 ${padFormations.length} 个）。选中枢纽后用轨迹模式调半径/周期。`}
+                    ? tr("更新 {0}：再点其他音符组 + 形状可新建下一编队。", activeFormation.id)
+                    : tr("将生成新编队（现有 {0} 个）。选中枢纽后用轨迹模式调半径/周期。", padFormations.length)}
               </div>
             </div>
           </section>
@@ -1217,7 +1205,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
         <div className="quad-studio-tower__map is-fullscreen">
           <header className="quad-tower-map-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="quad-tower-map-title">周期图谱</span>
+              <span className="quad-tower-map-title">{tr("周期图谱")}</span>
               <span className="quad-pro-card__tag" style={{ color: 'var(--selected-pad-color, var(--quad-stamen))' }}>
                 PAD {selectedPadId}
               </span>
@@ -1230,7 +1218,7 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                   background: selectedPad.playing ? 'var(--selected-pad-color, var(--quad-stamen))' : 'var(--quad-muted)',
                   boxShadow: 'none',
                 }}
-                title={selectedPad.playing ? `正在实时演化 (周期相位: ${Math.round(cyclePhase * 100)}%)` : '已暂停'}
+                title={selectedPad.playing ? tr("正在实时演化 (周期相位: {0}%)", Math.round(cyclePhase * 100)) : tr("已暂停")}
               />
             </div>
 
@@ -1242,16 +1230,15 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                   setTowerMode('controls');
                   if (cycleMapOpen) onToggleCycleMap();
                 }}
-                title="返回控制面板"
+                title={tr("返回控制面板")}
               >
-                返回控制
-              </button>
+                {tr("返回控制")}</button>
             </div>
           </header>
 
           {/* Map Content Container */}
-          <nav className="quad-map-view-switch" aria-label="图谱视图">
-            {([['current','当前轨'],['overview','四轨总览'],['phase','相位对比'],['sequence','音序全图'],['structure','结构对照'],['follow','旋律追随']] as const).map(([id,label]) => <button key={id} type="button" className="quad-pro-mini-btn" aria-pressed={mapView===id} onClick={()=>setMapView(id)}>{label}</button>)}
+          <nav className="quad-map-view-switch" aria-label={tr("图谱视图")}>
+            {([['current',tr("当前轨")],['overview',tr("四轨总览")],['phase',tr("相位对比")],['sequence',tr("音序全图")],['structure',tr("结构对照")],['follow',tr("旋律追随")]] as const).map(([id,label]) => <button key={id} type="button" className="quad-pro-mini-btn" aria-pressed={mapView===id} onClick={()=>setMapView(id)}>{label}</button>)}
           </nav>
           <div className="quad-tower-map-body">
             {mapView === 'follow' ? melodyFollow : mapView === 'structure' ? structureMap : mapView === 'sequence' ? sequenceAtlas : mapView === 'phase' ? <PhaseComparison pads={comparisonPads} sources={overviewPads} /> : mapView === 'overview' ? <MultiPadOverview pads={overviewPads} progress={comparisonPads} /> : <CycleTrace

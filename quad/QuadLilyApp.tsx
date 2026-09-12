@@ -1,3 +1,4 @@
+import { UiLocaleContext, useUiText } from './uiLocale';
 import {SequenceAtlas} from './SequenceAtlas';
 import {StructureMap} from './StructureMap';
 import {MelodyFollow} from './MelodyFollow';
@@ -291,6 +292,7 @@ export default function QuadLilyApp() {
       return 'zh';
     }
   });
+  const tr = useUiText(locale);
 
   // 首次登录强制登记昵称
   useEffect(() => {
@@ -352,7 +354,7 @@ export default function QuadLilyApp() {
   const [drawCapture, setDrawCaptureState] = useState<DrawCaptureState | null>(null);
   const [drawPreview, setDrawPreview] = useState<DrawPreviewState | null>(null);
   const [midiPorts, setMidiPorts] = useState<DeskMidiPortsSnapshot>(EMPTY_MIDI_PORTS);
-  const [midiStatus, setMidiStatus] = useState('正在寻找 FM-1…');
+  const [midiStatus, setMidiStatus] = useState(tr("正在寻找 FM-1…"));
   const midiAccessRef = useRef<MIDIAccess | null>(null);
   const midiBusRef = useRef(new QuadMidiBus(null));
   const [soundPresetId, setSoundPresetId] = useState<string>(() => {
@@ -545,6 +547,13 @@ export default function QuadLilyApp() {
       resolveCycleSnapshot: (pad, cycle) => materializePadMotion(pad, cycle),
       continueBeyondCycle: () => cycleContinueRef.current,
       onCycleStart: (padId, cycle, snapshot, startedAtMs) => {
+        // An explicit start creates cycle zero, even when the old run was still in cycle zero.
+        // Cancel old visual/release callbacks and remove their highlights before new triggers arrive.
+        if (cycle === 0) {
+          clearReleaseTimers(padId);
+          midiBusRef.current.releaseSlot(padId);
+          setActiveNodes(previous => ({ ...previous, [padId]: [] }));
+        }
         cycleStartedAtRef.current[padId] = startedAtMs;
         cycleDurationRef.current[padId] = getPadCycleDurationMs(snapshot);
         if (mountedRef.current) {
@@ -554,7 +563,7 @@ export default function QuadLilyApp() {
         }
       },
       onCycleCompiled: (padId, _cycle, compilation, snapshot) => {
-        setSequenceRounds(old => ({...old,[padId]:archiveSequenceRound(old[padId],sequenceRound(_cycle,compilation,snapshot))}));
+        setSequenceRounds(old => ({...old,[padId]:archiveSequenceRound(old[padId],sequenceRound(_cycle,compilation,snapshot),_cycle===0)}));
         if (mountedRef.current) {
           setCycleCompilations(previous => ({ ...previous, [padId]: compilation }));
           setCycleSnapshots(previous => ({ ...previous, [padId]: snapshot }));
@@ -657,6 +666,7 @@ export default function QuadLilyApp() {
         midiBusRef.current.releaseSlot(padId);
         cycleStartedAtRef.current[padId] = 0;
         if (mountedRef.current) {
+          setSequenceRounds(previous => ({ ...previous, [padId]: {current:null,previous:null,history:[]} }));
           setPausedPads(previous => previous[padId] ? { ...previous, [padId]: false } : previous);
           setActiveNodes(previous => ({ ...previous, [padId]: [] }));
           setCycleIndex(previous => ({ ...previous, [padId]: 0 }));
@@ -737,7 +747,7 @@ export default function QuadLilyApp() {
   }, []);
 
   const refreshMidi = useCallback(async () => {
-    setMidiStatus('正在检查 MIDI 端口…');
+    setMidiStatus(tr("正在检查 MIDI 端口…"));
     try {
       const access = midiAccessRef.current ?? await requestDeskMidiAccess();
       midiAccessRef.current = access;
@@ -753,9 +763,9 @@ export default function QuadLilyApp() {
       const initial = readDeskMidiPorts(access, userSelectedMidiIdRef.current);
       const activeId = userSelectedMidiIdRef.current;
       const preferred = initial.outputs.find(output => output.id === activeId);
-      setMidiStatus(preferred ? `${preferred.name || 'MIDI 设备'} 已连接 (外部音色)` : '内置音色模式 (MIDI 未连接)');
+      setMidiStatus(preferred ? tr("{0} 已连接 (外部音色)", preferred.name || tr("MIDI 设备")) : tr("内置音色模式 (MIDI 未连接)"));
     } catch (error) {
-      setMidiStatus(error instanceof Error ? error.message : 'MIDI 未启用');
+      setMidiStatus(error instanceof Error ? error.message : tr("MIDI 未启用"));
     }
   }, []);
 
@@ -770,7 +780,7 @@ export default function QuadLilyApp() {
     midiBusRef.current.masterPanic();
     midiBusRef.current = new QuadMidiBus(selectedOutput);
     if (selectedOutput) {
-      setMidiStatus(`${selectedOutput.name || 'FM-1'} 已连接`);
+      setMidiStatus(tr("{0} 已连接", selectedOutput.name || 'FM-1'));
       // 连上外部端口后，画布音色默认切到「外接音色」
       setSoundPresetId(EXTERNAL_SOUND_PRESET_ID);
     } else {
@@ -849,7 +859,7 @@ export default function QuadLilyApp() {
         dragRef.current = recording;
         setDrawCapture({ padId: drag.padId, nodeId: drag.nodeId, status: 'recording', kind: 'draw' });
         setDrawPreview({ padId: drag.padId, nodeId: drag.nodeId, point });
-        setMidiStatus(`Pad ${drag.padId} · DRAW 录制中 — 松手结束`);
+        setMidiStatus(tr("Pad {0} · DRAW 录制中 — 松手结束", drag.padId));
         return;
       }
 
@@ -890,7 +900,7 @@ export default function QuadLilyApp() {
       if (durationMs < 60 || travel < 0.008 || compiled.length < 2) {
         setDrawCapture({ padId: drag.padId, nodeId: drag.nodeId, status: 'armed', kind: 'draw' });
         setDrawPreview(null);
-        setMidiStatus('DRAW 太短：请拖出一条更清晰的路径');
+        setMidiStatus(tr("DRAW 太短：请拖出一条更清晰的路径"));
         return;
       }
 
@@ -910,7 +920,7 @@ export default function QuadLilyApp() {
       });
       setDrawCapture(null);
       setDrawPreview(null);
-      setMidiStatus(`Pad ${drag.padId} · DRAW 已记录 ${compiled.length} 关键帧（松手结束）`);
+      setMidiStatus(tr("Pad {0} · DRAW 已记录 {1} 关键帧（松手结束）", drag.padId, compiled.length));
     };
 
     const onPointerCancel = (event: PointerEvent) => {
@@ -1019,7 +1029,7 @@ export default function QuadLilyApp() {
       });
       setSelectedNodes(previous => ({ ...previous, [padId]: nodeId }));
       setFormationFocus(false);
-      setMidiStatus(`Pad ${padId} · 组合点选（Ctrl）`);
+      setMidiStatus(tr("Pad {0} · 组合点选（Ctrl）", padId));
       return;
     }
 
@@ -1040,7 +1050,7 @@ export default function QuadLilyApp() {
         originPointer: point,
         startedAt,
       };
-      setMidiStatus(`Pad ${padId} · DRAW 待命 — 拖动节点开始录制`);
+      setMidiStatus(tr("Pad {0} · DRAW 待命 — 拖动节点开始录制", padId));
     } else {
       dragRef.current = {
         kind: 'move-base',
@@ -1090,10 +1100,10 @@ export default function QuadLilyApp() {
         cycleDurationRef.current[padId] = cursor.intervalMs;
         setCycleIndex(previous => ({ ...previous, [padId]: cursor.cycle }));
         setCyclePhase(previous => ({ ...previous, [padId]: cursor.phase }));
-        setMidiStatus(`Pad ${padId} · ${Math.round(cursor.phase * 100)}% 继续`);
+        setMidiStatus(tr("Pad {0} · {1}% 继续", padId, Math.round(cursor.phase * 100)));
       } else {
         runner?.startPad(next.pads[padId]);
-        setMidiStatus(`Pad ${padId} 从周期起点播放`);
+        setMidiStatus(tr("Pad {0} 从周期起点播放", padId));
       }
       setPausedPads(previous => previous[padId] ? { ...previous, [padId]: false } : previous);
     } else {
@@ -1107,7 +1117,7 @@ export default function QuadLilyApp() {
         setCycleIndex(previous => ({ ...previous, [padId]: cursor.cycle }));
         setCyclePhase(previous => ({ ...previous, [padId]: cursor.phase }));
         setPausedPads(previous => ({ ...previous, [padId]: true }));
-        setMidiStatus(`Pad ${padId} 已冻结在 ${Math.round(cursor.phase * 100)}% · Space 继续`);
+        setMidiStatus(tr("Pad {0} 已冻结在 {1}% · Space 继续", padId, Math.round(cursor.phase * 100)));
       } else {
         setPausedPads(previous => previous[padId] ? { ...previous, [padId]: false } : previous);
       }
@@ -1170,16 +1180,18 @@ export default function QuadLilyApp() {
 
   const restartAll = () => {
     const playingPads = QUAD_PAD_IDS.map(padId => workspaceRef.current.pads[padId]).filter(pad => pad.playing);
-    if (!playingPads.length) {
-      setMidiStatus('先播放至少一个 Pad，再同步重启');
-      return;
-    }
-    playingPads.forEach(pad => {
-      clearReleaseTimers(pad.id);
-      midiBusRef.current.releaseSlot(pad.id);
+    QUAD_PAD_IDS.forEach(padId => {
+      clearReleaseTimers(padId);
+      midiBusRef.current.releaseSlot(padId);
     });
+    runnerRef.current?.stopAll();
+    setActiveNodes(createPadRecord(() => []));
+    setSequenceRounds(createPadRecord(() => ({current:null,previous:null,history:[]})));
+    setPausedPads(createPadRecord(() => false));
     runnerRef.current?.startPads(playingPads);
-    setMidiStatus(`${playingPads.length} 个 Pad 已从同一起点重启`);
+    setMidiStatus(playingPads.length
+      ? tr("{0} 个 Pad 已从同一起点重启", playingPads.length)
+      : tr("所有 Pad 已回到周期起点"));
   };
 
   const restartSelectedPad = () => {
@@ -1190,7 +1202,7 @@ export default function QuadLilyApp() {
       runnerRef.current?.stopPad(selectedPadId);
       setPausedPads(previous => ({ ...previous, [selectedPadId]: false }));
     }
-    setMidiStatus(`Pad ${selectedPadId} 已回到周期起点`);
+    setMidiStatus(tr("Pad {0} 已回到周期起点", selectedPadId));
   };
 
   const patchSelectedPad = (patch: Partial<Omit<QuadLilyPad, 'id' | 'nodes'>>) => {
@@ -1212,7 +1224,7 @@ export default function QuadLilyApp() {
 
   const toggleEndpointPitch = () => {
     if (formationFocus && activeFormation) {
-      setMidiStatus(`Pad ${selectedPadId} · 编队单位不支持双音符`);
+      setMidiStatus(tr("Pad {0} · 编队单位不支持双音符", selectedPadId));
       return;
     }
     patchSelectedNode({
@@ -1221,8 +1233,8 @@ export default function QuadLilyApp() {
         : { bStep: selectedNode.scaleStep + 1 },
     });
     setMidiStatus(selectedNode.endpointPitch
-      ? `Pad ${selectedPadId} · 节点恢复单音 A`
-      : `Pad ${selectedPadId} · A/B 端点音高已启用，下周期生效`);
+      ? tr("Pad {0} · 节点恢复单音 A", selectedPadId)
+      : tr("Pad {0} · A/B 端点音高已启用，下周期生效", selectedPadId));
   };
 
   const armDraw = () => {
@@ -1230,7 +1242,7 @@ export default function QuadLilyApp() {
     dragRef.current = null;
     setDrawPreview(null);
     setDrawCapture({ padId: selectedPadId, nodeId: selectedNode.id, status: 'armed', kind: 'draw' });
-    setMidiStatus(`Pad ${selectedPadId} · DRAW 待命：在画布上按住节点拖动才开始录制`);
+    setMidiStatus(tr("Pad {0} · DRAW 待命：在画布上按住节点拖动才开始录制", selectedPadId));
   };
 
   const armFlash = () => {
@@ -1238,14 +1250,14 @@ export default function QuadLilyApp() {
     dragRef.current = null;
     setDrawPreview(null);
     setDrawCapture({ padId: selectedPadId, nodeId: selectedNode.id, status: 'armed', kind: 'flash' });
-    setMidiStatus(`Pad ${selectedPadId} · 闪烁待命：再点击画布上的目标位置`);
+    setMidiStatus(tr("Pad {0} · 闪烁待命：再点击画布上的目标位置", selectedPadId));
   };
 
   const cancelDraw = () => {
     dragRef.current = null;
     setDrawPreview(null);
     setDrawCapture(null);
-    setMidiStatus('轨迹待命已取消，原设置保持不变');
+    setMidiStatus(tr("轨迹待命已取消，原设置保持不变"));
   };
 
   /** 闪烁：把点击坐标写成相对目标；多选时以首节点为基准，偏移套用到全体 */
@@ -1278,7 +1290,7 @@ export default function QuadLilyApp() {
       });
       setDrawCapture(null);
       setDrawPreview(null);
-      setMidiStatus(`Pad ${padId} · 编队闪烁位移已设定`);
+      setMidiStatus(tr("Pad {0} · 编队闪烁位移已设定", padId));
       return;
     }
 
@@ -1308,7 +1320,7 @@ export default function QuadLilyApp() {
       });
       setDrawCapture(null);
       setDrawPreview(null);
-      setMidiStatus(`Pad ${padId} · 多选闪烁：共用首点偏移（${orderedIds.length} 节点）`);
+      setMidiStatus(tr("Pad {0} · 多选闪烁：共用首点偏移（{1} 节点）", padId, orderedIds.length));
       return;
     }
 
@@ -1331,7 +1343,7 @@ export default function QuadLilyApp() {
     });
     setDrawCapture(null);
     setDrawPreview(null);
-    setMidiStatus(`Pad ${padId} · 闪烁目标已设定（周期内跳转）`);
+    setMidiStatus(tr("Pad {0} · 闪烁目标已设定（周期内跳转）", padId));
   };
 
   const changeSelectedMotion = (motion: LilyNodeMotion) => {
@@ -1357,12 +1369,12 @@ export default function QuadLilyApp() {
             kind: 'formation-flash',
             formationId: nextFormation.id,
           });
-          setMidiStatus(`Pad ${selectedPadId} · ${nextFormation.id} 闪烁待命：再点目标`);
+          setMidiStatus(tr("Pad {0} · {1} 闪烁待命：再点目标", selectedPadId, nextFormation.id));
           return;
         }
       }
       setDrawCapture(null);
-      setMidiStatus(`Pad ${selectedPadId} · 已更新编队 ${nextFormation.id}`);
+      setMidiStatus(tr("Pad {0} · 已更新编队 {1}", selectedPadId, nextFormation.id));
       return;
     }
 
@@ -1399,7 +1411,7 @@ export default function QuadLilyApp() {
             );
           });
           setDrawCapture(null);
-          setMidiStatus(`Pad ${selectedPadId} · 多选闪烁已套用共用偏移`);
+          setMidiStatus(tr("Pad {0} · 多选闪烁已套用共用偏移", selectedPadId));
         } else {
           setWorkspace((previous) => updateLilyPad(previous, selectedPadId, {
             formations: detachNodesFromFormations(getPadFormations(previous.pads[selectedPadId]), multiIds),
@@ -1410,7 +1422,7 @@ export default function QuadLilyApp() {
             status: 'armed',
             kind: 'flash-batch',
           });
-          setMidiStatus(`Pad ${selectedPadId} · 多选闪烁待命：再点目标（以首个音符为基准）`);
+          setMidiStatus(tr("Pad {0} · 多选闪烁待命：再点目标（以首个音符为基准）", selectedPadId));
         }
         return;
       }
@@ -1462,7 +1474,7 @@ export default function QuadLilyApp() {
         dragRef.current = null;
         setDrawPreview(null);
         setDrawCapture(null);
-        setMidiStatus(`Pad ${selectedPadId} · 多选各自 ${motion.mode}（${multiIds.length} 节点）`);
+        setMidiStatus(tr("Pad {0} · 多选各自 {1}（{2} 节点）", selectedPadId, motion.mode, multiIds.length));
         return;
       }
     }
@@ -1474,8 +1486,8 @@ export default function QuadLilyApp() {
       setDrawCapture({ padId: selectedPadId, nodeId: selectedNode.id, status: 'armed', kind: 'draw' });
       setMidiStatus(
         previousMode === 'draw'
-          ? `Pad ${selectedPadId} · DRAW 待命：按住节点拖动开始录制`
-          : `Pad ${selectedPadId} · 已选手绘：按住节点拖动开始录制`,
+          ? tr("Pad {0} · DRAW 待命：按住节点拖动开始录制", selectedPadId)
+          : tr("Pad {0} · 已选手绘：按住节点拖动开始录制", selectedPadId),
       );
     } else if (motion.mode === 'flash') {
       dragRef.current = null;
@@ -1483,10 +1495,10 @@ export default function QuadLilyApp() {
       const hasTarget = Math.abs(motion.targetDx ?? 0) > 1e-6 || Math.abs(motion.targetDy ?? 0) > 1e-6;
       if (hasTarget) {
         setDrawCapture(null);
-        setMidiStatus(`Pad ${selectedPadId} · 闪烁模式（可按 F 重设目标）`);
+        setMidiStatus(tr("Pad {0} · 闪烁模式（可按 F 重设目标）", selectedPadId));
       } else {
         setDrawCapture({ padId: selectedPadId, nodeId: selectedNode.id, status: 'armed', kind: 'flash' });
-        setMidiStatus(`Pad ${selectedPadId} · 闪烁待命：再点击画布目标位置`);
+        setMidiStatus(tr("Pad {0} · 闪烁待命：再点击画布目标位置", selectedPadId));
       }
     } else {
       dragRef.current = null;
@@ -1502,13 +1514,13 @@ export default function QuadLilyApp() {
 
   const rememberVoice = () => {
     patchSelectedPad({ rememberedTone: workspaceRef.current.fm1Tone });
-    setMidiStatus(`Pad ${selectedPadId} 已记住 ${formatTone(workspaceRef.current.fm1Tone)}`);
+    setMidiStatus(tr("Pad {0} 已记住 {1}", selectedPadId, formatTone(tr, workspaceRef.current.fm1Tone)));
   };
 
   const recallVoice = () => {
     const tone = workspaceRef.current.pads[selectedPadId].rememberedTone;
     setFm1Tone(tone);
-    setMidiStatus(`Pad ${selectedPadId} 已召回 ${formatTone(tone)}；四个 Pad 共用当前音色`);
+    setMidiStatus(tr("Pad {0} 已召回 {1}；四个 Pad 共用当前音色", selectedPadId, formatTone(tr, tone)));
   };
 
   /** 组合面板：创建/更新共享编队（可并存多个 G1/G2/…） */
@@ -1586,7 +1598,7 @@ export default function QuadLilyApp() {
     setGroupRateCycles(rateCycles);
     if (Number.isFinite(radius)) setGroupRadius(radius!);
     setFormationFocus(true);
-    setMidiStatus(`Pad ${padId} · ${formationId} · ${shape} · ${orderedIds.length} 节点共形`);
+    setMidiStatus(tr("Pad {0} · {1} · {2} · {3} 节点共形", padId, formationId, shape, orderedIds.length));
     return formationId;
   }, []);
 
@@ -1609,7 +1621,7 @@ export default function QuadLilyApp() {
         kind: 'formation-flash',
         formationId: formationId ?? undefined,
       });
-      setMidiStatus(`Pad ${selectedPadId} · 编队闪烁待命：再点目标（以首个音符为基准）`);
+      setMidiStatus(tr("Pad {0} · 编队闪烁待命：再点目标（以首个音符为基准）", selectedPadId));
       return;
     }
     setDrawCapture(null);
@@ -1715,7 +1727,7 @@ export default function QuadLilyApp() {
     setGroupMotionMode(formation.shape);
     setGroupRateCycles(formation.rateCycles);
     setGroupRadius(formation.radius);
-    setMidiStatus(`Pad ${padId} · 已选中编队 ${formation.id}`);
+    setMidiStatus(tr("Pad {0} · 已选中编队 {1}", padId, formation.id));
   };
 
   const dissolveFormation = (padId: QuadPadId = selectedPadId, formationId?: string) => {
@@ -1733,7 +1745,7 @@ export default function QuadLilyApp() {
       [padId]: previous[padId] === targetId ? null : previous[padId],
     }));
     setFormationFocus(false);
-    setMidiStatus(`Pad ${padId} · 已解散编队 ${targetId}`);
+    setMidiStatus(tr("Pad {0} · 已解散编队 {1}", padId, targetId));
   };
 
   /** 编队整组静音 / 隐藏（作用于全部成员） */
@@ -1755,8 +1767,8 @@ export default function QuadLilyApp() {
     });
     setMidiStatus(
       nextMuted
-        ? `Pad ${selectedPadId} · ${activeFormation.id} 已整组静音`
-        : `Pad ${selectedPadId} · ${activeFormation.id} 已取消静音`,
+        ? tr("Pad {0} · {1} 已整组静音", selectedPadId, activeFormation.id)
+        : tr("Pad {0} · {1} 已取消静音", selectedPadId, activeFormation.id),
     );
   };
 
@@ -1778,8 +1790,8 @@ export default function QuadLilyApp() {
     });
     setMidiStatus(
       nextHidden
-        ? `Pad ${selectedPadId} · ${activeFormation.id} 已整组隐藏`
-        : `Pad ${selectedPadId} · ${activeFormation.id} 已取消隐藏`,
+        ? tr("Pad {0} · {1} 已整组隐藏", selectedPadId, activeFormation.id)
+        : tr("Pad {0} · {1} 已取消隐藏", selectedPadId, activeFormation.id),
     );
   };
 
@@ -1816,7 +1828,7 @@ export default function QuadLilyApp() {
       memberStarts,
     };
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    setMidiStatus(`Pad ${padId} · 拖动编队 ${formation.id}`);
+    setMidiStatus(tr("Pad {0} · 拖动编队 {1}", padId, formation.id));
   };
 
   /** 清空任意 Pad；单轨抬头与侧栏共用，避免依赖异步的 selectedPadId */
@@ -1837,7 +1849,7 @@ export default function QuadLilyApp() {
 
   const clearSelectedPad = () => clearPad(selectedPadId);
   const clearAllPads = () => {
-    if (!window.confirm('清空 A–D 四个画布的音符和编队？每个画布保留 ROOT 与音乐参数，图案库中的作品不受影响。此操作不可撤销。')) return;
+    if (!window.confirm(tr("清空 A–D 四个画布的音符和编队？每个画布保留 ROOT 与音乐参数，图案库中的作品不受影响。此操作不可撤销。"))) return;
     runnerRef.current?.stopAll();
     QUAD_PAD_IDS.forEach(id => {
       clearReleaseTimers(id);
@@ -1858,7 +1870,7 @@ export default function QuadLilyApp() {
     if (!clip.nodes.length) return;
     setNoteClipboard(clip);
     pasteCountRef.current = 0;
-    setMidiStatus(`已复制 ${clip.nodes.length} 个音符、${clip.formations.length} 个完整编队${clip.partialFormations ? '；部分编队仅复制所选音符，解除编队关系' : ''}（应用内剪贴板）`);
+    setMidiStatus(tr("已复制 {0} 个音符、{1} 个完整编队{2}（应用内剪贴板）", clip.nodes.length, clip.formations.length, clip.partialFormations ? tr("；部分编队仅复制所选音符，解除编队关系") : ''));
   };
   const pasteSelectedNotes = () => {
     if (!noteClipboard || selectedPad.locked) return;
@@ -1868,7 +1880,7 @@ export default function QuadLilyApp() {
     setGroupSelections(previous => ({ ...previous, [selectedPadId]: result.ids }));
     setFormationFocus(false);
     setSelectedFormationIds(previous => ({ ...previous, [selectedPadId]: null }));
-    setMidiStatus(`Pad ${selectedPadId} 已粘贴 ${result.ids.length} 个音符${result.adjustedPitches ? '；目标音阶不含的音已取最近音高' : ''}；ROOT 副本为普通音符`);
+    setMidiStatus(tr("Pad {0} 已粘贴 {1} 个音符{2}；ROOT 副本为普通音符", selectedPadId, result.ids.length, result.adjustedPitches ? tr("；目标音阶不含的音已取最近音高") : ''));
   };
 
   useEffect(() => {
@@ -1943,7 +1955,7 @@ export default function QuadLilyApp() {
 
   const loadLibraryAsset = useCallback((asset: LibraryAsset) => {
     if (asset.type === 'recipe') {
-      setMidiStatus('编曲配方用于参考；请先选择一个可播放的 Pad 或四 Pad 模板');
+      setMidiStatus(tr("编曲配方用于参考；请先选择一个可播放的 Pad 或四 Pad 模板"));
       return;
     }
 
@@ -1982,8 +1994,8 @@ export default function QuadLilyApp() {
     setLastSavedFingerprint(libraryWorkspaceFingerprint(stopped));
     setLibraryOpen(false);
     setMidiStatus(asset.type === 'pad'
-      ? `${asset.name} 已载入 Pad ${selectedPadId}，按 Space 开始试听`
-      : `${asset.name} 已载入四 Pad，点击播放开始试听`);
+      ? tr("{0} 已载入 Pad {1}，按 Space 开始试听", asset.name, selectedPadId)
+      : tr("{0} 已载入四 Pad，点击播放开始试听", asset.name));
   }, [clearReleaseTimers, selectedPadId, setDrawCapture]);
 
   useEffect(() => {
@@ -2188,6 +2200,7 @@ export default function QuadLilyApp() {
       selected: selectedPadId === padId,
       cyclePhase: visibleCycle.phase,
       activeNodeIds: activeNodes[padId],
+      playedNodeIds: sequenceRounds[padId].current?.played ?? [],
       selectedNodeId: selectedNodes[padId],
       selectedNodeIds: groupSelections[padId] ?? (selectedNodes[padId] ? [selectedNodes[padId]!] : []),
       formationHubs: formations.map((formation) => ({
@@ -2301,9 +2314,9 @@ export default function QuadLilyApp() {
       setMidiPorts(previous => ({ ...previous, selectedOutputId: id }));
       if (id) {
         const target = midiPorts.outputs.find(out => out.id === id);
-        setMidiStatus(`${target?.name || id} 已连接 (外部硬件音色)`);
+        setMidiStatus(tr("{0} 已连接 (外部硬件音色)", target?.name || id));
       } else {
-        setMidiStatus('内置音色模式 (MIDI 未连接)');
+        setMidiStatus(tr("内置音色模式 (MIDI 未连接)"));
       }
     },
     onRefreshMidi: () => void refreshMidi(),
@@ -2340,14 +2353,15 @@ export default function QuadLilyApp() {
   };
 
   return (
-    <main
+    <UiLocaleContext.Provider value={locale}><main
+      lang={locale === "en" ? "en" : "zh-CN"}
       className="quad-workbench"
       data-view-mode={viewMode}
       data-theme={theme}
       data-ui-variant={uiVariant}
       style={{ '--selected-pad-color': PAD_COLORS[selectedPadId] } as React.CSSProperties}
     >
-      {uiVariant === 'studio' && <OnboardingTour />}
+      {uiVariant === 'studio' && <OnboardingTour locale={locale} onToggleLocale={handleToggleLocale} />}
       {uiVariant === 'studio' && <StudioLayout {...layoutProps} />}
       {uiVariant === 'floating' && <FloatingLayout {...layoutProps} />}
       {uiVariant === 'performer' && <PerformerLayout {...layoutProps} />}
@@ -2362,16 +2376,16 @@ export default function QuadLilyApp() {
           <p>{view.subtitle}</p>
         </div>
         <div className="quad-display-tools">
-          <div className="quad-view-switch" role="group" aria-label="Lily Pad 显示模式">
+          <div className="quad-view-switch" role="group" aria-label={tr("Lily Pad 显示模式")}>
             <button
               type="button"
-              aria-label="单个 Lily Pad"
+              aria-label={tr("单个 Lily Pad")}
               aria-pressed={viewMode === 'single'}
               onClick={() => setViewMode('single')}
             >1 PAD</button>
             <button
               type="button"
-              aria-label="四个 Lily Pad"
+              aria-label={tr("四个 Lily Pad")}
               aria-pressed={viewMode === 'quad'}
               onClick={() => setViewMode('quad')}
             >4 PAD</button>
@@ -2379,21 +2393,21 @@ export default function QuadLilyApp() {
           <button
             type="button"
             className="quad-theme-toggle"
-            aria-label={theme === 'lotus' ? '切换到深色主题' : '切换到荷塘浅色主题'}
+            aria-label={theme === 'lotus' ? tr("切换到深色主题") : tr("切换到荷塘浅色主题")}
             aria-pressed={theme === 'lotus'}
             onClick={() => setTheme(previous => toggleQuadTheme(previous))}
           >{theme === 'lotus' ? 'LOTUS' : 'DARK'}</button>
           <button
             type="button"
             className="quad-label-toggle"
-            aria-label={showNodeLabels ? '隐藏画布节点编号和音名' : '显示画布节点编号和音名'}
+            aria-label={showNodeLabels ? tr("隐藏画布节点编号和音名") : tr("显示画布节点编号和音名")}
             aria-pressed={showNodeLabels}
             onClick={() => setShowNodeLabels(previous => !previous)}
           >{showNodeLabels ? 'INFO ON' : 'INFO OFF'}</button>
           <button
             type="button"
             className="quad-library-toggle"
-            aria-label="打开 Library 素材库"
+            aria-label={tr("打开 Library 素材库")}
             aria-haspopup="dialog"
             aria-expanded={libraryOpen}
             onClick={() => setLibraryOpen(true)}
@@ -2403,14 +2417,14 @@ export default function QuadLilyApp() {
           className="quad-master-actions"
           data-scope={viewMode}
           role="group"
-          aria-label={viewMode === 'single' ? `Pad ${selectedPadId} 播放控制` : '四个 Pad 的共同播放控制'}
+          aria-label={viewMode === 'single' ? tr("Pad {0} 播放控制", selectedPadId) : tr("四个 Pad 的共同播放控制")}
         >
           {viewMode === 'single' ? (
             <button
               type="button"
               data-action="toggle-selected"
               className="quad-action--primary"
-              aria-label={`${selectedPad.playing ? '暂停' : selectedIsPaused ? '继续' : '播放'} Pad ${selectedPadId}`}
+              aria-label={`${selectedPad.playing ? tr("暂停") : selectedIsPaused ? tr("继续") : tr("播放")} Pad ${selectedPadId}`}
               aria-pressed={selectedPad.playing}
               onClick={() => togglePadPlaying(selectedPadId)}
             >{selectedPad.playing ? 'PAUSE' : selectedIsPaused ? 'RESUME' : 'PLAY'} {selectedPadId}</button>
@@ -2432,8 +2446,8 @@ export default function QuadLilyApp() {
           <div className="quad-midi-summary__controls">
             <label>
               <span>VOICE</span>
-              <select aria-label="FM-1 当前音色" value={String(workspace.fm1Tone)} onChange={event => setFm1Tone(parseTone(event.target.value))}>
-                <option value="follow">跟随机身</option>
+              <select aria-label={tr("FM-1 当前音色")} value={String(workspace.fm1Tone)} onChange={event => setFm1Tone(parseTone(event.target.value))}>
+                <option value="follow">{tr("跟随机身")}</option>
                 {Array.from({ length: 128 }, (_, index) => index + 1).map(tone => (
                   <option key={tone} value={tone}>{String(tone).padStart(3, '0')}</option>
                 ))}
@@ -2442,11 +2456,11 @@ export default function QuadLilyApp() {
             <label>
               <span>MIDI OUT</span>
               <select
-                aria-label="MIDI 输出"
+                aria-label={tr("MIDI 输出")}
                 value={midiPorts.selectedOutputId ?? ''}
                 onChange={event => setMidiPorts(previous => ({ ...previous, selectedOutputId: event.target.value || null }))}
               >
-                {!midiPorts.outputs.length && <option value="">未连接</option>}
+                {!midiPorts.outputs.length && <option value="">{tr("未连接")}</option>}
                 {midiPorts.outputs.map(output => <option key={output.id} value={output.id}>{output.name || output.id}</option>)}
               </select>
             </label>
@@ -2458,16 +2472,16 @@ export default function QuadLilyApp() {
       <div className="quad-status" role="status" aria-live="polite">
         <span data-playing={workspace.masterPlaying ? 'true' : 'false'} aria-hidden="true" />
         {midiStatus}
-        <em>轨迹实时移动 · 发声结构从下一周期采用 · DRAW 选中后拖动节点录制</em>
+        <em>{tr("轨迹实时移动 · 发声结构从下一周期采用 · DRAW 选中后拖动节点录制")}</em>
       </div>
 
-      <nav className="quad-pad-tabs" aria-label="选择要编辑的 Lily Pad">
+      <nav className="quad-pad-tabs" aria-label={tr("选择要编辑的 Lily Pad")}>
         {QUAD_PAD_IDS.map(padId => (
           <button
             key={padId}
             type="button"
             data-active={selectedPadId === padId ? 'true' : 'false'}
-            aria-label={`Pad ${padId} · ${workspace.pads[padId].playing ? '正在播放' : '已暂停'}`}
+            aria-label={`Pad ${padId} · ${workspace.pads[padId].playing ? tr("正在播放") : tr("已暂停")}`}
             aria-pressed={selectedPadId === padId}
             style={{ '--quad-pad-color': PAD_COLORS[padId] } as React.CSSProperties}
             onClick={() => choosePad(padId)}
@@ -2509,7 +2523,7 @@ export default function QuadLilyApp() {
         />
       </section>
 
-      <section className="quad-control-rail" aria-label={`Pad ${selectedPadId} 实时参数`}>
+      <section className="quad-control-rail" aria-label={tr("Pad {0} 实时参数", selectedPadId)}>
         <div className="quad-control-rail__identity">
           <span>EDITING</span><strong>{selectedPadId}</strong>
           <p>{selectedPad.playing ? 'LOOPING' : 'PAUSED'} · {selectedPad.nodes.length} NODES</p>
@@ -2519,24 +2533,24 @@ export default function QuadLilyApp() {
             <label htmlFor="quad-interval">Interval <output>{selectedPad.intervalMs} ms</output></label>
             <div className="quad-control--wide__row">
               <input id="quad-interval" type="range" min="100" max="1500" step="10" value={selectedPad.intervalMs} onChange={event => patchSelectedPad({ intervalMs: Number(event.target.value) })} />
-              <button type="button" onClick={restartSelectedPad}>重新起拍</button>
+              <button type="button" onClick={restartSelectedPad}>{tr("重新起拍")}</button>
             </div>
           </div>
           <label className="quad-control quad-control--root">
-            <span>根音</span>
-            <select aria-label="根音" value={selectedPad.rootMidi} onChange={event => patchSelectedPad({ rootMidi: Number(event.target.value) })}>
+            <span>{tr("根音")}</span>
+            <select aria-label={tr("根音")} value={selectedPad.rootMidi} onChange={event => patchSelectedPad({ rootMidi: Number(event.target.value) })}>
               {ROOT_NOTES.map(root => <option key={root.name} value={root.midiValue}>{root.name}</option>)}
             </select>
           </label>
           <label className="quad-control quad-control--scale">
-            <span>音阶</span>
-            <select aria-label="音阶" value={selectedScale.key} onChange={event => patchSelectedPad({ scaleKey: event.target.value })}>
+            <span>{tr("音阶")}</span>
+            <select aria-label={tr("音阶")} value={selectedScale.key} onChange={event => patchSelectedPad({ scaleKey: event.target.value })}>
               {SCALES.filter(scale => scale.intervals.length).map(scale => <option key={scale.key} value={scale.key}>{scale.name}</option>)}
             </select>
           </label>
           <label className="quad-control quad-control--octave">
-            <span>八度</span>
-            <select aria-label="八度" value={selectedPad.octaveTranspose} onChange={event => patchSelectedPad({ octaveTranspose: Number(event.target.value) })}>
+            <span>{tr("八度")}</span>
+            <select aria-label={tr("八度")} value={selectedPad.octaveTranspose} onChange={event => patchSelectedPad({ octaveTranspose: Number(event.target.value) })}>
               {[-2, -1, 0, 1, 2].map(octave => <option key={octave} value={octave}>{octave > 0 ? `+${octave}` : octave}</option>)}
             </select>
           </label>
@@ -2565,36 +2579,36 @@ export default function QuadLilyApp() {
         </div>
         <div className="quad-control-rail__secondary">
           <label className="quad-control quad-control--range">
-            <span>传播范围 <output>{Math.round(selectedNode.range * 100)}%</output></span>
+            <span>{tr("传播范围")}<output>{Math.round(selectedNode.range * 100)}%</output></span>
             <input type="range" min="0.04" max="0.48" step="0.01" value={selectedNode.range} disabled={selectedPad.locked} onChange={event => patchSelectedNode({ range: Number(event.target.value) })} />
           </label>
           <label className="quad-control quad-control--velocity">
-            <span>力度 <output>{Math.round(selectedPad.velocity * 127)}</output></span>
+            <span>{tr("力度")}<output>{Math.round(selectedPad.velocity * 127)}</output></span>
             <input type="range" min="0.08" max="1" step="0.01" value={selectedPad.velocity} onChange={event => patchSelectedPad({ velocity: Number(event.target.value) })} />
           </label>
           <div
             className="quad-voice-memory"
-            title="FM-1 只有一个当前音色；召回后四个 Pad 一起使用它。"
+            title={tr("FM-1 只有一个当前音色；召回后四个 Pad 一起使用它。")}
           >
-            <span>PAD {selectedPadId} VOICE · {formatTone(selectedPad.rememberedTone)}</span>
+            <span>PAD {selectedPadId} VOICE · {formatTone(tr, selectedPad.rememberedTone)}</span>
             <div>
-              <button type="button" aria-label="记住当前 Voice" onClick={rememberVoice}>记住</button>
-              <button type="button" aria-label="召回 Voice" onClick={recallVoice}>召回</button>
+              <button type="button" aria-label={tr("记住当前 Voice")} onClick={rememberVoice}>{tr("记住")}</button>
+              <button type="button" aria-label={tr("召回 Voice")} onClick={recallVoice}>{tr("召回")}</button>
             </div>
-            <small>四个 Pad 共用 FM-1 当前音色</small>
+            <small>{tr("四个 Pad 共用 FM-1 当前音色")}</small>
           </div>
           <div className="quad-control-rail__utility">
             <button
               type="button"
               className="quad-action--tertiary quad-utility-lock"
               onClick={() => togglePadLocked(selectedPadId)}
-            >{selectedPad.locked ? '解锁编辑' : '锁定图案'}</button>
-            <button type="button" className="quad-action--danger" disabled={selectedPad.locked} onClick={clearSelectedPad}>清空节点</button>
+            >{selectedPad.locked ? tr("解锁编辑") : tr("锁定图案")}</button>
+            <button type="button" className="quad-action--danger" disabled={selectedPad.locked} onClick={clearSelectedPad}>{tr("清空节点")}</button>
             <details className="quad-utility-menu">
-              <summary>更多</summary>
+              <summary>{tr("更多")}</summary>
               <div>
                 <a className="quad-action--tertiary" href="/desk/legacy">← Desk</a>
-                <a className="quad-action--tertiary" href="/">返回 Lab ↗</a>
+                <a className="quad-action--tertiary" href="/">{tr("返回 Lab ↗")}</a>
               </div>
             </details>
           </div>
@@ -2638,7 +2652,7 @@ export default function QuadLilyApp() {
         dismissible={nicknameModalDismissible}
         onClose={() => setNicknameModalOpen(false)}
       />
-    </main>
+    </main></UiLocaleContext.Provider>
   );
 }
 
@@ -2661,8 +2675,8 @@ function formatSaveStamp(now: Date): string {
   return `${pad2(now.getMonth() + 1)}-${pad2(now.getDate())} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 }
 
-function formatTone(tone: Fm1ToneSelection): string {
-  return tone === 'follow' ? '跟随机身' : `VOICE ${String(tone).padStart(3, '0')}`;
+function formatTone(tr: (message: string, ...values: unknown[]) => string, tone: Fm1ToneSelection): string {
+  return tone === 'follow' ? tr("跟随机身") : `VOICE ${String(tone).padStart(3, '0')}`;
 }
 
 function formatStep(step: number): string {

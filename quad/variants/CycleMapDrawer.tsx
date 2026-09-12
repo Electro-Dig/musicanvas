@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import React, { useEffect } from 'react';
 import type { LilyCycleCompilation, QuadPadId } from '../core';
 import type { NodePresentation } from '../nodePresentation';
@@ -30,6 +31,7 @@ export const CycleMapDrawer: React.FC<CycleMapDrawerProps> = ({
   showNodeLabels,
   onSelectNode,
 }) => {
+  const tr = useUiText();
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -54,21 +56,20 @@ export const CycleMapDrawer: React.FC<CycleMapDrawerProps> = ({
         className="quad-cycle-drawer is-open"
         role="dialog"
         aria-modal="true"
-        aria-label={`Pad ${padId} 周期图谱与结构译谱`}
+        aria-label={tr("Pad {0} 周期图谱与结构译谱", padId)}
       >
         <div className="quad-cycle-drawer__header">
           <div className="quad-cycle-drawer__title">
-            <span>▤ 周期图谱 (CYCLE MAP) · PAD {padId}</span>
+            <span>{tr("▤ 周期图谱 (CYCLE MAP) · PAD")}{padId}</span>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <button
               type="button"
               className="quad-cycle-drawer__close"
               onClick={onClose}
-              aria-label="关闭图谱抽屉"
+              aria-label={tr("关闭图谱抽屉")}
             >
-              关闭 ✕
-            </button>
+              {tr("关闭 ✕")}</button>
           </div>
         </div>
 

@@ -323,7 +323,7 @@ test('a completed mutation cannot alter the visible cloud library after the Key 
 
 test('local-only cards expose an explicit retry sync action', () => {
   const source = readFileSync(`${projectRoot}/quad/library/LibraryDrawer.tsx`, 'utf8');
-  assert.match(source, />同步</);
+  assert.match(source, /tr\("同步"\)/);
   assert.match(source, /origins\.includes\('local'\)[\s\S]*!origins\.includes\('cloud'\)/);
 });
 

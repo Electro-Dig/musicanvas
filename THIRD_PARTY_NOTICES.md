@@ -11,3 +11,9 @@ Gauthier. The Dexed desktop/plugin wrapper is GPL-3.0 and is not included.
 
 License texts, detailed provenance, upstream links, and local modification notes
 are in `public/vendor/opendx7/`.
+
+## Smiley Sans / 得意黑
+
+The Chinese onboarding uses Smiley Sans, copyright (c) 2022–2024 atelierAnchor,
+under the SIL Open Font License 1.1. The unmodified font and license are bundled
+in `public/fonts/smiley-sans.woff2` and `public/fonts/licenses/smiley-sans-OFL.txt`.

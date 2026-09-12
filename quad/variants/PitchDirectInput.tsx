@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import React, { useState, useRef, useEffect } from 'react';
 import { SCALES } from '../musicTheory';
 import { createDeskPitchResolver } from '../pitch';
@@ -35,6 +36,7 @@ export const PitchDirectInput: React.FC<PitchDirectInputProps> = ({
   className = '',
   label = '音高',
 }) => {
+  const tr = useUiText();
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -174,7 +176,7 @@ export const PitchDirectInput: React.FC<PitchDirectInputProps> = ({
           ref={inputRef}
           type="text"
           value={draft}
-          placeholder="如 C4 或 +1"
+          placeholder={tr("如 C4 或 +1")}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commitDraft}
           onKeyDown={(e) => {
@@ -201,7 +203,7 @@ export const PitchDirectInput: React.FC<PitchDirectInputProps> = ({
       onPointerDown={handlePointerDown}
       onClick={handleClick}
       onWheel={handleWheel}
-      title="点击直接输入音名(如 C4, D#3)或阶数(+2, -1)；或按住左右拖拽 / 滚轮滚动调音"
+      title={tr("点击直接输入音名(如 C4, D#3)或阶数(+2, -1)；或按住左右拖拽 / 滚轮滚动调音")}
       tabIndex={disabled ? -1 : 0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {

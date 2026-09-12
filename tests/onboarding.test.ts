@@ -34,7 +34,7 @@ test('the onboarding teaches the complete five-step creation path', async () => 
   }
 });
 
-test('every onboarding scene renders an optimized 1080p screenshot guide', async () => {
+test('each onboarding scene renders three bilingual vector cards', async () => {
   const vite = await createServer({
     root: projectRoot,
     appType: 'custom',
@@ -50,23 +50,21 @@ test('every onboarding scene renders an optimized 1080p screenshot guide', async
     }>;
 
     for (const step of steps) {
-      const markup = renderToStaticMarkup(React.createElement(demo.OnboardingDemo, {
-        scene: step.scene,
-      }));
-
-      assert.match(markup, new RegExp(`data-scene="${step.scene}"`));
-      assert.match(markup, /data-ui-source="quad-lily-real-screenshot"/);
-      assert.match(markup, /class="onboarding-guide"/);
-      assert.match(markup, new RegExp(`/onboarding/guides/${step.scene}\\.webp`));
-      assert.match(markup, /decoding="async"/);
-      assert.match(markup, /width="1920"/);
-      assert.match(markup, /height="1080"/);
+      for (const locale of ['zh', 'en']) {
+        const markup = renderToStaticMarkup(React.createElement(demo.OnboardingDemo, {
+          scene: step.scene, locale,
+        }));
+        assert.match(markup, new RegExp(`data-scene="${step.scene}"`));
+        assert.match(markup, /data-ui-source="illustrated-guide"/);
+        assert.equal((markup.match(/<section/g) ?? []).length, 3);
+        assert.equal((markup.match(/viewBox="0 0 220 130"/g) ?? []).length, 3);
+        assert.doesNotMatch(markup, /<img/);
+        assert.match(markup, new RegExp(`lang="${locale === 'zh' ? 'zh-CN' : 'en'}"`));
+        if (locale === 'en') assert.doesNotMatch(markup, /[\u4e00-\u9fff]/);
+        else assert.match(markup, /[\u4e00-\u9fff]/);
+      }
     }
 
-    const firstMarkup = renderToStaticMarkup(React.createElement(demo.OnboardingDemo, {
-      scene: 'start',
-    }));
-    assert.match(firstMarkup, /fetchPriority="high"/);
   } finally {
     await vite.close();
   }

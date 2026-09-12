@@ -1,3 +1,4 @@
+import { useUiText } from '../uiLocale';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Grid3x3, LayoutGrid } from 'lucide-react';
 
@@ -256,6 +257,7 @@ export function LibraryDrawer({
   isDirty = false,
   onCaptureSaved,
 }: LibraryDrawerProps) {
+  const tr = useUiText();
   const [activeTab, setActiveTab] = useState<LibraryTab>('mine');
   const [assetName, setAssetName] = useState(() => defaultAssetName(selectedPadId));
   const [libraryKey, setCurrentLibraryKey] = useState('');
@@ -326,7 +328,7 @@ export function LibraryDrawer({
       const message = errorMessage(error);
       setCloudError(message);
       setCloudState('error');
-      onStatusRef.current(`云端 Library 暂时不可用；本地素材不受影响。${message}`);
+      onStatusRef.current(tr("云端 Library 暂时不可用；本地素材不受影响。{0}", message));
     } finally {
       if (cloudAbortRef.current === controller) cloudAbortRef.current = null;
     }
@@ -362,8 +364,8 @@ export function LibraryDrawer({
       void refreshPublic();
     } catch (error) {
       setCloudState('error');
-      setCloudError(errorMessage(error));
-      onStatusRef.current(`无法打开个人素材库：${errorMessage(error)}`);
+      setCloudError(tr(errorMessage(error)));
+      onStatusRef.current(tr("无法打开个人素材库：{0}", tr(errorMessage(error))));
     }
     return () => cloudAbortRef.current?.abort();
   }, [open, refreshCloud, refreshPublic]);
@@ -437,7 +439,7 @@ export function LibraryDrawer({
   }, []);
 
   const ensureLibraryKey = useCallback(() => {
-    if (typeof window === 'undefined') throw new Error('Library Key 需要浏览器环境。');
+    if (typeof window === 'undefined') throw new Error(tr("Library Key 需要浏览器环境。"));
     if (libraryKeyRef.current) return libraryKeyRef.current;
     const key = getOrCreateLibraryKey(window.localStorage);
     libraryKeyRef.current = key;
@@ -449,7 +451,7 @@ export function LibraryDrawer({
   const saveAsset = useCallback(async (type: 'pad' | 'workspace') => {
     const name = assetName.trim();
     if (!name) {
-      onStatusRef.current('请先填写素材名称。');
+      onStatusRef.current(tr("请先填写素材名称。"));
       return;
     }
     if (typeof window === 'undefined') return;
@@ -467,7 +469,7 @@ export function LibraryDrawer({
         saveLocal: candidate => {
           const saved = repository.save(candidate);
           setLocalAssets(repository.list());
-          onStatusRef.current(`“${saved.name}”已保存到本地，正在尝试云端同步。`);
+          onStatusRef.current(tr("“{0}”已保存到本地，正在尝试云端同步。", saved.name));
           return saved;
         },
         getCloudKey: ensureLibraryKey,
@@ -484,16 +486,16 @@ export function LibraryDrawer({
           libraryKeyRef.current,
         ));
         if (result.cloudKey === libraryKeyRef.current) setCloudState('ready');
-        onStatusRef.current(`“${result.asset.name}”已保存到本地并同步云端。`);
+        onStatusRef.current(tr("“{0}”已保存到本地并同步云端。", result.asset.name));
         onCaptureSavedRef.current?.();
       } else {
-        onStatusRef.current(`“${result.asset.name}”已保存到本地；云端同步失败，本地素材不会丢失。`);
+        onStatusRef.current(tr("“{0}”已保存到本地；云端同步失败，本地素材不会丢失。", result.asset.name));
         onCaptureSavedRef.current?.();
       }
       setAssetName(defaultAssetName(selectedPadId));
     } catch (error) {
       if (!libraryMountedRef.current) return;
-      onStatusRef.current(`保存失败：${errorMessage(error)}`);
+      onStatusRef.current(tr("保存失败：{0}", tr(errorMessage(error))));
     } finally {
       if (libraryMountedRef.current) setSaving(false);
     }
@@ -503,10 +505,10 @@ export function LibraryDrawer({
     if (typeof window === 'undefined') return;
     try {
       const normalizedDraft = libraryKeyDraft.trim().toLowerCase();
-      if (!isValidLibraryKey(normalizedDraft)) throw new Error('Library Key 格式无效。');
+      if (!isValidLibraryKey(normalizedDraft)) throw new Error(tr("Library Key 格式无效。"));
       if (libraryKey && normalizedDraft !== libraryKey) {
         const confirmed = typeof window.confirm !== 'function'
-          || window.confirm('替换后旧云库不会自动合并；本地素材仍会保留。确认已复制旧 Key 并继续？');
+          || window.confirm(tr("替换后旧云库不会自动合并；本地素材仍会保留。确认已复制旧 Key 并继续？"));
         if (!confirmed) return;
       }
       const nextKey = setLibraryKey(normalizedDraft, window.localStorage);
@@ -514,25 +516,25 @@ export function LibraryDrawer({
       setCurrentLibraryKey(nextKey);
       setLibraryKeyDraft(nextKey);
       setCloudAssets([]);
-      onStatusRef.current('Library Key 已替换，正在读取对应的个人库。');
+      onStatusRef.current(tr("Library Key 已替换，正在读取对应的个人库。"));
       void refreshCloud(nextKey);
     } catch (error) {
-      onStatusRef.current(errorMessage(error));
+      onStatusRef.current(tr(errorMessage(error)));
     }
   }, [libraryKey, libraryKeyDraft, refreshCloud]);
 
   const copyKey = useCallback(async () => {
     if (!libraryKey || typeof navigator === 'undefined' || !navigator.clipboard) {
-      onStatusRef.current('当前环境无法自动复制，请手动选择 Library Key。');
+      onStatusRef.current(tr("当前环境无法自动复制，请手动选择 Library Key。"));
       return;
     }
     try {
       await navigator.clipboard.writeText(libraryKey);
       if (!libraryMountedRef.current) return;
-      onStatusRef.current('Library Key 已复制。请勿公开分享。');
+      onStatusRef.current(tr("Library Key 已复制。请勿公开分享。"));
     } catch (error) {
       if (!libraryMountedRef.current) return;
-      onStatusRef.current(`复制失败：${errorMessage(error)}`);
+      onStatusRef.current(tr("复制失败：{0}", tr(errorMessage(error))));
     }
   }, [libraryKey]);
 
@@ -551,7 +553,7 @@ export function LibraryDrawer({
     if (asset.type === 'recipe') return;
     const author = identityNickname?.trim() ?? '';
     if (!author) {
-      showDrawerToast('请先设置昵称，再发布到图案广场。', 'err');
+      showDrawerToast(tr("请先设置昵称，再发布到图案广场。"), 'err');
       onRequireNickname?.();
       return;
     }
@@ -568,10 +570,10 @@ export function LibraryDrawer({
       if (!libraryMountedRef.current) return;
       setPublicEntries(current => upsertPublicEntry(current, published));
       setPublicState('ready');
-      showDrawerToast(`「${asset.name}」已发布到图案广场`, 'ok');
+      showDrawerToast(tr("「{0}」已发布到图案广场", asset.name), 'ok');
     } catch (error) {
       if (!libraryMountedRef.current) return;
-      showDrawerToast(`发布失败：${errorMessage(error)}`, 'err');
+      showDrawerToast(tr("发布失败：{0}", tr(errorMessage(error))), 'err');
     } finally {
       if (libraryMountedRef.current) setPublishingId(null);
     }
@@ -590,18 +592,18 @@ export function LibraryDrawer({
       ));
       if (operationKey === libraryKeyRef.current) {
         setCloudState('ready');
-        onStatusRef.current(`“${asset.name}”已重新同步到云端。`);
+        onStatusRef.current(tr("“{0}”已重新同步到云端。", asset.name));
       }
     } catch (error) {
       if (!libraryMountedRef.current) return;
-      onStatusRef.current(`云端同步仍未完成；本地素材保持可用。${errorMessage(error)}`);
+      onStatusRef.current(tr("云端同步仍未完成；本地素材保持可用。{0}", tr(errorMessage(error))));
     }
   }, [ensureLibraryKey]);
 
   const removePersonalAsset = useCallback(async (entry: LibraryEntry) => {
     if (typeof window === 'undefined') return;
     const confirmed = typeof window.confirm !== 'function'
-      || window.confirm(`从个人素材库删除“${entry.asset.name}”？`);
+      || window.confirm(tr("从个人素材库删除“{0}”？", entry.asset.name));
     if (!confirmed) return;
 
     const repository = repositoryRef.current
@@ -612,7 +614,7 @@ export function LibraryDrawer({
         repository.remove(entry.asset.id);
         setLocalAssets(repository.list());
       } catch (error) {
-        onStatusRef.current(`本地删除失败：${errorMessage(error)}`);
+        onStatusRef.current(tr("本地删除失败：{0}", tr(errorMessage(error))));
         return;
       }
     }
@@ -629,12 +631,12 @@ export function LibraryDrawer({
         ));
       } catch (error) {
         if (!libraryMountedRef.current) return;
-        onStatusRef.current(`本地副本已处理，但云端删除失败：${errorMessage(error)}`);
+        onStatusRef.current(tr("本地副本已处理，但云端删除失败：{0}", tr(errorMessage(error))));
         return;
       }
     }
     if (libraryMountedRef.current) {
-      onStatusRef.current(`“${entry.asset.name}”已从个人素材库删除。`);
+      onStatusRef.current(tr("“{0}”已从个人素材库删除。", entry.asset.name));
     }
   }, [ensureLibraryKey]);
 
@@ -643,9 +645,9 @@ export function LibraryDrawer({
       const json = serializeLibraryAsset(asset);
       const safeName = asset.name.replace(/[^\w\u4e00-\u9fa5-]+/g, '_').slice(0, 30) || 'lily-asset';
       downloadJsonFile(`${safeName}-${asset.type}.json`, json);
-      onStatusRef.current(`已导出“${asset.name}”为 JSON 文件。`);
+      onStatusRef.current(tr("已导出“{0}”为 JSON 文件。", asset.name));
     } catch (error) {
-      onStatusRef.current(`导出失败：${errorMessage(error)}`);
+      onStatusRef.current(tr("导出失败：{0}", tr(errorMessage(error))));
     }
   }, []);
 
@@ -676,7 +678,7 @@ export function LibraryDrawer({
       .map((entry) => entry.asset)
       .filter((asset) => selectedIds.includes(asset.id) && asset.type !== 'recipe');
     if (chosen.length === 0) {
-      onStatusRef.current('请先勾选要导出的素材。');
+      onStatusRef.current(tr("请先勾选要导出的素材。"));
       return;
     }
     if (chosen.length === 1) {
@@ -692,13 +694,13 @@ export function LibraryDrawer({
       assets: chosen,
     };
     downloadJsonFile(`quad-lily-selected-${chosen.length}.json`, JSON.stringify(bundle, null, 2));
-    onStatusRef.current(`已导出 ${chosen.length} 个已选素材。`);
+    onStatusRef.current(tr("已导出 {0} 个已选素材。", chosen.length));
     setExportOpen(false);
   }, [exportAsset, personalEntries, selectedIds]);
 
   const exportAllPersonalAssets = useCallback(() => {
     if (!localAssets.length) {
-      onStatusRef.current('当前素材库为空，没有可导出的素材。');
+      onStatusRef.current(tr("当前素材库为空，没有可导出的素材。"));
       return;
     }
     const bundle = {
@@ -710,7 +712,7 @@ export function LibraryDrawer({
     };
     const dateStr = new Date().toISOString().slice(0, 10);
     downloadJsonFile(`quad-lily-library-backup-${dateStr}.json`, JSON.stringify(bundle, null, 2));
-    onStatusRef.current(`已打包导出全部 ${localAssets.length} 个本地素材。`);
+    onStatusRef.current(tr("已打包导出全部 {0} 个本地素材。", localAssets.length));
     setExportOpen(false);
   }, [localAssets]);
 
@@ -739,10 +741,10 @@ export function LibraryDrawer({
 
     setLocalAssets(repository.list());
     if (importedCount > 0) {
-      onStatusRef.current(`成功导入 ${importedCount} 个图案素材！已保存至本地素材库。`);
+      onStatusRef.current(tr("成功导入 {0} 个图案素材！已保存至本地素材库。", importedCount));
     }
     if (errors.length > 0) {
-      onStatusRef.current(`部分文件导入失败：${errors.join('; ')}`);
+      onStatusRef.current(tr("部分文件导入失败：{0}", errors.join('; ')));
     }
   }, []);
 
@@ -810,15 +812,15 @@ export function LibraryDrawer({
               ref={closeButtonRef}
               type="button"
               className="library-action library-action--quiet"
-              aria-label="关闭 Library"
+              aria-label={tr("关闭 Library")}
               onClick={onClose}
-            >关闭</button>
+            >{tr("关闭")}</button>
           </div>
         </header>
 
         <section className="library-save" aria-label="Capture">
           <input
-            aria-label="素材名称"
+            aria-label={tr("素材名称")}
             value={assetName}
             maxLength={120}
             placeholder="Name"
@@ -830,15 +832,15 @@ export function LibraryDrawer({
               className="library-action library-action--primary"
               disabled={saving}
               onClick={() => void saveAsset('pad')}
-            >保存</button>
+            >{tr("保存")}</button>
             <button
               type="button"
               className="library-action library-action--secondary"
               disabled={saving}
               onClick={() => void saveAsset('workspace')}
-            >保存全部</button>
+            >{tr("保存全部")}</button>
             <label className="library-action library-action--secondary library-import">
-              <span>导入</span>
+              <span>{tr("导入")}</span>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -857,15 +859,15 @@ export function LibraryDrawer({
                 aria-expanded={exportOpen}
                 aria-haspopup="menu"
                 onClick={() => setExportOpen((openMenu) => !openMenu)}
-              >导出 ▾</button>
+              >{tr("导出 ▾")}</button>
               {exportOpen && (
                 <div className="library-export__menu" role="menu">
-                  <button type="button" role="menuitem" onClick={exportCurrentPad}>当前 Pad</button>
-                  <button type="button" role="menuitem" onClick={exportCurrentWorkspace}>完整组合</button>
+                  <button type="button" role="menuitem" onClick={exportCurrentPad}>{tr("当前 Pad")}</button>
+                  <button type="button" role="menuitem" onClick={exportCurrentWorkspace}>{tr("完整组合")}</button>
                   <button type="button" role="menuitem" onClick={exportSelectedAssets}>
-                    已选{selectedIds.length ? ` (${selectedIds.length})` : ''}
+                    {tr("已选")}{selectedIds.length ? ` (${selectedIds.length})` : ''}
                   </button>
-                  <button type="button" role="menuitem" onClick={exportAllPersonalAssets}>全部备份</button>
+                  <button type="button" role="menuitem" onClick={exportAllPersonalAssets}>{tr("全部备份")}</button>
                 </div>
               )}
             </div>
@@ -882,7 +884,7 @@ export function LibraryDrawer({
                   ? 'LOCAL ONLY'
                   : hasLocalOnlyAssets ? 'UNSYNCED' : 'READY'}</span>
             </summary>
-            <p>它就是你的个人库凭证，换设备粘贴即可，请勿公开。替换前请先复制旧 Key；替换后旧云库不会自动合并，本地素材仍会保留。</p>
+            <p>{tr("它就是你的个人库凭证，换设备粘贴即可，请勿公开。替换前请先复制旧 Key；替换后旧云库不会自动合并，本地素材仍会保留。")}</p>
             <div className="library-key__controls">
               <input
                 type="password"
@@ -896,36 +898,36 @@ export function LibraryDrawer({
               <button
                 type="button"
                 className="library-action library-action--secondary"
-                aria-label="复制 Library Key"
+                aria-label={tr("复制 Library Key")}
                 disabled={!libraryKey}
                 onClick={() => void copyKey()}
-              >复制</button>
+              >{tr("复制")}</button>
               <button
                 type="button"
                 className="library-action library-action--secondary"
-                aria-label="替换 Library Key"
+                aria-label={tr("替换 Library Key")}
                 onClick={replaceKey}
-              >替换</button>
+              >{tr("替换")}</button>
             </div>
           </details>
         )}
 
-        <nav className="library-tabs" role="tablist" aria-label="素材库分类">
-          <LibraryTabButton tab="mine" activeTab={activeTab} onSelect={setActiveTab}>我的素材</LibraryTabButton>
-          <LibraryTabButton tab="patterns" activeTab={activeTab} onSelect={setActiveTab}>图案广场</LibraryTabButton>
-          <LibraryTabButton tab="recipes" activeTab={activeTab} onSelect={setActiveTab}>常用模板</LibraryTabButton>
+        <nav className="library-tabs" role="tablist" aria-label={tr("素材库分类")}>
+          <LibraryTabButton tab="mine" activeTab={activeTab} onSelect={setActiveTab}>{tr("我的素材")}</LibraryTabButton>
+          <LibraryTabButton tab="patterns" activeTab={activeTab} onSelect={setActiveTab}>{tr("图案广场")}</LibraryTabButton>
+          <LibraryTabButton tab="recipes" activeTab={activeTab} onSelect={setActiveTab}>{tr("常用模板")}</LibraryTabButton>
         </nav>
 
         <div className="library-drawer__body">
           <section
             id="library-panel-mine"
             role="tabpanel"
-            aria-label="我的素材"
+            aria-label={tr("我的素材")}
             hidden={activeTab !== 'mine'}
           >
             <PanelIntro
               label="MINE"
-              text="本地优先，离线可用。"
+              text={tr("本地优先，离线可用。")}
             />
 
             <div className="library-mine-toolbar">
@@ -936,14 +938,13 @@ export function LibraryDrawer({
                 onClick={exportAllPersonalAssets}
                 title="Export all local assets as one JSON backup"
               >
-                备份
-              </button>
+                {tr("备份")}</button>
             </div>
 
             {cloudState === 'error' && (
               <div className="library-notice" role="status">
-                <span>云端未连接：{cloudError}</span>
-                <button type="button" onClick={() => void refreshCloud(libraryKey)}>重试</button>
+                <span>{tr("云端未连接：")}{tr(cloudError)}</span>
+                <button type="button" onClick={() => void refreshCloud(libraryKey)}>{tr("重试")}</button>
               </div>
             )}
             {personalEntries.length > 0 ? (
@@ -977,7 +978,7 @@ export function LibraryDrawer({
           <section
             id="library-panel-patterns"
             role="tabpanel"
-            aria-label="图案广场"
+            aria-label={tr("图案广场")}
             hidden={activeTab !== 'patterns'}
           >
             <PanelIntro
@@ -987,7 +988,7 @@ export function LibraryDrawer({
             {publicState === 'error' && (
               <div className="library-notice" role="status">
                 <span>Pattern Plaza cloud feed is offline.</span>
-                <button type="button" onClick={() => void refreshPublic()}>重试</button>
+                <button type="button" onClick={() => void refreshPublic()}>{tr("重试")}</button>
               </div>
             )}
             <div className="library-grid" style={{ '--library-grid-cols': String(gridCols) } as CSSProperties}>
@@ -1008,7 +1009,7 @@ export function LibraryDrawer({
           <section
             id="library-panel-recipes"
             role="tabpanel"
-            aria-label="常用模板"
+            aria-label={tr("常用模板")}
             hidden={activeTab !== 'recipes'}
           >
             <PanelIntro
@@ -1090,11 +1091,12 @@ function PanelIntro({ label, text }: { label: string; text: string }) {
 }
 
 function EmptyLibrary({ cloudState }: { cloudState: CloudState }) {
+  const tr = useUiText();
   return (
     <div className="library-empty">
       <span aria-hidden="true">◇</span>
-      <strong>{cloudState === 'loading' ? '读取中' : '还没有素材'}</strong>
-      <p>命名后点保存，即可进入本地库。</p>
+      <strong>{cloudState === 'loading' ? tr("读取中") : tr("还没有素材")}</strong>
+      <p>{tr("命名后点保存，即可进入本地库。")}</p>
     </div>
   );
 }
@@ -1127,6 +1129,7 @@ function LibraryAssetCard({
   publishing?: boolean;
   onDelete?(): void;
 }) {
+  const tr = useUiText();
   const { asset } = entry;
   const typeLabel = asset.type === 'pad' ? 'PAD' : asset.type === 'workspace' ? 'SET' : 'TIP';
   const authorLabel = displayAuthorName(author ?? entry.author);
@@ -1149,7 +1152,7 @@ function LibraryAssetCard({
               type="checkbox"
               checked={Boolean(selected)}
               onChange={onToggleSelect}
-              aria-label={`选择 ${asset.name}`}
+              aria-label={tr("选择 {0}", asset.name)}
             />
           </label>
         ) : null}
@@ -1158,7 +1161,7 @@ function LibraryAssetCard({
       </header>
       <LibrarySpatialPreview asset={asset} />
       <div className="library-card__copy">
-        <h3>{asset.name}</h3>
+        <h3>{entry.origins.includes('factory') ? tr(asset.name) : asset.name}</h3>
         <div className="library-card__meta">
           <span title={spec}>{spec}</span>
           {when ? <time className="library-card__when" dateTime={timestamp ?? asset.updatedAt}>{when}</time> : null}
@@ -1166,14 +1169,14 @@ function LibraryAssetCard({
       </div>
       <footer className={`library-card__actions${onDelete ? ' library-card__actions--personal' : ''}`}>
         {asset.type === 'recipe' ? (
-          <button type="button" disabled>仅参考</button>
+          <button type="button" disabled>{tr("仅参考")}</button>
         ) : (
           <button
             type="button"
             className="library-action library-action--primary"
             data-action="load"
             onClick={() => onLoad(asset)}
-          >{asset.type === 'pad' ? '载入' : '载入全部'}</button>
+          >{asset.type === 'pad' ? tr("载入") : tr("载入全部")}</button>
         )}
         {onPublish && (
           <button
@@ -1182,14 +1185,14 @@ function LibraryAssetCard({
             data-action="publish"
             disabled={publishing}
             onClick={onPublish}
-          >{publishing ? '发布中…' : '发布'}</button>
+          >{publishing ? tr("发布中…") : tr("发布")}</button>
         )}
         {onSync && (
           <button
             type="button"
             className="library-action library-action--secondary"
             onClick={onSync}
-          >同步</button>
+          >{tr("同步")}</button>
         )}
         {onDelete && (
           <button
@@ -1197,7 +1200,7 @@ function LibraryAssetCard({
             className="library-action library-action--danger"
             data-action="delete"
             onClick={onDelete}
-          >删除</button>
+          >{tr("删除")}</button>
         )}
       </footer>
     </article>
@@ -1205,7 +1208,8 @@ function LibraryAssetCard({
 }
 
 function LibrarySpatialPreview({ asset }: { asset: LibraryAsset }) {
-  const label = `空间缩略图：${asset.name}`;
+  const tr = useUiText();
+  const label = tr("空间缩略图：{0}", asset.name);
   return (
     <svg
       className="library-card__preview"

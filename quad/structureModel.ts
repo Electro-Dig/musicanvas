@@ -48,6 +48,23 @@ export function structureSignature(notes:StructureNote[],durationMs:number):stri
   return JSON.stringify([tick(durationMs),notes.map(n=>[tick(n.atMs),n.midi]).sort((a,b)=>a[0]-b[0]||a[1]-b[1])]);
 }
 
+/** Display-only families: preserve onset positions and intervals, allow a uniform transposition.
+ * Keep the absolute-pitch plan intact for transport and the shared-melody follower. */
+export function groupStructureByContour(plan:StructurePlan):StructurePlan {
+  const ids=new Map<string,number>();
+  const motifs:StructureNote[][]=[];
+  const tracks=plan.tracks.map(track=>({...track,cells:track.cells.map((cell,i)=>{
+    if(!cell.notes.length)return {...cell,motif:null};
+    const sorted=[...cell.notes].sort((a,b)=>a.atMs-b.atMs||a.midi-b.midi);
+    const root=sorted[0].midi;
+    const key=structureSignature(sorted.map(n=>({...n,midi:n.midi-root})),Math.min(plan.blockMs,plan.durationMs-i*plan.blockMs));
+    let motif=ids.get(key);
+    if(motif===undefined){motif=motifs.length;ids.set(key,motif);motifs.push(cell.notes);}
+    return {...cell,motif};
+  })}));
+  return {...plan,tracks,motifs};
+}
+
 export function alignStructureTracks(
   sources:{id:QuadPadId;loop:boolean;stepMs:number;rounds:SequenceRound[]}[],
   blockScale=1,

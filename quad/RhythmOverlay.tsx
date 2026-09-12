@@ -1,3 +1,4 @@
+import { useUiText } from './uiLocale';
 import React, { useEffect, useRef, useState } from 'react';
 import { compileLilyCycle, getPadCycleDurationMs, type QuadLilyPad } from './core';
 import { buildNodePresentations, formatMidiNote } from './nodePresentation';
@@ -7,6 +8,7 @@ const wrap = (v: number) => ((v % 1) + 1) % 1;
 type Dot = { phase: number; midi: number; track: string; time: number };
 /** Samples transport crossings, never schedules sound or changes the transport. */
 export default function RhythmOverlay({ a, b, sources }: { a: PhaseComparisonPad; b: PhaseComparisonPad; sources: QuadLilyPad[]; key?: string }) {
+  const tr = useUiText();
   const [memory, setMemory] = useState(1);
   const [windows, setWindows] = useState(6);
   const travel = useRef(a.phase);
@@ -55,8 +57,8 @@ export default function RhythmOverlay({ a, b, sources }: { a: PhaseComparisonPad
   const point = (d:Dot) => ({ x:150+radius(d.midi)*Math.sin(d.phase*Math.PI*2), y:150-radius(d.midi)*Math.cos(d.phase*Math.PI*2) });
   const opacity = (d:Dot) => Math.max(.05,1-(clock.current-d.time)/(reference*windows*Math.max(1,memory)));
   return <div className="rhythm-overlay">
-    <div className="phase-comparison__selectors"><label>每圈窗口<select aria-label="每圈窗口" value={windows} onChange={e => setWindows(Number(e.target.value))}>{[4,5,6,8,12].map(n => <option key={n} value={n}>{n} 个</option>)}</select></label><label>保留轨迹<select aria-label="叠影轮数" value={memory} onChange={e => setMemory(Number(e.target.value))}>{[1,2,4,8].map(n => <option key={n} value={n}>{n} 圈</option>)}</select></label><button onClick={() => setDots([])}>清除痕迹</button></div>
-    <svg viewBox="0 0 300 300" role="img" aria-label={`${a.id} 与 ${b.id} 的环形乐句窗口`}>
+    <div className="phase-comparison__selectors"><label>{tr("每圈窗口")}<select aria-label={tr("每圈窗口")} value={windows} onChange={e => setWindows(Number(e.target.value))}>{[4,5,6,8,12].map(n => <option key={n} value={n}>{n} {tr("个")}</option>)}</select></label><label>{tr("保留轨迹")}<select aria-label={tr("叠影轮数")} value={memory} onChange={e => setMemory(Number(e.target.value))}>{[1,2,4,8].map(n => <option key={n} value={n}>{n} {tr("圈")}</option>)}</select></label><button onClick={() => setDots([])}>{tr("清除痕迹")}</button></div>
+    <svg viewBox="0 0 300 300" role="img" aria-label={tr("{0} 与 {1} 的环形乐句窗口", a.id, b.id)}>
       {Array.from({length:windows},(_,i) => <g key={i}><line x1={150+78*Math.sin(i/windows*2*Math.PI)} y1={150-78*Math.cos(i/windows*2*Math.PI)} x2={150+134*Math.sin(i/windows*2*Math.PI)} y2={150-134*Math.cos(i/windows*2*Math.PI)} stroke="currentColor" opacity=".16"/><text x={150+69*Math.sin((i+.5)/windows*2*Math.PI)} y={153-69*Math.cos((i+.5)/windows*2*Math.PI)} textAnchor="middle" fontSize="9" fill="currentColor" opacity=".4">{i+1}</text></g>)}
       {pitches.map(m => <g key={m}><circle cx="150" cy="150" r={radius(m)} fill="none" stroke="currentColor" opacity=".09"/><text x="154" y={147-radius(m)} fontSize="8" fill="currentColor" opacity=".65">{formatMidiNote(m)}</text></g>)}
       {[a,b].map(state => {
@@ -71,9 +73,9 @@ export default function RhythmOverlay({ a, b, sources }: { a: PhaseComparisonPad
         </g>;
       })}
       <line x1="150" y1="150" x2={150+134*Math.sin(travel.current/windows*2*Math.PI)} y2={150-134*Math.cos(travel.current/windows*2*Math.PI)} stroke="currentColor" opacity=".16"/>
-      {!dots.length && <text x="150" y="155" textAnchor="middle" fontSize="11" fill="currentColor">播放后逐音绘制</text>}
+      {!dots.length && <text x="150" y="155" textAnchor="middle" fontSize="11" fill="currentColor">{tr("播放后逐音绘制")}</text>}
     </svg>
-    <p>音越高越靠外，半径按半音距离排列。线随发音顺序逐段出现，亮点标记最近的音，旧线逐渐淡去。</p>
-    <p>一圈包含 {windows} 个窗口，每个窗口等于 {a.id} 的一个乐句。两轨沿共同时间向前绘制，音乐相位不重置。适合单旋律对比；依据编排与播放进度绘制，并非录音分析。暂停参考轨、跳转或切换音符会中断轨迹。</p>
+    <p>{tr("音越高越靠外，半径按半音距离排列。线随发音顺序逐段出现，亮点标记最近的音，旧线逐渐淡去。")}</p>
+    <p>{tr("一圈包含")}{windows} {tr("个窗口，每个窗口等于")}{a.id} {tr("的一个乐句。两轨沿共同时间向前绘制，音乐相位不重置。适合单旋律对比；依据编排与播放进度绘制，并非录音分析。暂停参考轨、跳转或切换音符会中断轨迹。")}</p>
   </div>;
 }

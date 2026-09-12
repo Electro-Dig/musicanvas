@@ -74,6 +74,7 @@ export interface QuadLilyLayoutProps {
     selected: boolean;
     cyclePhase: number;
     activeNodeIds: string[];
+    playedNodeIds?: readonly string[];
     selectedNodeId: string | null;
     selectedNodeIds?: string[];
     formationHub?: {
