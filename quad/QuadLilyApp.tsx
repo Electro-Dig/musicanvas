@@ -513,6 +513,10 @@ export default function QuadLilyApp() {
     () => createPadRecord((padId) => compileLilyCycle(restingPadSnapshots[padId])),
     [restingPadSnapshots],
   );
+  const restingSequenceRounds = useMemo(
+    () => createPadRecord(padId => sequenceRound(0, restingCycleCompilations[padId], restingPadSnapshots[padId])),
+    [restingCycleCompilations, restingPadSnapshots],
+  );
 
   const setDrawCapture = useCallback((next: DrawCaptureState | null) => {
     drawCaptureRef.current = next;
@@ -2214,8 +2218,8 @@ export default function QuadLilyApp() {
   const layoutProps: QuadLilyLayoutProps = {
     structureMap: <StructureMap pads={workspace.pads} clocks={createPadRecord(id => ({...resolveVisibleCycleState(workspace.pads[id],cycleIndex[id],cyclePhase[id],pausedPads[id]),playing:workspace.pads[id].playing,paused:pausedPads[id]}))} />,
     melodyFollow: <MelodyFollow pads={workspace.pads} readClocks={readFollowClocks} transportKey={QUAD_PAD_IDS.map(id=>`${workspace.pads[id].playing}:${pausedPads[id]}:${cycleIndex[id]}`).join('|')} />,
-    sequencePanel: <SequenceWindow current={(selectedPad.playing||selectedIsPaused?sequenceRounds[selectedPadId].current:null) ?? sequenceRound(0,restingCycleCompilations[selectedPadId],restingPadSnapshots[selectedPadId])} previous={sequenceRounds[selectedPadId].previous} phase={selectedVisibleCycle.phase} playing={selectedPad.playing} padId={selectedPadId} selected={selectedNodeId} onSelect={nodeId=>setSelectedNodes(old=>({...old,[selectedPadId]:nodeId}))} />,
-    sequenceAtlas: <SequenceAtlas current={(selectedPad.playing||selectedIsPaused?sequenceRounds[selectedPadId].current:null) ?? sequenceRound(0,restingCycleCompilations[selectedPadId],restingPadSnapshots[selectedPadId])} pad={selectedPad} phase={selectedVisibleCycle.phase} playing={selectedPad.playing} onSelect={nodeId=>setSelectedNodes(old=>({...old,[selectedPadId]:nodeId}))} />,
+    sequencePanel: <SequenceWindow current={(selectedPad.playing||selectedIsPaused?sequenceRounds[selectedPadId].current:null) ?? restingSequenceRounds[selectedPadId]} previous={sequenceRounds[selectedPadId].previous} phase={selectedVisibleCycle.phase} playing={selectedPad.playing} padId={selectedPadId} selected={selectedNodeId} onSelect={nodeId=>setSelectedNodes(old=>({...old,[selectedPadId]:nodeId}))} />,
+    sequenceAtlas: <SequenceAtlas current={(selectedPad.playing||selectedIsPaused?sequenceRounds[selectedPadId].current:null) ?? restingSequenceRounds[selectedPadId]} pad={selectedPad} phase={selectedVisibleCycle.phase} playing={selectedPad.playing} onSelect={nodeId=>setSelectedNodes(old=>({...old,[selectedPadId]:nodeId}))} />,
     workspace,
     selectedPadId,
     selectedPad,

@@ -23,6 +23,13 @@ test('a chord containing ROOT starts together; hidden members remain absent',()=
  assert.equal(events.find(e=>e.nodeId==='a')?.delayMs,0);
  assert.ok(!events.some(e=>e.nodeId==='b'));
 });
+test('automatic phrase includes an explicit ROOT chord hold',()=>{
+ const p=createQuadLilyWorkspace().pads.A;
+ p.intervalMs=600;p.phraseMode='auto';
+ p.nodes=[{...p.nodes[0],x:.1,y:.5,range:.15},{id:'a',isCenter:false,x:.2,y:.5,range:0,scaleStep:1}];
+ p.formations=[{id:'G1',shape:'chord',nodeIds:['center','a'],holdSteps:4,centerX:.15,centerY:.5,radius:.05,rateCycles:1}];
+ assert.equal(compileLilyCycle(p).intervalMs,600);
+});
 test('chord shape survives workspace serialization',()=>{
  const w=fixture();assert.equal(parseQuadLilyWorkspace(JSON.stringify(w)).pads.A.formations?.[0].shape,'chord');
 });

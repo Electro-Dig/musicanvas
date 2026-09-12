@@ -1,5 +1,8 @@
-// OpenDX7 — FM Synthesizer (MIT License)
-// Copyright (c) 2026 Keith Adler
+// Derived from OpenDX7 js/dx7-patch.js at revision
+// 07f7d866b2f49f4cf52f5eee2a54c68515946261 (MIT License).
+// Copyright (c) 2026 Keith Adler.
+// MusiCanvas retains 12 of OpenDX7's stated clean-room patch designs.
+// See public/vendor/opendx7/LICENSE and NOTICE.md for provenance.
 // DX7 Patch data structures and SysEx parsing
 // Handles both packed (32-voice bulk dump) and unpacked (single voice) formats
 

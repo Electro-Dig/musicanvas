@@ -498,13 +498,17 @@ export const StudioLayout: React.FC<QuadLilyLayoutProps> = (props) => {
                   </span>
                 </button>
                 <section className="quad-studio-release-notes" aria-label={locale === 'zh' ? '更新说明' : 'What’s new'}>
-                  <h3>{locale === 'zh' ? '更新说明' : 'What’s new'} <span>v0.32.0</span></h3>
-                  <time dateTime="2026-09-08">2026-09-08</time>
+                  <h3>{locale === 'zh' ? '更新说明' : 'What’s new'} <span>v0.33.0</span></h3>
+                  <time dateTime="2026-09-12">2026-09-12</time>
                   <ul>
                     {(locale === 'zh' ? [
-                      '优化全局操作与四宫格切换，新增多画布参数统一调整。',
+                      '新增完整音序、结构对照与旋律追随；支持和弦、长乐句与独立音色。',
+                      '新增 FM 音色分类、三个卡农示例与羽叶装饰。',
+                      '设置中可开启四宫格工具栏和羽叶摇曳实验，默认关闭。',
                     ] : [
-                      'Refined global controls and grid navigation; added shared parameter editing across canvases.',
+                      'Sequence atlas, structure comparison and melody following; chords, longer phrases and per-pad sounds.',
+                      'FM sound categories, three Canon studies and feather decorations.',
+                      'Optional grid toolbars and experimental feather sway in Settings; both off by default.',
                     ]).map(note => <li key={note}>{note}</li>)}
                   </ul>
                 </section>

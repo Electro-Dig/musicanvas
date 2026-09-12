@@ -23,6 +23,7 @@ import {
 } from './core.ts';
 import { buildPadLibraryPreviewModel } from './preview.ts';
 import { CanvasDecorationLayer } from '../CanvasDecorationLayer.tsx';
+import { CanonStudyCards } from './CanonStudyCards.tsx';
 import { LocalStorageLibraryRepository } from './localStorage.ts';
 import {
   PUBLIC_PAD_TEMPLATES,
@@ -990,6 +991,7 @@ export function LibraryDrawer({
               </div>
             )}
             <div className="library-grid" style={{ '--library-grid-cols': String(gridCols) } as CSSProperties}>
+              {open && activeTab === 'patterns' && <CanonStudyCards onLoad={loadAsset} onStatus={onStatus} />}
               {plazaEntries.map(entry => (
                 <LibraryAssetCard
                   key={`${entry.origins[0]}-${entry.asset.id}`}

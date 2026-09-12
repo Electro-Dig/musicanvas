@@ -259,9 +259,9 @@ export function updateLilyNode(
   } else if (isEndpointPitch(patch.endpointPitch)) {
     next.endpointPitch = cloneEndpointPitch(patch.endpointPitch);
   }
-  if (patch.muted === null) delete next.muted;
   if (patch.holdSteps === null) delete next.holdSteps;
   else if (patch.holdSteps !== undefined) next.holdSteps = normalizeNodeHoldSteps(patch.holdSteps);
+  if (patch.muted === null) delete next.muted;
   else if (typeof patch.muted === 'boolean') next.muted = patch.muted;
   if (patch.hidden === null) delete next.hidden;
   else if (typeof patch.hidden === 'boolean') next.hidden = patch.hidden;
@@ -339,6 +339,7 @@ export function compileLilyCycle(pad: QuadLilyPad): LilyCycleCompilation {
   const chordByNode = new Map<string, LilyNoteFormation>();
   for (const f of getPadFormations(pad)) if (f.shape === 'chord') for (const id of f.nodeIds) if (!chordByNode.has(id)) chordByNode.set(id, f);
   const chordFor = (id: string) => chordByNode.get(id);
+  const holdStepsFor = (node: LilyNode) => normalizeNodeHoldSteps(chordFor(node.id)?.holdSteps ?? node.holdSteps);
   const joinChord = (anchor: ScheduledNode) => {
     const chord=chordFor(anchor.nodeId);
     if(!chord)return;
@@ -376,7 +377,7 @@ export function compileLilyCycle(pad: QuadLilyPad): LilyCycleCompilation {
         node,
         nodeId: node.id,
         parentId: sourceEvent.nodeId,
-        delayMs: sourceEvent.delayMs + (index + normalizeNodeHoldSteps(chordFor(sourceEvent.nodeId)?.holdSteps ?? sourceEvent.node.holdSteps)) * propagationStepMs,
+        delayMs: sourceEvent.delayMs + (index + holdStepsFor(sourceEvent.node)) * propagationStepMs,
         depth: sourceEvent.depth + 1,
         scaleStep: node.scaleStep,
         sequence: sequence++,
@@ -397,7 +398,7 @@ export function compileLilyCycle(pad: QuadLilyPad): LilyCycleCompilation {
   const ordered = scheduled.sort(compareScheduledNodes);
   if (pad.phraseMode === 'auto') {
     const sounding = ordered.filter(event => !event.node.muted && !event.node.hidden);
-    cycleDurationMs = Math.max(1, ...sounding.map(event => Math.round(event.delayMs / propagationStepMs) + normalizeNodeHoldSteps(event.node.holdSteps))) * propagationStepMs;
+    cycleDurationMs = Math.max(1, ...sounding.map(event => Math.round(event.delayMs / propagationStepMs) + holdStepsFor(event.node))) * propagationStepMs;
   }
   const waveByOffset = new Map<number, number>();
   ordered.forEach(({ delayMs }) => {

@@ -3,6 +3,8 @@
 // DX7 AudioWorklet Processor — FM synthesis engine
 // Based on the YM21280 (OPS) and YM21290 (EGS) chip architecture.
 // References: Ken Shirriff's die analysis, msfa/Dexed, cross-verified measurements.
+// Includes MSFA-derived DSP portions under Apache-2.0 (Google Inc. and
+// contributors). See NOTICE.md, LICENSE and LICENSE.Apache-2.0 in this directory.
 //
 // KEY ARCHITECTURE: Everything operates in the log domain until the final
 // sin() lookup. Output level, envelope, velocity, and keyboard scaling are

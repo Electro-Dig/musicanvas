@@ -19,3 +19,13 @@ test('events at or beyond phrase boundary are not plotted as this phrase',()=>{
  const round=sequenceRound(0,{...plan,events:[...plan.events,{nodeId:'center',delayMs:600,depth:4,scaleStep:0}]},pad);
  assert.equal(round.hits.length,1);
 });
+test('automatic chord-hold rounds use the already compiled cycle boundary',()=>{
+ const pad=createQuadLilyWorkspace().pads.A;pad.phraseMode='auto';
+ pad.nodes.push({id:'chord-note',x:.51,y:.5,range:0,scaleStep:1,isCenter:false});
+ pad.formations=[{id:'G1',shape:'chord',nodeIds:['center','chord-note'],holdSteps:4,centerX:.5,centerY:.5,radius:.05,rateCycles:1}];
+ const plan=compileLilyCycle(pad);assert.equal(plan.intervalMs,600);
+ pad.formations[0].holdSteps=1;
+ const round=sequenceRound(0,{...plan,events:[...plan.events,{nodeId:'center',delayMs:450,depth:3,scaleStep:0}]},pad);
+ assert.equal(round.steps,4);
+ assert.ok(round.hits.some(hit=>hit.step===3));
+});

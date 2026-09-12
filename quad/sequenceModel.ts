@@ -1,5 +1,4 @@
 import type { LilyCycleCompilation, QuadLilyPad } from './core.ts';
-import { getPadCycleDurationMs } from './core.ts';
 import { buildNodePresentations } from './nodePresentation.ts';
 export interface SequenceHit { nodeId: string; midi: number; name: string; step: number; muted: boolean }
 export interface SequenceRound { cycle: number; steps: number; hits: SequenceHit[]; played: string[] }
@@ -11,8 +10,9 @@ export function archiveSequenceRound(entry:SequenceArchive,next:SequenceRound):S
 }
 export function sequenceRound(cycle: number, plan: LilyCycleCompilation, pad: QuadLilyPad): SequenceRound {
  const names = buildNodePresentations(pad.nodes, pad);
- return { cycle, steps: Math.round(getPadCycleDurationMs(pad) / plan.propagationStepMs), played: [], hits: plan.events.flatMap(event => {
-  if(event.delayMs >= getPadCycleDurationMs(pad)) return [];
+ const cycleDurationMs = plan.intervalMs;
+ return { cycle, steps: Math.round(cycleDurationMs / plan.propagationStepMs), played: [], hits: plan.events.flatMap(event => {
+  if(event.delayMs >= cycleDurationMs) return [];
   const node = pad.nodes.find(n => n.id === event.nodeId); const name = names.get(event.nodeId);
   return !node || node.hidden || name?.midiNote == null ? [] : [{nodeId:event.nodeId, midi:name.midiNote, name:name.noteName, step:event.delayMs / plan.propagationStepMs, muted:!!node.muted}];
  }) };

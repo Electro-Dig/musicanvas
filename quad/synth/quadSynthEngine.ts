@@ -1,12 +1,18 @@
 import { getSoundPresetById, type SoundPreset } from './soundPresets';
 import { OpenDx7Engine } from './openDx7';
 
-class QuadSynthEngine {
+interface SynthVoice {
+  gain: GainNode;
+  sources: OscillatorNode[];
+}
+
+export class QuadSynthEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
   private isMuted: boolean = false;
   private fm: OpenDx7Engine | null = null;
+  private voices = new Map<string, Set<SynthVoice>>();
 
   private initContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -46,7 +52,21 @@ class QuadSynthEngine {
     void this.fm?.prepare().catch(error=>console.error('FM engine loading failed',error));
   }
 
-  public stopTrack(track:string):void { this.fm?.stop(track); }
+  public stopTrack(track: string): void {
+    this.fm?.stop(track);
+    const voices = this.voices.get(track);
+    if (!voices || !this.ctx) return;
+    this.voices.delete(track);
+    const now = this.ctx.currentTime;
+    for (const voice of voices) {
+      // A short fade avoids a discontinuity, including future scheduled notes.
+      const gain = voice.gain.gain;
+      if (typeof gain.cancelAndHoldAtTime === 'function') gain.cancelAndHoldAtTime(now);
+      else { gain.cancelScheduledValues(now); gain.setValueAtTime(gain.value, now); }
+      gain.linearRampToValueAtTime(0, now + .01);
+      for (const source of voice.sources) source.stop(now + .015);
+    }
+  }
 
   public getCurrentTime(): number | null {
     const ctx = this.ctx ?? this.initContext();
@@ -164,6 +184,19 @@ class QuadSynthEngine {
       voiceGain.connect(this.masterGain);
 
       const stopTime = noteEnd + releaseTime + 0.05;
+      const sources = [osc1, osc2, lfo].filter((source): source is OscillatorNode => source !== null);
+      const voice: SynthVoice = { gain: voiceGain, sources };
+      const trackVoices = this.voices.get(trackId) ?? new Set<SynthVoice>();
+      trackVoices.add(voice);
+      this.voices.set(trackId, trackVoices);
+      let remaining = sources.length;
+      const connections = [osc1, osc2, osc2Gain, lfo, lfoGain, filter, voiceGain];
+      for (const source of sources) source.onended = () => {
+        if (--remaining > 0) return;
+        trackVoices.delete(voice);
+        if (this.voices.get(trackId) === trackVoices && !trackVoices.size) this.voices.delete(trackId);
+        for (const node of connections) node?.disconnect();
+      };
       osc1.start(now);
       osc1.stop(stopTime);
 
@@ -177,18 +210,7 @@ class QuadSynthEngine {
         lfo.stop(stopTime);
       }
 
-      // Cleanup nodes after playing
-      setTimeout(() => {
-        try {
-          osc1.disconnect();
-          osc2?.disconnect();
-          osc2Gain?.disconnect();
-          lfo?.disconnect();
-          lfoGain?.disconnect();
-          filter.disconnect();
-          voiceGain.disconnect();
-        } catch {}
-      }, (stopTime - now) * 1000 + 100);
+      // onended follows the audio clock; no per-note cleanup timer is needed.
     } catch {
       // AudioContext could be suspended or unavailable in headless environments
     }
@@ -202,7 +224,10 @@ class QuadSynthEngine {
 
   public setMuted(muted: boolean): void {
     this.isMuted = muted;
-    if(muted)this.fm?.stopAll();
+    if (muted) {
+      this.fm?.stopAll();
+      for (const track of this.voices.keys()) this.stopTrack(track);
+    }
   }
 }
 

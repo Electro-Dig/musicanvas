@@ -38,6 +38,16 @@ test('library roundtrip preserves 48 seconds and node values; edits normalize an
   assert.equal(parseQuadLilyWorkspace(JSON.stringify(raw)).pads.B.nodes[1].holdSteps,1);
 });
 
+test('hold and mute can be set and reset together',()=>{
+  let w=createQuadLilyWorkspace();
+  w=updateLilyNode(w,'B','center',{holdSteps:4,muted:true});
+  assert.equal(w.pads.B.nodes[0].holdSteps,4);
+  assert.equal(w.pads.B.nodes[0].muted,true);
+  w=updateLilyNode(w,'B','center',{holdSteps:null,muted:null});
+  assert.equal(w.pads.B.nodes[0].holdSteps,undefined);
+  assert.equal(w.pads.B.nodes[0].muted,undefined);
+});
+
 test('chord hold takes priority and does not stagger simultaneous members',()=>{
   const p=phrase();
   p.formations=[{id:'chord',shape:'chord',nodeIds:['quarter','sixteenth'],holdSteps:2,centerX:.25,centerY:.5,radius:.05,rateCycles:1}];
